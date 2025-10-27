@@ -34,12 +34,21 @@ class ChunkingService:
         if len(text) <= chunk_size:
             return [text]
         
+        # Prevent infinite loop if overlap is too large
+        if chunk_overlap >= chunk_size:
+            chat_logger.warning(f"Chunk overlap ({chunk_overlap}) >= chunk size ({chunk_size}), reducing overlap to {chunk_size - 1}")
+            chunk_overlap = chunk_size - 1
+        
         chunks = []
         start = 0
-        
+        iteration_count = 0
+
         while start < len(text):
             # Calculate end position
             end = start + chunk_size
+            iteration_count += 1
+            if iteration_count % 100 == 0:
+                chat_logger.info(f"Chunking iteration {iteration_count}, start={start}, end={end}, text_len={len(text)}")
             
             # If we're not at the end of the text, try to break at a sentence or paragraph
             if end < len(text):
@@ -47,6 +56,7 @@ class ChunkingService:
                 paragraph_break = text.rfind('\n\n', start, end)
                 if paragraph_break != -1 and paragraph_break > start:
                     end = paragraph_break + 2
+                    chat_logger.debug(f"Adjusted end to paragraph break at {paragraph_break}")
                 else:
                     # Look for sentence break
                     sentence_breaks = ['.', '!', '?', '\n']
@@ -58,6 +68,7 @@ class ChunkingService:
                     
                     if best_break != -1:
                         end = best_break + 1
+                        chat_logger.debug(f"Adjusted end to sentence break at {best_break}")
             
             # Extract chunk
             chunk = text[start:end].strip()
@@ -73,13 +84,17 @@ class ChunkingService:
             # Ensure we make progress (don't go backward or stay in same position)
             if start < 0:
                 start = 0
-            if start >= prev_end:
-                start = prev_end
+            if start <= prev_end:
+                start = prev_end + 1
+                chat_logger.debug(f"Adjusted start from {start - (prev_end + 1)} to {start} to ensure progress")
         
-        chat_logger.info(f"Split text into {len(chunks)} chunks", 
+        chat_logger.info(f"Chunking completed after {iteration_count} iterations")
+        if iteration_count > 1000:
+            chat_logger.warning(f"High iteration count: {iteration_count}, possible infinite loop or performance issue")
+        chat_logger.info(f"Split text into {len(chunks)} chunks",
                         total_length=len(text),
                         avg_chunk_size=len(text)//len(chunks) if chunks else 0)
-        
+
         return chunks
     
     @staticmethod

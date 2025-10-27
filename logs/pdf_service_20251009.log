@@ -1,3 +1,0 @@
-2025-10-09 14:58:55 | INFO | pdf_service | info:69 | {"message": "Document tracking database initialized", "data": {"db_path": "C:\\Shyamnath\\learning\\backend\\document_tracking.db"}, "timestamp": "2025-10-09T09:28:55.655130", "logger": "pdf_service"}
-2025-10-09 14:59:44 | INFO | pdf_service | info:69 | {"message": "Document tracking database initialized", "data": {"db_path": "C:\\Shyamnath\\learning\\backend\\document_tracking.db"}, "timestamp": "2025-10-09T09:29:44.650637", "logger": "pdf_service"}
-2025-10-09 15:00:03 | INFO | pdf_service | info:69 | {"message": "Document tracking database initialized", "data": {"db_path": "C:\\Shyamnath\\learning\\backend\\document_tracking.db"}, "timestamp": "2025-10-09T09:30:03.157057", "logger": "pdf_service"}

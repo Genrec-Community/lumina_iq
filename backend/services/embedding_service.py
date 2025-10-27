@@ -5,9 +5,10 @@ from typing import List
 import together
 from utils.logger import chat_logger
 from config.settings import settings
+from utils.cache import cache_service
 
 # Thread pool for concurrent requests
-embedding_pool = concurrent.futures.ThreadPoolExecutor(max_workers=50)
+embedding_pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)  # Reduced for Render free tier
 
 
 class EmbeddingService:
@@ -47,7 +48,13 @@ class EmbeddingService:
     async def generate_embedding(text: str, max_retries: int = 3) -> List[float]:
         """
         Generate embedding for a single text using Together.ai API with BAAI/bge-large-en-v1.5
+        Uses caching to avoid repeated API calls
         """
+        # Check cache first
+        cached_embedding = await cache_service.get_cached_embedding(text)
+        if cached_embedding:
+            return cached_embedding
+
         loop = asyncio.get_event_loop()
         api_key = EmbeddingService.get_api_key()
         model = EmbeddingService.get_embedding_model()
@@ -79,6 +86,8 @@ class EmbeddingService:
                 embedding, error = await loop.run_in_executor(embedding_pool, _generate)
 
                 if embedding:
+                    # Cache the embedding
+                    await cache_service.save_embedding_to_cache(text, embedding)
                     return embedding
 
                 if error:
@@ -125,6 +134,11 @@ class EmbeddingService:
             result.append(emb)
 
         return result
+
+    @staticmethod
+    async def generate_batch_query_embeddings(queries: List[str]) -> List[List[float]]:
+        """Generate embeddings for multiple queries in batch"""
+        return await EmbeddingService.generate_embeddings_batch(queries)
 
     @staticmethod
     async def generate_query_embedding(query: str, max_retries: int = 3) -> List[float]:

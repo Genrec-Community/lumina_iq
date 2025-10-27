@@ -29,7 +29,7 @@ class QdrantService:
         """Initialize Qdrant client"""
         try:
             self.client = QdrantClient(
-                url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY, timeout=30
+                url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY, timeout=120
             )
             chat_logger.info("Qdrant client initialized successfully")
             self._ensure_collection_exists()
@@ -51,7 +51,7 @@ class QdrantService:
                         distance=Distance.COSINE,
                     ),
                 )
-                chat_logger.info(f"Created collection: {self.collection_name}")
+                chat_logger.info("Created collection", collection_name=self.collection_name)
 
                 # Create payload indexes for filtering
                 self.client.create_payload_index(
@@ -85,9 +85,9 @@ class QdrantService:
                     field_name="metadata.primary_content_type",
                     field_schema=PayloadSchemaType.KEYWORD,
                 )
-                chat_logger.info(f"Created payload indexes for {self.collection_name}")
+                chat_logger.info("Created payload indexes", collection_name=self.collection_name)
             else:
-                chat_logger.info(f"Collection already exists: {self.collection_name}")
+                chat_logger.info("Collection already exists", collection_name=self.collection_name)
         except Exception as e:
             chat_logger.error("Failed to ensure collection exists", error=str(e))
             raise
@@ -272,7 +272,7 @@ class QdrantService:
                     ]
                 ),
             )
-            chat_logger.info(f"Deleted chunks for {filename}")
+            chat_logger.info("Deleted chunks", filename=filename)
         except Exception as e:
             chat_logger.error(
                 "Failed to delete document chunks", filename=filename, error=str(e)
@@ -356,7 +356,7 @@ class QdrantService:
                     }
                 )
 
-            chat_logger.info(f"Retrieved {len(chunks)} chunks by filter", token=token)
+            chat_logger.info("Retrieved chunks by filter", num_chunks=len(chunks), token=token)
             return chunks
 
         except Exception as e:

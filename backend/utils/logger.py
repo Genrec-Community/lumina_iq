@@ -4,91 +4,51 @@ import os
 from datetime import datetime
 from typing import Any, Dict, Optional
 from pathlib import Path
+from rich.logging import RichHandler
+from rich.console import Console
+from config.settings import settings
 
 
-class StructuredLogger:
-    """Production-ready structured logging for the backend"""
+# COnsoles for RichHandlers
+console = Console()
+file_console = Console(
+    file=open(f"{datetime.today().strftime('%d_%b_%Y')}.log", "a+"), width=console.width
+)
 
-    def __init__(self, name: str, log_level: Optional[str] = None):
-        self.name = name
-        self.log_level = log_level or os.getenv("LOG_LEVEL", "INFO").upper()
-
-        # Create logs directory if it doesn't exist
-        logs_dir = Path("logs")
-        logs_dir.mkdir(exist_ok=True)
-
-        # Configure logger
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(getattr(logging, self.log_level))
-
-        # Prevent duplicate handlers
-        if self.logger.handlers:
-            return
-
-        from .logging_config import CompactFormatter, DeduplicatingHandler
-
-        # Console handler with compact format and deduplication
-        base_console = logging.StreamHandler()
-        base_console.setFormatter(CompactFormatter())
-        console_handler = DeduplicatingHandler(base_console)
-        console_handler.setLevel(getattr(logging, self.log_level))
-        self.logger.addHandler(console_handler)
-
-        # File handler for persistent logs with full details
-        file_handler = logging.FileHandler(
-            f"logs/{name}_{datetime.now().strftime('%Y%m%d')}.log", encoding="utf-8"
-        )
-        file_formatter = logging.Formatter(
-            "%(asctime)s | %(levelname)s | %(name)s | %(funcName)s:%(lineno)d | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        file_handler.setFormatter(file_formatter)
-        file_handler.setLevel(getattr(logging, self.log_level))
-        self.logger.addHandler(file_handler)
-
-        self.logger.propagate = False
-
-    def _format_message(self, message: str, **kwargs) -> str:
-        """Format message with optional structured data"""
-        if kwargs:
-            structured_data = {
-                "message": message,
-                "data": kwargs,
-                "timestamp": datetime.utcnow().isoformat(),
-                "logger": self.name,
-            }
-            return json.dumps(structured_data)
-        return message
-
-    def debug(self, message: str, **kwargs):
-        """Debug level logging"""
-        self.logger.debug(self._format_message(message, **kwargs))
-
-    def info(self, message: str, **kwargs):
-        """Info level logging"""
-        self.logger.info(self._format_message(message, **kwargs))
-
-    def warning(self, message: str, **kwargs):
-        """Warning level logging"""
-        self.logger.warning(self._format_message(message, **kwargs))
-
-    def error(self, message: str, exc_info: bool = False, **kwargs):
-        """Error level logging"""
-        self.logger.error(self._format_message(message, **kwargs), exc_info=exc_info)
-
-    def critical(self, message: str, exc_info: bool = False, **kwargs):
-        """Critical level logging"""
-        self.logger.critical(self._format_message(message, **kwargs), exc_info=exc_info)
-
+# Map string to logging level
+log_level_map = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL,
+}
+log_level = log_level_map.get(settings.LOG_LEVEL.upper(), logging.WARNING)
 
 # Global logger instances
-pdf_logger = StructuredLogger("pdf_service")
-cache_logger = StructuredLogger("cache")
-chat_logger = StructuredLogger("chat_service")
-ip_logger = StructuredLogger("ip_detector")
+pdf_logger = logging.getLogger("pdf_service")
+cache_logger = logging.getLogger("cache")
+chat_logger = logging.getLogger("chat_service")
+ip_logger = logging.getLogger("ip_detector")
+
+# Attach Handlers - Console
+for each in (pdf_logger, cache_logger, chat_logger, ip_logger):
+    each.root.handlers = []
+    each.addHandler(RichHandler(console=console))
+    each.addHandler(RichHandler(console=file_console))
+    each.setLevel(log_level)
+    for handler in each.handlers:
+        handler.setLevel(log_level)
+
+for each in (pdf_logger, cache_logger, chat_logger, ip_logger):
+    each.info("Test info")
+    each.debug("Test debug")
+    each.warning("Test warning")
+    each.critical("Test critical")
+    each.error("Test error")
 
 
 # Convenience functions
-def get_logger(name: str) -> StructuredLogger:
+def get_logger(name: str) -> logging.Logger:
     """Get a logger instance for a specific module"""
-    return StructuredLogger(name)
+    return logging.getLogger(name)
