@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 from pathlib import Path
 from rich.logging import RichHandler
 from rich.console import Console
-from backend.config.settings import settings
+from config.settings import settings
 
 
 # COnsoles for RichHandlers
@@ -15,7 +15,16 @@ file_console = Console(
     file=open(f"{datetime.today().strftime('%d_%b_%Y')}.log", "a+"), width=console.width
 )
 
-log_level = settings.
+# Map string to logging level
+log_level_map = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL,
+}
+log_level = log_level_map.get(settings.LOG_LEVEL.upper(), logging.WARNING)
+
 # Global logger instances
 pdf_logger = logging.getLogger("pdf_service")
 cache_logger = logging.getLogger("cache")
@@ -27,6 +36,9 @@ for each in (pdf_logger, cache_logger, chat_logger, ip_logger):
     each.root.handlers = []
     each.addHandler(RichHandler(console=console))
     each.addHandler(RichHandler(console=file_console))
+    each.setLevel(log_level)
+    for handler in each.handlers:
+        handler.setLevel(log_level)
 
 for each in (pdf_logger, cache_logger, chat_logger, ip_logger):
     each.info("Test info")

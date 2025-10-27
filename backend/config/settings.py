@@ -97,6 +97,7 @@ class Settings(BaseSettings):
     CACHE_EMBEDDINGS: bool = Field(default=True)  # Enable caching for embeddings
     CACHE_QUERY_RESULTS: bool = Field(default=True)  # Enable caching for query results
     CACHE_TTL_SECONDS: int = Field(default=3600)  # 1 hour cache TTL
+    LOG_LEVEL: str = Field(default="WARNING")  # Logging level
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

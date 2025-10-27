@@ -10,10 +10,7 @@ import socket
 import os
 import re
 from pathlib import Path
-import logging
-
-# Create a logger
-ip_logger = logging.getLogger(__name__)
+from utils.logger import ip_logger
 
 def get_local_ip():
     """
@@ -83,7 +80,7 @@ def update_frontend_env(ip_address, port=8000):
     except Exception as e:
         ip_logger.error("Error updating frontend .env file", error=str(e))
         ip_logger.info("Please manually update the NEXT_PUBLIC_API_BASE_URL in frontend/.env")
-        ip_logger.info(f"Set it to: http://{ip_address}:{port}/api")
+        ip_logger.info("Set API URL", url=f"http://{ip_address}:{port}/api")
 
 
 def setup_frontend_env(port=8000):

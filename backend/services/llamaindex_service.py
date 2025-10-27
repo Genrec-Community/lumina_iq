@@ -86,7 +86,8 @@ class LlamaIndexService:
                         separator=" ",
                     )
                 except Exception as e:
-                    chat_logger.warning(f"Failed to create SentenceSplitter: {e}, falling back to TokenTextSplitter")
+                    chat_logger.warning("Failed to create SentenceSplitter, falling back to TokenTextSplitter",
+                                       error=str(e))
                     # Fall back to basic text splitter
                     from llama_index.core.node_parser import TokenTextSplitter
 
@@ -105,7 +106,8 @@ class LlamaIndexService:
             )
 
         except Exception as e:
-            chat_logger.error(f"Failed to setup LlamaIndex settings: {e}")
+            chat_logger.error("Failed to setup LlamaIndex settings",
+                             error=str(e))
             # Set minimal fallback settings
             Settings.embed_model = TogetherEmbedding(
                 model_name=settings.EMBEDDING_MODEL, api_key=settings.TOGETHER_API_KEY
@@ -152,16 +154,21 @@ class LlamaIndexService:
             try:
                 batch_embeddings = Settings.embed_model.get_text_embedding_batch(batch_texts)
                 embeddings.extend(batch_embeddings)
-                chat_logger.info(f"Generated embeddings for batch {i//batch_size + 1}, size {len(batch_texts)}")
+                chat_logger.info("Generated embeddings for batch",
+                                batch_num=i//batch_size + 1,
+                                batch_size=len(batch_texts))
             except Exception as e:
-                chat_logger.error(f"Failed to generate embeddings for batch {i//batch_size + 1}: {e}")
+                chat_logger.error("Failed to generate embeddings for batch",
+                                 batch_num=i//batch_size + 1,
+                                 error=str(e))
                 # Fallback to individual
                 for text in batch_texts:
                     try:
                         emb = Settings.embed_model.get_text_embedding(text)
                         embeddings.append(emb)
                     except Exception as e2:
-                        chat_logger.error(f"Failed to generate embedding for text: {e2}")
+                        chat_logger.error("Failed to generate embedding for text",
+                                         error=str(e2))
                         embeddings.append([0.0] * settings.EMBEDDING_DIMENSIONS)
 
         return embeddings
@@ -196,9 +203,10 @@ class LlamaIndexService:
             documents = reader.load_data(Path(file_path))
 
             chat_logger.info(
-                f"Loaded {len(documents)} documents from PDF",
+                "Loaded documents from PDF",
                 file_path=file_path,
                 total_pages=len(documents),
+                num_documents=len(documents),
             )
 
             return documents
@@ -315,7 +323,8 @@ class LlamaIndexService:
             try:
                 await pipeline.vector_store.aadd_nodes_to_index(nodes_with_metadata)
             except Exception as e:
-                chat_logger.error(f"Failed to add nodes to vector store: {e}")
+                chat_logger.error("Failed to add nodes to vector store",
+                                 error=str(e))
                 # Fall back to standard indexing if LlamaIndex vector store fails
                 from services.rag_service import rag_service
 
@@ -328,7 +337,7 @@ class LlamaIndexService:
                 return fallback_result
 
             chat_logger.info(
-                f"LlamaIndex indexing completed",
+                "LlamaIndex indexing completed",
                 filename=filename,
                 num_nodes=len(nodes),
             )
@@ -423,7 +432,7 @@ class LlamaIndexService:
 
             combined_context = "\n\n".join(context_parts)
 
-            chat_logger.info(f"LlamaIndex retrieval completed", num_nodes=len(nodes))
+            chat_logger.info("LlamaIndex retrieval completed", num_nodes=len(nodes))
 
             return {
                 "status": "success",

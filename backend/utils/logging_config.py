@@ -58,6 +58,7 @@ def configure_logging():
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("multipart").setLevel(logging.WARNING)
 
     # Get worker ID from environment
     worker_id = os.getenv("UVICORN_WORKER_ID", "1")

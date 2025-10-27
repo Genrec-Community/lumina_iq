@@ -76,3 +76,45 @@
                     ERROR    Test error                                   logger.py:34
                     ERROR    Failed to initialize NLTK data: File is  nltk_init.py:188
                              not a zip file                                           
+[10/27/25 21:37:57] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:37:57] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:37:57] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:37:57] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:38:55] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:38:55] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:38:55] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:38:55] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:38:55] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:38:55] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:38:55] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:38:55] WARNING  Test warning                                 logger.py:46
+                    CRITICAL Test critical                                logger.py:47
+                    ERROR    Test error                                   logger.py:48
+[10/27/25 21:38:59] ERROR    Failed to initialize NLTK data: File is  nltk_init.py:188
+                             not a zip file                                           
+[10/27/25 21:48:24] WARNING  No relevant context found, falling    chat_service.py:259
+                             back to full content preview                             
+[10/27/25 21:48:25] WARNING  No relevant context found, falling    chat_service.py:259
+                             back to full content preview                             

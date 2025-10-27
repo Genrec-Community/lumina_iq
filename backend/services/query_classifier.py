@@ -110,9 +110,10 @@ class QueryClassifier:
             use_case = 'notes'
             confidence = 0.90
         
-        chat_logger.info(f"Query classified as: {use_case}", 
-                        confidence=f"{confidence:.2f}",
-                        matched_keywords=matched_keywords)
+        chat_logger.info("Query classified as",
+                         use_case=use_case,
+                         confidence=f"{confidence:.2f}",
+                         matched_keywords=matched_keywords)
         
         return {
             "use_case": use_case,

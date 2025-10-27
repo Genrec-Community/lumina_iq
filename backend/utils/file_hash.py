@@ -27,12 +27,16 @@ class FileHashService:
                     hash_obj.update(chunk)
             
             file_hash = hash_obj.hexdigest()
-            pdf_logger.debug(f"Calculated {algorithm} hash for {file_path}", 
-                           hash_value=file_hash[:16])
+            pdf_logger.debug("Calculated hash",
+                            algorithm=algorithm,
+                            file_path=file_path,
+                            hash_value=file_hash[:16])
             return file_hash
-            
+
         except Exception as e:
-            pdf_logger.error(f"Failed to calculate hash for {file_path}", error=str(e))
+            pdf_logger.error("Failed to calculate hash",
+                            file_path=file_path,
+                            error=str(e))
             return None
     
     @staticmethod
