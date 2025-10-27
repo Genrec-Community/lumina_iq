@@ -63,34 +63,56 @@ class AdvancedRAGService:
         all_chunks = []
         seen_texts = set()
 
-        # Retrieve for each query variation
-        for query_var in query_variations:
-            try:
-                # Generate embedding for query
-                query_embedding = await EmbeddingService.generate_query_embedding(
-                    query_var
-                )
+        # Batch generate embeddings for all query variations
+        try:
+            query_embeddings = await EmbeddingService.generate_batch_query_embeddings(
+                query_variations
+            )
 
-                # Search in Qdrant
-                results = await qdrant_service.search_similar_chunks(
-                    query_embedding=query_embedding,
-                    token=token,
-                    filename=filename,
-                    limit=chunks_per_query,
-                )
+            # Retrieve for each query variation
+            for query_var, query_embedding in zip(query_variations, query_embeddings):
+                try:
+                    # Search in Qdrant
+                    results = await qdrant_service.search_similar_chunks(
+                        query_embedding=query_embedding,
+                        token=token,
+                        filename=filename,
+                        limit=chunks_per_query,
+                    )
 
-                # Deduplicate based on text content
-                for chunk in results:
-                    chunk_text = chunk["text"][:100]  # First 100 chars for dedup
-                    if chunk_text not in seen_texts:
-                        seen_texts.add(chunk_text)
-                        all_chunks.append(chunk)
+                    # Deduplicate based on text content
+                    for chunk in results:
+                        chunk_text = chunk["text"][:100]  # First 100 chars for dedup
+                        if chunk_text not in seen_texts:
+                            seen_texts.add(chunk_text)
+                            all_chunks.append(chunk)
 
-            except Exception as e:
-                chat_logger.warning(
-                    f"Query variation failed: {query_var[:30]}", error=str(e)
-                )
-                continue
+                except Exception as e:
+                    chat_logger.warning(
+                        f"Query variation failed: {query_var[:30]}", error=str(e)
+                    )
+                    continue
+
+        except Exception as e:
+            chat_logger.warning("Batch embedding failed, falling back to individual", error=str(e))
+            # Fallback to individual embeddings
+            for query_var in query_variations:
+                try:
+                    query_embedding = await EmbeddingService.generate_query_embedding(query_var)
+                    results = await qdrant_service.search_similar_chunks(
+                        query_embedding=query_embedding,
+                        token=token,
+                        filename=filename,
+                        limit=chunks_per_query,
+                    )
+                    for chunk in results:
+                        chunk_text = chunk["text"][:100]
+                        if chunk_text not in seen_texts:
+                            seen_texts.add(chunk_text)
+                            all_chunks.append(chunk)
+                except Exception as e2:
+                    chat_logger.warning(f"Query variation failed: {query_var[:30]}", error=str(e2))
+                    continue
 
         chat_logger.info(f"Multi-query retrieval found {len(all_chunks)} unique chunks")
         return all_chunks

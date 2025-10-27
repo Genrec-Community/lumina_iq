@@ -76,16 +76,17 @@ class LlamaIndexService:
 
             # Configure chunking for large documents with NLTK sentence splitting
             # Use safe NLTK operation for sentence splitting
-            def safe_sentence_splitter(text, chunk_size, chunk_overlap):
+            def safe_sentence_splitter(chunk_size, chunk_overlap):
                 """Safe sentence splitter that handles NLTK errors"""
                 try:
+                    chat_logger.info("Using SentenceSplitter for chunking")
                     return SentenceSplitter(
                         chunk_size=chunk_size,
                         chunk_overlap=chunk_overlap,
                         separator=" ",
                     )
                 except Exception as e:
-                    chat_logger.warning(f"Failed to create SentenceSplitter: {e}")
+                    chat_logger.warning(f"Failed to create SentenceSplitter: {e}, falling back to TokenTextSplitter")
                     # Fall back to basic text splitter
                     from llama_index.core.node_parser import TokenTextSplitter
 
@@ -94,7 +95,6 @@ class LlamaIndexService:
                     )
 
             Settings.node_parser = safe_sentence_splitter(
-                "",  # Dummy text for initialization
                 settings.LLAMAINDEX_CHUNK_SIZE,
                 settings.LLAMAINDEX_CHUNK_OVERLAP,
             )
@@ -141,6 +141,30 @@ class LlamaIndexService:
         )
 
         return metadata
+
+    def generate_batch_embeddings(self, texts: List[str]) -> List[List[float]]:
+        """Generate embeddings in batches to reduce API calls"""
+        batch_size = getattr(settings, 'EMBEDDING_BATCH_SIZE', 10)
+        embeddings = []
+
+        for i in range(0, len(texts), batch_size):
+            batch_texts = texts[i:i + batch_size]
+            try:
+                batch_embeddings = Settings.embed_model.get_text_embedding_batch(batch_texts)
+                embeddings.extend(batch_embeddings)
+                chat_logger.info(f"Generated embeddings for batch {i//batch_size + 1}, size {len(batch_texts)}")
+            except Exception as e:
+                chat_logger.error(f"Failed to generate embeddings for batch {i//batch_size + 1}: {e}")
+                # Fallback to individual
+                for text in batch_texts:
+                    try:
+                        emb = Settings.embed_model.get_text_embedding(text)
+                        embeddings.append(emb)
+                    except Exception as e2:
+                        chat_logger.error(f"Failed to generate embedding for text: {e2}")
+                        embeddings.append([0.0] * settings.EMBEDDING_DIMENSIONS)
+
+        return embeddings
 
     async def load_and_parse_pdf(self, file_path: str) -> List[Document]:
         """
@@ -202,10 +226,15 @@ class LlamaIndexService:
         Returns:
             Configured IngestionPipeline
         """
-        # Set up vector store
+        # Set up vector store with hybrid search if enabled
         vector_store = QdrantVectorStore(
             client=self.qdrant_client, collection_name=self.collection_name
         )
+        if getattr(settings, 'QDRANT_USE_HYBRID_SEARCH', False):
+            # Enable hybrid search
+            vector_store.enable_hybrid = True
+            vector_store.dense_vector_name = "dense"
+            vector_store.sparse_vector_name = "sparse"
 
         # Use provided values or settings defaults
         cs = chunk_size if chunk_size is not None else settings.LLAMAINDEX_CHUNK_SIZE

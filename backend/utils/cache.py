@@ -3,10 +3,11 @@ import hashlib
 import json
 import aiofiles
 from pathlib import Path
-from datetime import datetime
-from typing import Optional
+from datetime import datetime, timedelta
+from typing import Optional, List, Dict, Any
 from config.settings import settings
 from utils.logger import cache_logger
+import time
 
 class CacheService:
     """Service for caching extracted PDF text to improve performance"""
@@ -150,6 +151,121 @@ class CacheService:
         except Exception as e:
             cache_logger.error("Error getting cache info", error=str(e))
             return {}
+
+    def _generate_embedding_cache_key(self, text: str) -> str:
+        """Generate cache key for embedding based on text hash"""
+        return hashlib.md5(text.encode()).hexdigest()
+
+    async def get_cached_embedding(self, text: str) -> Optional[List[float]]:
+        """Get cached embedding for text"""
+        if not getattr(settings, 'CACHE_EMBEDDINGS', False):
+            return None
+
+        try:
+            cache_key = self._generate_embedding_cache_key(text)
+            cache_file_path = self.cache_dir / f"emb_{cache_key}.json"
+
+            if not cache_file_path.exists():
+                return None
+
+            async with aiofiles.open(cache_file_path, 'r') as f:
+                cache_data = json.loads(await f.read())
+
+            # Check TTL
+            cached_at = datetime.fromisoformat(cache_data['cached_at'])
+            ttl_seconds = getattr(settings, 'CACHE_TTL_SECONDS', 3600)
+            if datetime.now() - cached_at > timedelta(seconds=ttl_seconds):
+                cache_file_path.unlink()  # Remove expired cache
+                return None
+
+            cache_logger.debug("Embedding cache hit", cache_key=cache_key[:8])
+            return cache_data['embedding']
+
+        except Exception as e:
+            cache_logger.error("Error reading embedding cache", error=str(e))
+            return None
+
+    async def save_embedding_to_cache(self, text: str, embedding: List[float]) -> bool:
+        """Save embedding to cache"""
+        if not getattr(settings, 'CACHE_EMBEDDINGS', False):
+            return False
+
+        try:
+            cache_key = self._generate_embedding_cache_key(text)
+            cache_file_path = self.cache_dir / f"emb_{cache_key}.json"
+
+            cache_data = {
+                'text': text[:100],  # Store first 100 chars for debugging
+                'embedding': embedding,
+                'cached_at': datetime.now().isoformat(),
+                'text_length': len(text)
+            }
+
+            async with aiofiles.open(cache_file_path, 'w') as f:
+                await f.write(json.dumps(cache_data))
+
+            cache_logger.debug("Embedding cached", cache_key=cache_key[:8])
+            return True
+
+        except Exception as e:
+            cache_logger.error("Error saving embedding to cache", error=str(e))
+            return False
+
+    async def get_cached_query_result(self, query: str, token: str, filename: str) -> Optional[Dict[str, Any]]:
+        """Get cached query result"""
+        if not getattr(settings, 'CACHE_QUERY_RESULTS', False):
+            return None
+
+        try:
+            cache_key = hashlib.md5(f"{query}_{token}_{filename}".encode()).hexdigest()
+            cache_file_path = self.cache_dir / f"query_{cache_key}.json"
+
+            if not cache_file_path.exists():
+                return None
+
+            async with aiofiles.open(cache_file_path, 'r') as f:
+                cache_data = json.loads(await f.read())
+
+            # Check TTL
+            cached_at = datetime.fromisoformat(cache_data['cached_at'])
+            ttl_seconds = getattr(settings, 'CACHE_TTL_SECONDS', 3600)
+            if datetime.now() - cached_at > timedelta(seconds=ttl_seconds):
+                cache_file_path.unlink()
+                return None
+
+            cache_logger.debug("Query result cache hit", cache_key=cache_key[:8])
+            return cache_data['result']
+
+        except Exception as e:
+            cache_logger.error("Error reading query cache", error=str(e))
+            return None
+
+    async def save_query_result_to_cache(self, query: str, token: str, filename: str, result: Dict[str, Any]) -> bool:
+        """Save query result to cache"""
+        if not getattr(settings, 'CACHE_QUERY_RESULTS', False):
+            return False
+
+        try:
+            cache_key = hashlib.md5(f"{query}_{token}_{filename}".encode()).hexdigest()
+            cache_file_path = self.cache_dir / f"query_{cache_key}.json"
+
+            cache_data = {
+                'query': query[:100],
+                'token': token,
+                'filename': filename,
+                'result': result,
+                'cached_at': datetime.now().isoformat()
+            }
+
+            async with aiofiles.open(cache_file_path, 'w') as f:
+                await f.write(json.dumps(cache_data))
+
+            cache_logger.debug("Query result cached", cache_key=cache_key[:8])
+            return True
+
+        except Exception as e:
+            cache_logger.error("Error saving query result to cache", error=str(e))
+            return False
 
 # Global cache service instance
 cache_service = CacheService()

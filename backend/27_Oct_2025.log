@@ -1,0 +1,78 @@
+[10/27/25 19:03:10] WARNING  Test warning                                                                                  logger.py:32
+                    CRITICAL Test critical                                                                                 logger.py:33
+                    ERROR    Test error                                                                                    logger.py:34
+[10/27/25 19:03:10] WARNING  Test warning                                                                                  logger.py:32
+                    CRITICAL Test critical                                                                                 logger.py:33
+                    ERROR    Test error                                                                                    logger.py:34
+[10/27/25 19:03:10] WARNING  Test warning                                                                                  logger.py:32
+                    CRITICAL Test critical                                                                                 logger.py:33
+                    ERROR    Test error                                                                                    logger.py:34
+[10/27/25 19:03:10] WARNING  Test warning                                                                                  logger.py:32
+                    CRITICAL Test critical                                                                                 logger.py:33
+                    ERROR    Test error                                                                                    logger.py:34
+[10/27/25 19:23:31] WARNING  Test warning                                                             logger.py:32
+                    CRITICAL Test critical                                                            logger.py:33
+                    ERROR    Test error                                                               logger.py:34
+[10/27/25 19:23:31] WARNING  Test warning                                                             logger.py:32
+                    CRITICAL Test critical                                                            logger.py:33
+                    ERROR    Test error                                                               logger.py:34
+[10/27/25 19:23:31] WARNING  Test warning                                                             logger.py:32
+                    CRITICAL Test critical                                                            logger.py:33
+                    ERROR    Test error                                                               logger.py:34
+[10/27/25 19:23:31] WARNING  Test warning                                                             logger.py:32
+                    CRITICAL Test critical                                                            logger.py:33
+                    ERROR    Test error                                                               logger.py:34
+[10/27/25 20:29:48] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:29:48] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:29:48] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:29:48] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:29:52] WARNING  NLTK resource wordnet is missing         nltk_init.py:122
+[10/27/25 20:30:07] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:30:07] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:30:07] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:30:07] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:30:10] WARNING  NLTK resource wordnet is missing         nltk_init.py:122
+[10/27/25 20:37:29] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:37:29] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:37:29] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:37:29] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+                    WARNING  Empty text provided for chunking   chunking_service.py:27
+                    WARNING  Empty text provided for chunking   chunking_service.py:27
+[10/27/25 20:38:06] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:38:06] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:38:06] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+[10/27/25 20:38:06] WARNING  Test warning                                 logger.py:32
+                    CRITICAL Test critical                                logger.py:33
+                    ERROR    Test error                                   logger.py:34
+                    ERROR    Failed to initialize NLTK data: File is  nltk_init.py:188
+                             not a zip file                                           

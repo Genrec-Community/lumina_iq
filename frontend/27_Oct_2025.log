@@ -1,0 +1,22 @@
+[10/27/25 20:52:10] INFO     Test info                                                   logger.py:30
+                    DEBUG    Test debug                                                  logger.py:31
+                    WARNING  Test warning                                                logger.py:32
+                    CRITICAL Test critical                                               logger.py:33
+                    ERROR    Test error                                                  logger.py:34
+[10/27/25 20:52:10] INFO     Test info                                                   logger.py:30
+                    DEBUG    Test debug                                                  logger.py:31
+                    WARNING  Test warning                                                logger.py:32
+                    CRITICAL Test critical                                               logger.py:33
+                    ERROR    Test error                                                  logger.py:34
+[10/27/25 20:52:10] INFO     Test info                                                   logger.py:30
+                    DEBUG    Test debug                                                  logger.py:31
+                    WARNING  Test warning                                                logger.py:32
+                    CRITICAL Test critical                                               logger.py:33
+                    ERROR    Test error                                                  logger.py:34
+[10/27/25 20:52:10] INFO     Test info                                                   logger.py:30
+                    DEBUG    Test debug                                                  logger.py:31
+                    WARNING  Test warning                                                logger.py:32
+                    CRITICAL Test critical                                               logger.py:33
+                    ERROR    Test error                                                  logger.py:34
+[10/27/25 20:52:11] INFO     Qdrant client initialized successfully              qdrant_service.py:34
+[10/27/25 20:52:13] INFO     Collection already exists: learning_app_documents   qdrant_service.py:90

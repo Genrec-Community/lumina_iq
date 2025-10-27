@@ -29,7 +29,7 @@ class QdrantService:
         """Initialize Qdrant client"""
         try:
             self.client = QdrantClient(
-                url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY, timeout=30
+                url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY, timeout=120
             )
             chat_logger.info("Qdrant client initialized successfully")
             self._ensure_collection_exists()
