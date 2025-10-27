@@ -14,8 +14,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config.settings import settings
 from utils.ip_detector import setup_frontend_env
 
-print(settings.TOGETHER_API_KEY)
-
 
 def main():
     """Start the FastAPI server."""

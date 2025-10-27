@@ -9,10 +9,10 @@ import shutil
 import logging
 from pathlib import Path
 import nltk
-from utils.logger import chat_logger
+from utils.logging_config import get_logger
 
-# Set up logger
-logger = chat_logger
+# Use enhanced logger
+logger = get_logger("nltk_init")
 
 
 def get_nltk_data_path():

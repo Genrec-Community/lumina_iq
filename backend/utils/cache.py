@@ -6,7 +6,10 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from config.settings import settings
-from utils.logger import cache_logger
+from utils.logging_config import get_logger
+
+# Use enhanced logger
+logger = get_logger("cache")
 import time
 
 class CacheService:
@@ -32,7 +35,7 @@ class CacheService:
             
             return cache_key
         except Exception as e:
-            cache_logger.error("Error generating cache key", file_path=file_path, error=str(e))
+            logger.error("Error generating cache key", file_path=file_path, error=str(e))
             # Fallback to just file path hash if stat fails
             return hashlib.md5(file_path.encode()).hexdigest()
     
@@ -55,7 +58,7 @@ class CacheService:
             cache_file_path = self._get_cache_file_path(cache_key)
             
             if not cache_file_path.exists():
-                cache_logger.debug("No cache found", file_path=file_path)
+                logger.debug("No cache found", file_path=file_path)
                 return None
             
             # Read cached data
@@ -64,14 +67,14 @@ class CacheService:
             
             # Verify cache data structure
             if not all(key in cache_data for key in ['text', 'cached_at', 'file_path']):
-                cache_logger.warning("Invalid cache data structure", file_path=file_path)
+                logger.warning("Invalid cache data structure", file_path=file_path)
                 return None
             
-            cache_logger.info("Cache hit", file_path=file_path, cached_at=cache_data['cached_at'])
+            logger.info("Cache hit", file_path=file_path, cached_at=cache_data['cached_at'])
             return cache_data['text']
             
         except Exception as e:
-            cache_logger.error("Error reading cache", file_path=file_path, error=str(e))
+            logger.error("Error reading cache", file_path=file_path, error=str(e))
             return None
     
     async def save_to_cache(self, file_path: str, extracted_text: str) -> bool:
@@ -102,11 +105,11 @@ class CacheService:
             async with aiofiles.open(cache_file_path, 'w', encoding='utf-8') as f:
                 await f.write(json.dumps(cache_data, ensure_ascii=False, indent=2))
             
-            cache_logger.info("Successfully cached text", file_path=file_path, cache_key=cache_key)
+            logger.info("Successfully cached text", file_path=file_path, cache_key=cache_key)
             return True
             
         except Exception as e:
-            cache_logger.error("Error saving to cache", file_path=file_path, error=str(e))
+            logger.error("Error saving to cache", file_path=file_path, error=str(e))
             return False
     
     def clear_cache(self) -> int:
@@ -122,11 +125,11 @@ class CacheService:
                 cache_file.unlink()
                 deleted_count += 1
             
-            cache_logger.info("Cache cleared", deleted_count=deleted_count)
+            logger.info("Cache cleared", deleted_count=deleted_count)
             return deleted_count
             
         except Exception as e:
-            cache_logger.error("Error clearing cache", error=str(e))
+            logger.error("Error clearing cache", error=str(e))
             return 0
     
     def get_cache_info(self) -> dict:
@@ -149,7 +152,7 @@ class CacheService:
             }
             
         except Exception as e:
-            cache_logger.error("Error getting cache info", error=str(e))
+            logger.error("Error getting cache info", error=str(e))
             return {}
 
     def _generate_embedding_cache_key(self, text: str) -> str:
@@ -178,11 +181,11 @@ class CacheService:
                 cache_file_path.unlink()  # Remove expired cache
                 return None
 
-            cache_logger.debug("Embedding cache hit", cache_key=cache_key[:8])
+            logger.debug("Embedding cache hit", cache_key=cache_key[:8])
             return cache_data['embedding']
 
         except Exception as e:
-            cache_logger.error("Error reading embedding cache", error=str(e))
+            logger.error("Error reading embedding cache", error=str(e))
             return None
 
     async def save_embedding_to_cache(self, text: str, embedding: List[float]) -> bool:
@@ -204,11 +207,11 @@ class CacheService:
             async with aiofiles.open(cache_file_path, 'w') as f:
                 await f.write(json.dumps(cache_data))
 
-            cache_logger.debug("Embedding cached", cache_key=cache_key[:8])
+            logger.debug("Embedding cached", cache_key=cache_key[:8])
             return True
 
         except Exception as e:
-            cache_logger.error("Error saving embedding to cache", error=str(e))
+            logger.error("Error saving embedding to cache", error=str(e))
             return False
 
     async def get_cached_query_result(self, query: str, token: str, filename: str) -> Optional[Dict[str, Any]]:
@@ -233,11 +236,11 @@ class CacheService:
                 cache_file_path.unlink()
                 return None
 
-            cache_logger.debug("Query result cache hit", cache_key=cache_key[:8])
+            logger.debug("Query result cache hit", cache_key=cache_key[:8])
             return cache_data['result']
 
         except Exception as e:
-            cache_logger.error("Error reading query cache", error=str(e))
+            logger.error("Error reading query cache", error=str(e))
             return None
 
     async def save_query_result_to_cache(self, query: str, token: str, filename: str, result: Dict[str, Any]) -> bool:
@@ -260,11 +263,11 @@ class CacheService:
             async with aiofiles.open(cache_file_path, 'w') as f:
                 await f.write(json.dumps(cache_data))
 
-            cache_logger.debug("Query result cached", cache_key=cache_key[:8])
+            logger.debug("Query result cached", cache_key=cache_key[:8])
             return True
 
         except Exception as e:
-            cache_logger.error("Error saving query result to cache", error=str(e))
+            logger.error("Error saving query result to cache", error=str(e))
             return False
 
 # Global cache service instance

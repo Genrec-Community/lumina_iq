@@ -5,7 +5,10 @@ from services.chunking_service import chunking_service
 from services.document_tracking_service import document_tracking_service
 from services.retrieval_strategy_manager import retrieval_strategy_manager
 from utils.file_hash import file_hash_service
-from utils.logger import chat_logger
+from utils.logging_config import get_logger
+
+# Use enhanced logger
+logger = get_logger("rag_service")
 import asyncio
 
 
@@ -30,7 +33,7 @@ class RAGService:
         """
         try:
             print(f"[DEBUG] Starting RAG indexing for {filename} with token {token[:12]} and file_path {file_path}")
-            chat_logger.info(
+            logger.info(
                 "Starting document indexing",
                 filename=filename,
                 content_length=len(content),
@@ -44,7 +47,7 @@ class RAGService:
 
             if file_path:
                 file_hash = file_hash_service.calculate_file_hash(file_path)
-                chat_logger.info(
+                logger.info(
                     "Calculated file hash",
                     filename=filename,
                     file_path=file_path,
@@ -55,14 +58,14 @@ class RAGService:
                 file_hash = file_hash_service.calculate_content_hash(
                     content.encode("utf-8")
                 )
-                chat_logger.info(
+                logger.info(
                     "Calculated content hash",
                     filename=filename,
                     hash=file_hash[:16] if file_hash else "FAILED",
                 )
 
             if not file_hash:
-                chat_logger.warning(
+                logger.warning(
                     "Could not calculate file hash, proceeding without duplicate check",
                     filename=filename,
                 )
@@ -72,7 +75,7 @@ class RAGService:
                 existing_doc = document_tracking_service.check_document_exists(
                     token, file_hash
                 )
-                chat_logger.info(
+                logger.info(
                     "Document tracking check result",
                     filename=filename,
                     hash=file_hash[:16],
@@ -80,7 +83,7 @@ class RAGService:
                     existing_filename=existing_doc["filename"] if existing_doc else None,
                 )
                 if existing_doc:
-                    chat_logger.info(
+                    logger.info(
                         "Duplicate document detected",
                         filename=filename,
                         original_filename=existing_doc["filename"],
@@ -97,14 +100,14 @@ class RAGService:
 
             # Check if already indexed in Qdrant (fallback check)
             is_indexed = await qdrant_service.check_document_indexed(filename, token)
-            chat_logger.info(
+            logger.info(
                 "Qdrant indexing check result",
                 filename=filename,
                 token=token[:12],
                 is_indexed=is_indexed,
             )
             if is_indexed:
-                chat_logger.info(
+                logger.info(
                     "Document already indexed in Qdrant", filename=filename
                 )
                 # Still add to tracking if not there
@@ -124,7 +127,7 @@ class RAGService:
             )
 
             if not chunks_with_metadata:
-                chat_logger.warning("No chunks created from content", filename=filename)
+                logger.warning("No chunks created from content", filename=filename)
                 return {
                     "status": "error",
                     "filename": filename,
@@ -135,7 +138,7 @@ class RAGService:
             chunks_text = [c["text"] for c in chunks_with_metadata]
             metadata_list = [c["metadata"] for c in chunks_with_metadata]
 
-            chat_logger.info(
+            logger.info(
                 f"Created {len(chunks_text)} chunks with rich metadata",
                 filename=filename,
             )
@@ -143,7 +146,7 @@ class RAGService:
             # Generate embeddings for all chunks
             embeddings = await EmbeddingService.generate_embeddings_batch(chunks_text)
 
-            chat_logger.info(
+            logger.info(
                 f"Generated {len(embeddings)} embeddings", filename=filename
             )
 
@@ -165,7 +168,7 @@ class RAGService:
                     file_size=file_size,
                     chunk_count=num_indexed,
                 )
-                chat_logger.info(
+                logger.info(
                     "Document added to tracking database",
                     filename=filename,
                     hash=file_hash[:16],
@@ -195,7 +198,7 @@ class RAGService:
             }
 
         except Exception as e:
-            chat_logger.error(
+            logger.error(
                 "Failed to index document", filename=filename, error=str(e)
             )
             return {
@@ -226,7 +229,7 @@ class RAGService:
             Dictionary with retrieved chunks and metadata
         """
         try:
-            chat_logger.info(
+            logger.info(
                 "Retrieving context with ADVANCED RAG",
                 query_length=len(query),
                 top_k=top_k,
@@ -243,7 +246,7 @@ class RAGService:
                 top_k=top_k,
             )
 
-            chat_logger.info(
+            logger.info(
                 f"Advanced retrieval completed",
                 strategy=result.get("strategy"),
                 num_chunks=result.get("num_chunks", 0),
@@ -254,7 +257,7 @@ class RAGService:
         except Exception as e:
             import traceback
 
-            chat_logger.error(
+            logger.error(
                 "Failed to retrieve context",
                 query=query[:100],
                 error=str(e),
@@ -274,10 +277,10 @@ class RAGService:
         """Delete document index from Qdrant"""
         try:
             await qdrant_service.delete_document_chunks(filename, token)
-            chat_logger.info("Deleted document index", filename=filename)
+            logger.info("Deleted document index", filename=filename)
             return {"status": "success", "message": f"Deleted index for {filename}"}
         except Exception as e:
-            chat_logger.error(
+            logger.error(
                 "Failed to delete document index", filename=filename, error=str(e)
             )
             return {"status": "error", "message": f"Failed to delete index: {str(e)}"}
@@ -288,7 +291,7 @@ class RAGService:
         try:
             return await qdrant_service.check_document_indexed(filename, token)
         except Exception as e:
-            chat_logger.error(
+            logger.error(
                 "Failed to check indexing status", filename=filename, error=str(e)
             )
             return False

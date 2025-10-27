@@ -41,11 +41,11 @@ for each in (pdf_logger, cache_logger, chat_logger, ip_logger):
         handler.setLevel(log_level)
 
 for each in (pdf_logger, cache_logger, chat_logger, ip_logger):
-    each.info("Test info")
-    each.debug("Test debug")
-    each.warning("Test warning")
-    each.critical("Test critical")
-    each.error("Test error")
+    each.info(f"{each.name} Test info")
+    each.debug(f"{each.name} Test debug")
+    each.warning(f"{each.name} Test warning")
+    each.critical(f"{each.name} Test critical")
+    each.error(f"{each.name} Test error")
 
 
 # Convenience functions

@@ -7,8 +7,11 @@ import logging
 import os
 import sys
 from datetime import datetime
+from logging.handlers import TimedRotatingFileHandler
 from pathlib import Path
 from typing import Optional
+
+from config.settings import settings
 
 # Suppress Google Cloud ALTS warnings at module level
 os.environ["GRPC_VERBOSITY"] = "ERROR"
@@ -44,6 +47,24 @@ except ImportError:
     console = None
 
 
+class JSONFormatter(logging.Formatter):
+    """Custom formatter for structured JSON logging."""
+
+    def format(self, record):
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno,
+        }
+        if record.exc_info:
+            log_entry["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_entry)
+
+
 def configure_logging():
     """Configure enhanced logging with Rich formatting"""
 
@@ -63,9 +84,8 @@ def configure_logging():
     # Get worker ID from environment
     worker_id = os.getenv("UVICORN_WORKER_ID", "1")
 
-    # Get log level and format from environment
-    log_level_str = os.getenv("LOG_LEVEL", "DEBUG").upper()
-    log_format = os.getenv("LOG_FORMAT", "text").lower()
+    # Get log level from settings
+    log_level_str = settings.LOG_LEVEL.upper()
 
     # Map string to logging level
     log_level_map = {
@@ -75,7 +95,7 @@ def configure_logging():
         "ERROR": logging.ERROR,
         "CRITICAL": logging.CRITICAL,
     }
-    log_level = log_level_map.get(log_level_str, logging.DEBUG)
+    log_level = log_level_map.get(log_level_str, logging.WARNING)
 
     # Configure root logger
     root_logger = logging.getLogger()
@@ -103,7 +123,21 @@ def configure_logging():
     console_handler.setLevel(log_level)
     root_logger.addHandler(console_handler)
 
-    # Removed file handler to use only RichHandler as requested
+    # Set up file handler with TimedRotatingFileHandler for structured logging
+    log_dir = Path(__file__).parent.parent / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "app.log"
+
+    file_handler = TimedRotatingFileHandler(
+        filename=str(log_file),
+        when="midnight",
+        interval=1,
+        backupCount=7,
+        encoding="utf-8",
+    )
+    file_handler.setLevel(log_level)
+    file_handler.setFormatter(JSONFormatter())
+    root_logger.addHandler(file_handler)
 
     # Configure specific loggers to prevent spam
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
