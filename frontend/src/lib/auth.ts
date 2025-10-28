@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -27,23 +27,6 @@ const deleteCookie = (name: string) => {
   document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
 };
 
-const clearAllData = () => {
-  if (typeof window === 'undefined') return;
-
-  // Clear localStorage
-  localStorage.clear();
-
-  // Clear sessionStorage
-  sessionStorage.clear();
-
-  // Clear all cookies
-  const cookies = document.cookie.split(";");
-  for (let cookie of cookies) {
-    const eqPos = cookie.indexOf("=");
-    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-    deleteCookie(name);
-  }
-};
 
 export interface LoginCredentials {
   username: string;
@@ -92,8 +75,11 @@ class AuthService {
       }
 
       return data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.detail || 'Login failed');
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data?.detail || 'Login failed');
+      }
+      throw new Error('Login failed');
     }
   }
 
@@ -126,7 +112,7 @@ class AuthService {
         try {
           this.user = JSON.parse(userData);
           return this.user;
-        } catch (error) {
+        } catch {
           this.clearSession();
           return null;
         }

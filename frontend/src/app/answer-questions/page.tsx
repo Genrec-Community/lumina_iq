@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -14,19 +14,13 @@ import {
 import {
   BookOpen,
   LogOut,
-  FileText,
   User,
   Hash,
-  HardDrive,
   Upload as UploadIcon,
   HelpCircle,
-  ChevronDown,
-  ChevronRight,
-  Sparkles,
   Brain,
   MessageSquare,
   CheckCircle,
-  Clock,
   Target,
   Award,
   TrendingUp,
@@ -42,6 +36,8 @@ import {
   Timer,
   BarChart3
 } from 'lucide-react';
+
+type ParsedQuestion = string | { question: string; options?: string[]; correctAnswer?: string };
 
 interface Question {
   id: string;
@@ -84,20 +80,20 @@ export default function AnswerQuestionsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    loadPDFInfo();
-  }, []);
-
-  const loadPDFInfo = async () => {
-    try {
-      const info = await pdfApi.getPDFInfo();
-      setPdfInfo(info);
-    } catch (error) {
-      console.error('Failed to load PDF info:', error);
-      router.push('/upload');
-    } finally {
-      setInitialLoading(false);
+    async function loadPDFInfo() {
+      try {
+        const info = await pdfApi.getPDFInfo();
+        setPdfInfo(info);
+      } catch (error) {
+        console.error('Failed to load PDF info:', error);
+        router.push('/upload');
+      } finally {
+        setInitialLoading(false);
+      }
     }
-  };
+
+    loadPDFInfo();
+  }, [router]);
 
   const generateQuestions = async () => {
     if (!pdfInfo) return;
@@ -127,7 +123,7 @@ export default function AnswerQuestionsPage() {
           console.log('Parsed data:', parsedData);
 
           if (parsedData.questions && Array.isArray(parsedData.questions)) {
-            const generatedQuestions: Question[] = parsedData.questions.map((q: any, index: number) => {
+            const generatedQuestions: Question[] = parsedData.questions.map((q: ParsedQuestion, index: number) => {
               if (typeof q === 'string') {
                 // Open-ended question format (practice mode)
                 return {
@@ -220,22 +216,6 @@ export default function AnswerQuestionsPage() {
     setEvaluationLevel('medium');
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString || dateString === 'Unknown') return 'Unknown';
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch {
-      return 'Unknown';
-    }
-  };
 
   if (initialLoading) {
     return (
@@ -345,7 +325,7 @@ export default function AnswerQuestionsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate" style={{ color: '#6B705C' }}>
-                  {user?.email}
+                  {user?.username}
                 </p>
                 <p className="text-xs" style={{ color: '#A5A58D' }}>Logged in</p>
               </div>
@@ -395,7 +375,7 @@ export default function AnswerQuestionsPage() {
                     Setup Your Quiz
                   </h2>
                   <p style={{ color: '#A5A58D' }}>
-                    Configure your personalized learning session for "{pdfInfo?.filename}"
+                    Configure your personalized learning session for &quot;{pdfInfo?.filename}&quot;
                   </p>
                 </div>
 
@@ -672,12 +652,11 @@ export default function AnswerQuestionsPage() {
                         key={index}
                         onClick={() => setCurrentQuestionIndex(index)}
                         className={`w-10 h-10 rounded-full font-medium transition-all duration-200 ${
-                          index === currentQuestionIndex ? 'ring-2 ring-offset-2' : ''
+                          index === currentQuestionIndex ? 'ring-2 ring-offset-2 ring-[#CB997E]' : ''
                         }`}
                         style={{
                           backgroundColor: questions[index].isAnswered ? '#CB997E' : '#DDBEA9',
-                          color: questions[index].isAnswered ? 'white' : '#6B705C',
-                          ringColor: '#CB997E'
+                          color: questions[index].isAnswered ? 'white' : '#6B705C'
                         }}
                       >
                         {index + 1}
@@ -739,7 +718,7 @@ export default function AnswerQuestionsPage() {
                     Quiz Results
                   </h2>
                   <p style={{ color: '#A5A58D' }}>
-                    Your performance on "{pdfInfo?.filename}"
+                    Your performance on &quot;{pdfInfo?.filename}&quot;
                   </p>
                 </div>
 

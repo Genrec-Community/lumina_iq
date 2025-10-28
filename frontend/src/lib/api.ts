@@ -194,7 +194,7 @@ export const chatApi = {
     return response.data;
   },
 
-  async submitQuiz(answers: QuizAnswer[], evaluationLevel: string = 'medium'): Promise<QuizSubmissionResponse> {
+  async submitQuiz(answers: QuizAnswer[], evaluationLevel: 'easy' | 'medium' | 'strict' = 'medium'): Promise<QuizSubmissionResponse> {
     const request: QuizSubmissionRequest = {
       answers,
       evaluation_level: evaluationLevel
