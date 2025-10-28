@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { chatApi, pdfApi, PDFSessionInfo } from '@/lib/api';
@@ -11,12 +11,9 @@ import {
   LogOut,
   FileText,
   User,
-  Hash,
-  HardDrive,
   Upload as UploadIcon,
   MessageSquare,
   Sparkles,
-  Clock,
   Download,
   Copy,
   Check,
@@ -29,7 +26,6 @@ import {
   Target,
   HelpCircle,
   Edit3,
-  Save,
   RefreshCw
 } from 'lucide-react';
 
@@ -54,11 +50,7 @@ export default function NotesPage() {
   const { logout, user } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    loadPDFInfo();
-  }, []);
-
-  const loadPDFInfo = async () => {
+  const loadPDFInfo = useCallback(async () => {
     try {
       const info = await pdfApi.getPDFInfo();
       setPdfInfo(info);
@@ -68,7 +60,11 @@ export default function NotesPage() {
     } finally {
       setInitialLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    loadPDFInfo();
+  }, [loadPDFInfo]);
 
   const generateNotes = async () => {
     if (!pdfInfo || !notesTopic.trim()) return;
@@ -292,7 +288,10 @@ Make the notes comprehensive, well-organized, and suitable for studying.`;
       .replace(/(<li>.*?<\/li>)(?=\s*<li>)/gs, '$1')
       .replace(/(?<!<\/ul>)(<li>)/g, '<ul>$1');
 
-    printWindow.document.getElementById('content').innerHTML = tempDiv.innerHTML;
+    const contentDiv = printWindow.document.getElementById('content');
+    if (contentDiv) {
+      contentDiv.innerHTML = tempDiv.innerHTML;
+    }
 
     // Wait for content to load, then print
     setTimeout(() => {
@@ -318,19 +317,6 @@ Make the notes comprehensive, well-organized, and suitable for studying.`;
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString || dateString === 'Unknown') return 'Unknown';
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch {
-      return 'Unknown';
-    }
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-  };
 
   if (initialLoading) {
     return (
@@ -457,7 +443,7 @@ Make the notes comprehensive, well-organized, and suitable for studying.`;
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate" style={{ color: '#6B705C' }}>
-                  {user?.username || user?.email || 'User'}
+                  {user?.username || 'User'}
                 </p>
                 <p className="text-xs" style={{ color: '#A5A58D' }}>Logged in</p>
               </div>
@@ -626,7 +612,7 @@ Make the notes comprehensive, well-organized, and suitable for studying.`;
                   Generating Your Notes...
                 </h3>
                 <p className="max-w-md mx-auto leading-relaxed" style={{ color: '#A5A58D' }}>
-                  AI is analyzing "{pdfInfo?.filename}" and creating {notesSize} notes{notesTopic.trim() ? ` focused on "${notesTopic.trim()}"` : ' based on the entire content'}.
+                  AI is analyzing "{pdfInfo?.filename}" and creating {notesSize} notes{notesTopic.trim() ? ` focused on "{notesTopic.trim()}"` : ' based on the entire content'}.
                 </p>
                 <div className="mt-4 text-sm" style={{ color: '#B7B7A4' }}>
                   This may take 30-60 seconds...
@@ -725,11 +711,6 @@ Make the notes comprehensive, well-organized, and suitable for studying.`;
                             <h3 className="text-base font-semibold mb-2 mt-4" style={{ color: '#A5A58D' }}>
                               {children}
                             </h3>
-                          ),
-                          p: ({ children }) => (
-                            <p className="leading-relaxed mb-3" style={{ color: '#6B705C' }}>
-                              {children}
-                            </p>
                           ),
                           ul: ({ children }) => (
                             <ul className="list-disc list-inside space-y-1 mb-3 ml-2" style={{ color: '#6B705C' }}>

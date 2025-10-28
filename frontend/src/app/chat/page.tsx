@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { chatApi, pdfApi, ChatHistoryItem, PDFSessionInfo } from '@/lib/api';
@@ -26,7 +26,6 @@ import {
   HelpCircle,
   Brain,
   StickyNote,
-  Home,
   Menu,
   X
 } from 'lucide-react';
@@ -44,20 +43,7 @@ export default function ChatPage() {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    loadInitialData();
-
-    // Cleanup function to clear chat history when component unmounts
-    return () => {
-      clearChatHistoryOnExit();
-    };
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatHistory]);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       const [historyData, pdfData] = await Promise.all([
         chatApi.getChatHistory(),
@@ -73,7 +59,20 @@ export default function ChatPage() {
     } finally {
       setInitialLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    loadInitialData();
+
+    // Cleanup function to clear chat history when component unmounts
+    return () => {
+      clearChatHistoryOnExit();
+    };
+  }, [loadInitialData]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory]);
 
   const clearChatHistoryOnExit = async () => {
     try {
@@ -323,7 +322,7 @@ export default function ChatPage() {
                   Start Your Learning Journey
                 </h3>
                 <p className="max-w-md mx-auto leading-relaxed mb-8" style={{ color: '#A5A58D' }}>
-                  Ask any question about your selected PDF. I'm here to help you understand and learn from the content.
+                  Ask any question about your selected PDF. I&apos;m here to help you understand and learn from the content.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-lg mx-auto">
                   <div className="rounded-xl p-4 border-2 transition-all duration-200 hover:shadow-lg hover:scale-105"
@@ -332,7 +331,7 @@ export default function ChatPage() {
                          borderColor: '#DDBEA9'
                        }}>
                     <h4 className="font-semibold mb-2" style={{ color: '#6B705C' }}>💡 Ask for explanations</h4>
-                    <p className="text-sm" style={{ color: '#A5A58D' }}>"Explain the main concepts"</p>
+                    <p className="text-sm" style={{ color: '#A5A58D' }}>&quot;Explain the main concepts&quot;</p>
                   </div>
                   <div className="rounded-xl p-4 border-2 transition-all duration-200 hover:shadow-lg hover:scale-105"
                        style={{
@@ -340,7 +339,7 @@ export default function ChatPage() {
                          borderColor: '#DDBEA9'
                        }}>
                     <h4 className="font-semibold mb-2" style={{ color: '#6B705C' }}>🔍 Get specific details</h4>
-                    <p className="text-sm" style={{ color: '#A5A58D' }}>"What are the key points..."</p>
+                    <p className="text-sm" style={{ color: '#A5A58D' }}>&quot;What are the key points...&quot;</p>
                   </div>
                 </div>
               </div>
@@ -376,7 +375,7 @@ export default function ChatPage() {
                             pre: ({ children }) => (
                               <div className="my-4 overflow-hidden rounded-lg">{children}</div>
                             ),
-                            code: ({ className, children, ...props }) => {
+                            code: ({ className, children, ref, ...rest }) => {
                               const match = /language-(\w+)/.exec(className || '');
                               const language = match ? match[1] : '';
                               const isInline = !className || !match;
@@ -407,7 +406,7 @@ export default function ChatPage() {
                                   </div>
                                   <SyntaxHighlighter
                                     language={language || 'text'}
-                                    style={vscDarkPlus}
+                                    style={vscDarkPlus as any}
                                     customStyle={{
                                       margin: 0,
                                       borderRadius: '0 0 0.5rem 0.5rem',
@@ -416,13 +415,13 @@ export default function ChatPage() {
                                     }}
                                     showLineNumbers={true}
                                     wrapLines={true}
-                                    {...props}
+                                    {...rest}
                                   >
                                     {String(children).replace(/\n$/, '')}
                                   </SyntaxHighlighter>
                                 </div>
                               ) : (
-                                <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-mono border" {...props}>
+                                <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-mono border" {...rest}>
                                   {children}
                                 </code>
                               );
@@ -442,11 +441,6 @@ export default function ChatPage() {
                               <h3 className="text-sm font-semibold mb-1 mt-2" style={{ color: '#A5A58D' }}>
                                 {children}
                               </h3>
-                            ),
-                            p: ({ children }) => (
-                              <p className="leading-relaxed mb-2" style={{ color: '#6B705C' }}>
-                                {children}
-                              </p>
                             ),
                             ul: ({ children }) => (
                               <ul className="list-disc list-inside space-y-0.5 mb-2 ml-2" style={{ color: '#6B705C' }}>
@@ -585,7 +579,7 @@ export default function ChatPage() {
                 className="text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2"
                 style={{
                   backgroundColor: '#CB997E',
-                  focusRingColor: '#CB997E'
+                  // focusRingColor: '#CB997E'
                 }}
                 onMouseEnter={(e) => {
                   if (!loading && message.trim()) {

@@ -3,7 +3,10 @@ import os
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, List
-from utils.logger import pdf_logger
+from utils.logging_config import get_logger
+
+# Use enhanced logger
+logger = get_logger("document_tracking_service")
 import threading
 
 class DocumentTrackingService:
@@ -58,10 +61,10 @@ class DocumentTrackingService:
                 conn.commit()
                 conn.close()
                 
-                pdf_logger.info("Document tracking database initialized", db_path=self.db_path)
+                logger.info("Document tracking database initialized", db_path=self.db_path)
                 
         except Exception as e:
-            pdf_logger.error("Failed to initialize document tracking database", error=str(e))
+            logger.error("Failed to initialize document tracking database", error=str(e))
             raise
     
     def check_document_exists(self, user_id: str, file_hash: str) -> Optional[Dict]:
@@ -103,7 +106,7 @@ class DocumentTrackingService:
                 return None
                 
         except Exception as e:
-            pdf_logger.error("Failed to check document existence", error=str(e))
+            logger.error("Failed to check document existence", error=str(e))
             return None
     
     def add_document(
@@ -145,14 +148,14 @@ class DocumentTrackingService:
                 conn.commit()
                 conn.close()
                 
-                pdf_logger.info("Document added to tracking", 
+                logger.info("Document added to tracking", 
                               user_id=user_id, 
                               filename=filename,
                               hash=file_hash[:16])
                 return True
                 
         except Exception as e:
-            pdf_logger.error("Failed to add document to tracking", error=str(e))
+            logger.error("Failed to add document to tracking", error=str(e))
             return False
     
     def get_user_documents(self, user_id: str) -> List[Dict]:
@@ -196,7 +199,7 @@ class DocumentTrackingService:
                 return documents
                 
         except Exception as e:
-            pdf_logger.error("Failed to get user documents", error=str(e))
+            logger.error("Failed to get user documents", error=str(e))
             return []
     
     def update_chunk_count(self, user_id: str, file_hash: str, chunk_count: int) -> bool:
@@ -227,7 +230,7 @@ class DocumentTrackingService:
                 return True
                 
         except Exception as e:
-            pdf_logger.error("Failed to update chunk count", error=str(e))
+            logger.error("Failed to update chunk count", error=str(e))
             return False
     
     def delete_document(self, user_id: str, file_hash: str) -> bool:
@@ -254,13 +257,13 @@ class DocumentTrackingService:
                 conn.commit()
                 conn.close()
                 
-                pdf_logger.info("Document deleted from tracking", 
+                logger.info("Document deleted from tracking", 
                               user_id=user_id,
                               hash=file_hash[:16])
                 return True
                 
         except Exception as e:
-            pdf_logger.error("Failed to delete document", error=str(e))
+            logger.error("Failed to delete document", error=str(e))
             return False
     
     def get_document_by_filename(self, user_id: str, filename: str) -> Optional[Dict]:
@@ -304,7 +307,7 @@ class DocumentTrackingService:
                 return None
                 
         except Exception as e:
-            pdf_logger.error("Failed to get document by filename", error=str(e))
+            logger.error("Failed to get document by filename", error=str(e))
             return None
 
 # Global instance

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { chatApi, pdfApi, PDFSessionInfo } from '@/lib/api';
+import { chatApi, PDFSessionInfo } from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -14,7 +14,6 @@ import {
   FileText,
   User,
   Hash,
-  HardDrive,
   Upload as UploadIcon,
   HelpCircle,
   ChevronDown,
@@ -27,7 +26,6 @@ import {
   Settings,
   Target,
   CheckCircle2,
-  Clock,
   Zap,
   Copy
 } from 'lucide-react';
@@ -49,8 +47,8 @@ interface Chapter {
 
 export default function QAPage() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [pdfInfo, setPdfInfo] = useState<PDFSessionInfo | null>(null);
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [pdfInfo] = useState<PDFSessionInfo | null>(null);
+  const [initialLoading] = useState(true);
   const [generatingQuestions, setGeneratingQuestions] = useState(false);
   const [testingAI, setTestingAI] = useState(false);
   const [questionTopic, setQuestionTopic] = useState('');
@@ -60,26 +58,6 @@ export default function QAPage() {
   const { logout, user } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    loadPDFInfo();
-  }, []);
-
-  const loadPDFInfo = async () => {
-    try {
-      console.log('Loading PDF info...');
-      const info = await pdfApi.getPDFInfo();
-      console.log('PDF info loaded:', info);
-      setPdfInfo(info);
-      // Don't automatically generate questions - wait for user to click
-    } catch (error) {
-      console.error('Error loading PDF info:', error);
-      // Show error message instead of redirecting immediately
-      alert('No PDF selected. Please select a PDF first.');
-      router.push('/upload');
-    } finally {
-      setInitialLoading(false);
-    }
-  };
 
   const generateChapterQuestions = async (topic?: string) => {
     if (!pdfInfo) return;
@@ -230,8 +208,8 @@ export default function QAPage() {
   };
 
   const toggleChapter = (chapterId: string) => {
-    setChapters(prev => prev.map(chapter => 
-      chapter.id === chapterId 
+    setChapters(prev => prev.map(chapter =>
+      chapter.id === chapterId
         ? { ...chapter, expanded: !chapter.expanded }
         : chapter
     ));
@@ -249,11 +227,11 @@ export default function QAPage() {
     setChapters(prev => prev.map(chapter =>
       chapter.id === chapterId
         ? {
-            ...chapter,
-            questions: chapter.questions.map(q =>
-              q.id === questionId ? { ...q, loading: true } : q
-            )
-          }
+          ...chapter,
+          questions: chapter.questions.map(q =>
+            q.id === questionId ? { ...q, loading: true } : q
+          )
+        }
         : chapter
     ));
 
@@ -279,13 +257,13 @@ Please provide a thorough, well-structured answer that helps the user learn from
       setChapters(prev => prev.map(chapter =>
         chapter.id === chapterId
           ? {
-              ...chapter,
-              questions: chapter.questions.map(q =>
-                q.id === questionId
-                  ? { ...q, answer: response.response, loading: false }
-                  : q
-              )
-            }
+            ...chapter,
+            questions: chapter.questions.map(q =>
+              q.id === questionId
+                ? { ...q, answer: response.response, loading: false }
+                : q
+            )
+          }
           : chapter
       ));
     } catch (error) {
@@ -293,13 +271,13 @@ Please provide a thorough, well-structured answer that helps the user learn from
       setChapters(prev => prev.map(chapter =>
         chapter.id === chapterId
           ? {
-              ...chapter,
-              questions: chapter.questions.map(q =>
-                q.id === questionId
-                  ? { ...q, loading: false }
-                  : q
-              )
-            }
+            ...chapter,
+            questions: chapter.questions.map(q =>
+              q.id === questionId
+                ? { ...q, loading: false }
+                : q
+            )
+          }
           : chapter
       ));
     }
@@ -344,7 +322,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FFE8D6' }}>
         <div className="text-center">
           <div className="p-4 rounded-2xl w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-lg animate-pulse"
-               style={{ backgroundColor: '#CB997E' }}>
+            style={{ backgroundColor: '#CB997E' }}>
             <Sparkles className="h-8 w-8 text-white" />
           </div>
           <h3 className="text-xl font-bold mb-2" style={{ color: '#6B705C' }}>Loading Q&A Session</h3>
@@ -374,7 +352,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
 
       {/* Sidebar */}
       <div className={`fixed lg:static inset-y-0 left-0 z-50 w-64 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out`}
-           style={{ backgroundColor: '#DDBEA9' }}>
+        style={{ backgroundColor: '#DDBEA9' }}>
         <div className="flex flex-col h-full">
           {/* Logo Section */}
           <div className="p-6 border-b" style={{ borderColor: '#B7B7A4' }}>
@@ -405,11 +383,10 @@ Please provide a thorough, well-structured answer that helps the user learn from
                   router.push(item.path);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                  item.active
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${item.active
                     ? 'shadow-lg transform scale-105'
                     : 'hover:shadow-md hover:transform hover:scale-105'
-                }`}
+                  }`}
                 style={{
                   backgroundColor: item.active ? '#CB997E' : 'transparent',
                   color: item.active ? 'white' : '#6B705C'
@@ -487,14 +464,14 @@ Please provide a thorough, well-structured answer that helps the user learn from
             {generatingQuestions ? (
               <div className="text-center py-12">
                 <div className="p-4 rounded-2xl w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-lg animate-pulse"
-                     style={{ backgroundColor: '#CB997E' }}>
+                  style={{ backgroundColor: '#CB997E' }}>
                   <Sparkles className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold mb-2" style={{ color: '#6B705C' }}>
                   Generating Questions...
                 </h3>
                 <p className="max-w-md mx-auto leading-relaxed" style={{ color: '#A5A58D' }}>
-                  AI is analyzing your document "{pdfInfo?.filename}" and creating {questionCount} comprehensive questions{questionTopic.trim() ? ` focused on "${questionTopic.trim()}"` : ' based on the entire content'}.
+                  AI is analyzing your document &quot;{pdfInfo?.filename}&quot; and creating {questionCount} comprehensive questions{questionTopic.trim() ? ` focused on &quot;${questionTopic.trim()}&quot;` : ' based on the entire content'}.
                 </p>
                 <div className="mt-4 text-sm" style={{ color: '#B7B7A4' }}>
                   This may take 30-60 seconds...
@@ -504,20 +481,20 @@ Please provide a thorough, well-structured answer that helps the user learn from
               <div className="max-w-2xl mx-auto">
                 <div className="text-center py-8 mb-8">
                   <div className="p-4 rounded-2xl w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-lg"
-                       style={{ backgroundColor: '#CB997E' }}>
+                    style={{ backgroundColor: '#CB997E' }}>
                     <Sparkles className="h-8 w-8 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold mb-2" style={{ color: '#6B705C' }}>
                     Ready to Generate Questions
                   </h3>
                   <p className="max-w-md mx-auto leading-relaxed" style={{ color: '#A5A58D' }}>
-                    Your document "{pdfInfo?.filename}" is loaded and ready. Customize your learning experience below.
+                    Your document &quot;{pdfInfo?.filename}&quot; is loaded and ready. Customize your learning experience below.
                   </p>
                 </div>
 
                 {/* Enhanced Form */}
                 <div className="rounded-2xl p-8 shadow-lg border-2 mb-8"
-                     style={{ backgroundColor: '#DDBEA9', borderColor: '#B7B7A4' }}>
+                  style={{ backgroundColor: '#DDBEA9', borderColor: '#B7B7A4' }}>
                   <div className="grid md:grid-cols-2 gap-6 mb-6">
                     {/* Topic Input */}
                     <div>
@@ -592,7 +569,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
 
                   {/* Preview Box */}
                   <div className="rounded-xl p-4 mb-6 border-2"
-                       style={{ backgroundColor: '#FFE8D6', borderColor: '#CB997E' }}>
+                    style={{ backgroundColor: '#FFE8D6', borderColor: '#CB997E' }}>
                     <p className="text-sm font-semibold mb-2" style={{ color: '#6B705C' }}>
                       <Zap className="h-4 w-4 inline mr-2" />
                       What you'll get:
@@ -638,7 +615,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
               <div className="space-y-6">
                 {chapters.map((chapter) => (
                   <div key={chapter.id} className="rounded-2xl shadow-lg border-2 overflow-hidden transition-all duration-300 hover:shadow-xl"
-                       style={{ backgroundColor: '#DDBEA9', borderColor: '#B7B7A4' }}>
+                    style={{ backgroundColor: '#DDBEA9', borderColor: '#B7B7A4' }}>
                     <button
                       onClick={() => toggleChapter(chapter.id)}
                       className="w-full flex items-center justify-between p-6 transition-all duration-200"
@@ -659,7 +636,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                     >
                       <div className="flex items-center space-x-4">
                         <div className="p-3 rounded-xl"
-                             style={{ backgroundColor: chapter.expanded ? 'rgba(255, 255, 255, 0.2)' : '#CB997E' }}>
+                          style={{ backgroundColor: chapter.expanded ? 'rgba(255, 255, 255, 0.2)' : '#CB997E' }}>
                           <BookOpen className="h-5 w-5 text-white" />
                         </div>
                         <div className="text-left">
@@ -669,17 +646,17 @@ Please provide a thorough, well-structured answer that helps the user learn from
                           </p>
                         </div>
                         <span className="px-3 py-1 rounded-full text-xs font-semibold"
-                              style={{
-                                backgroundColor: chapter.expanded ? 'rgba(255, 255, 255, 0.2)' : '#FFE8D6',
-                                color: chapter.expanded ? 'white' : '#6B705C'
-                              }}>
+                          style={{
+                            backgroundColor: chapter.expanded ? 'rgba(255, 255, 255, 0.2)' : '#FFE8D6',
+                            color: chapter.expanded ? 'white' : '#6B705C'
+                          }}>
                           {chapter.questions.length}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         {chapter.loading && (
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2"
-                               style={{ borderColor: chapter.expanded ? 'white' : '#CB997E' }}></div>
+                            style={{ borderColor: chapter.expanded ? 'white' : '#CB997E' }}></div>
                         )}
                         {chapter.expanded ? (
                           <ChevronDown className="h-6 w-6" />
@@ -693,7 +670,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                       <div className="p-6 space-y-4" style={{ backgroundColor: '#FFE8D6' }}>
                         {chapter.questions.map((question) => (
                           <div key={question.id} className="rounded-xl border-2 overflow-hidden transition-all duration-300 hover:shadow-lg"
-                               style={{ backgroundColor: '#DDBEA9', borderColor: '#B7B7A4' }}>
+                            style={{ backgroundColor: '#DDBEA9', borderColor: '#B7B7A4' }}>
                             <button
                               onClick={() => handleQuestionClick(chapter.id, question.id)}
                               className="w-full text-left p-5 transition-all duration-200"
@@ -710,15 +687,15 @@ Please provide a thorough, well-structured answer that helps the user learn from
                                 <div className="flex-shrink-0 mt-1">
                                   {question.loading ? (
                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2"
-                                         style={{ borderColor: '#CB997E' }}></div>
+                                      style={{ borderColor: '#CB997E' }}></div>
                                   ) : question.answer ? (
                                     <div className="w-5 h-5 rounded-full flex items-center justify-center"
-                                         style={{ backgroundColor: '#CB997E' }}>
+                                      style={{ backgroundColor: '#CB997E' }}>
                                       <CheckCircle2 className="h-3 w-3 text-white" />
                                     </div>
                                   ) : (
                                     <div className="w-5 h-5 rounded-full flex items-center justify-center"
-                                         style={{ backgroundColor: '#A5A58D' }}>
+                                      style={{ backgroundColor: '#A5A58D' }}>
                                       <HelpCircle className="h-3 w-3 text-white" />
                                     </div>
                                   )}
@@ -729,7 +706,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                                   </p>
                                   {question.answer && (
                                     <div className="rounded-xl p-4 border-2"
-                                         style={{ backgroundColor: '#FFE8D6', borderColor: '#CB997E' }}>
+                                      style={{ backgroundColor: '#FFE8D6', borderColor: '#CB997E' }}>
                                       <div className="prose prose-sm max-w-none">
                                         <ReactMarkdown
                                           remarkPlugins={[remarkGfm]}
@@ -755,11 +732,6 @@ Please provide a thorough, well-structured answer that helps the user learn from
                                                 {children}
                                               </h3>
                                             ),
-                                            p: ({ children }) => (
-                                              <p className="leading-relaxed mb-2" style={{ color: '#6B705C' }}>
-                                                {children}
-                                              </p>
-                                            ),
                                             ul: ({ children }) => (
                                               <ul className="list-disc list-inside space-y-1 mb-2 ml-2" style={{ color: '#6B705C' }}>
                                                 {children}
@@ -775,15 +747,15 @@ Please provide a thorough, well-structured answer that helps the user learn from
                                             ),
                                             blockquote: ({ children }) => (
                                               <blockquote className="border-l-4 pl-3 italic py-2 rounded-r mb-2"
-                                                          style={{
-                                                            borderColor: '#CB997E',
-                                                            backgroundColor: '#DDBEA9',
-                                                            color: '#A5A58D'
-                                                          }}>
+                                                style={{
+                                                  borderColor: '#CB997E',
+                                                  backgroundColor: '#DDBEA9',
+                                                  color: '#A5A58D'
+                                                }}>
                                                 {children}
                                               </blockquote>
                                             ),
-                                            code: ({ className, children, ...props }) => {
+                                            code: ({ className, children, ...props }: any) => {
                                               const match = /language-(\w+)/.exec(className || '');
                                               const language = match ? match[1] : '';
                                               const isInline = !className || !match;
@@ -814,7 +786,6 @@ Please provide a thorough, well-structured answer that helps the user learn from
                                                     }}
                                                     showLineNumbers={true}
                                                     wrapLines={true}
-                                                    {...props}
                                                   >
                                                     {String(children).replace(/\n$/, '')}
                                                   </SyntaxHighlighter>
@@ -834,7 +805,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                                             table: ({ children }) => (
                                               <div className="overflow-x-auto mb-2">
                                                 <table className="min-w-full border rounded text-xs"
-                                                       style={{ borderColor: '#B7B7A4' }}>
+                                                  style={{ borderColor: '#B7B7A4' }}>
                                                   {children}
                                                 </table>
                                               </div>
@@ -846,13 +817,13 @@ Please provide a thorough, well-structured answer that helps the user learn from
                                             ),
                                             th: ({ children }) => (
                                               <th className="border px-2 py-1 text-left font-semibold"
-                                                  style={{ borderColor: '#B7B7A4', color: '#6B705C' }}>
+                                                style={{ borderColor: '#B7B7A4', color: '#6B705C' }}>
                                                 {children}
                                               </th>
                                             ),
                                             td: ({ children }) => (
                                               <td className="border px-2 py-1"
-                                                  style={{ borderColor: '#B7B7A4', color: '#6B705C' }}>
+                                                style={{ borderColor: '#B7B7A4', color: '#6B705C' }}>
                                                 {children}
                                               </td>
                                             ),
@@ -880,7 +851,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
         {/* Information Sidebar */}
         {pdfInfo && (
           <div className="hidden lg:block w-80 border-l p-6 overflow-y-auto"
-               style={{ backgroundColor: '#DDBEA9', borderColor: '#B7B7A4' }}>
+            style={{ backgroundColor: '#DDBEA9', borderColor: '#B7B7A4' }}>
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-bold mb-4 flex items-center" style={{ color: '#6B705C' }}>
@@ -889,7 +860,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                 </h3>
                 <div className="space-y-3">
                   <div className="rounded-xl p-4 border-2"
-                       style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
+                    style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
                     <label className="text-xs font-bold uppercase tracking-wide" style={{ color: '#A5A58D' }}>
                       Filename
                     </label>
@@ -899,7 +870,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                   </div>
 
                   <div className="rounded-xl p-4 border-2"
-                       style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
+                    style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
                     <label className="text-xs font-bold uppercase tracking-wide" style={{ color: '#A5A58D' }}>
                       File Size
                     </label>
@@ -909,7 +880,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                   </div>
 
                   <div className="rounded-xl p-4 border-2"
-                       style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
+                    style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
                     <label className="text-xs font-bold uppercase tracking-wide" style={{ color: '#A5A58D' }}>
                       Pages
                     </label>
@@ -919,7 +890,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                   </div>
 
                   <div className="rounded-xl p-4 border-2"
-                       style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
+                    style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
                     <label className="text-xs font-bold uppercase tracking-wide" style={{ color: '#A5A58D' }}>
                       Selected Date
                     </label>
@@ -1004,7 +975,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                   </h3>
                   <div className="space-y-3">
                     <div className="rounded-xl p-4 text-white shadow-lg"
-                         style={{ backgroundColor: '#CB997E' }}>
+                      style={{ backgroundColor: '#CB997E' }}>
                       <label className="text-xs font-bold uppercase tracking-wide opacity-90">
                         Total Chapters
                       </label>
@@ -1012,7 +983,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                     </div>
 
                     <div className="rounded-xl p-4 text-white shadow-lg"
-                         style={{ backgroundColor: '#A5A58D' }}>
+                      style={{ backgroundColor: '#A5A58D' }}>
                       <label className="text-xs font-bold uppercase tracking-wide opacity-90">
                         Questions Generated
                       </label>
@@ -1023,7 +994,7 @@ Please provide a thorough, well-structured answer that helps the user learn from
                     </div>
 
                     <div className="rounded-xl p-4 border-2"
-                         style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
+                      style={{ backgroundColor: '#FFE8D6', borderColor: '#B7B7A4' }}>
                       <label className="text-xs font-bold uppercase tracking-wide" style={{ color: '#A5A58D' }}>
                         Answered Questions
                       </label>

@@ -1,7 +1,10 @@
 import hashlib
 from pathlib import Path
 from typing import Optional
-from utils.logger import pdf_logger
+from utils.logging_config import get_logger
+
+# Use enhanced logger
+logger = get_logger("file_hash")
 
 class FileHashService:
     """Service for calculating file hashes to detect duplicate uploads"""
@@ -27,14 +30,14 @@ class FileHashService:
                     hash_obj.update(chunk)
             
             file_hash = hash_obj.hexdigest()
-            pdf_logger.debug("Calculated hash",
+            logger.debug("Calculated hash",
                             algorithm=algorithm,
                             file_path=file_path,
                             hash_value=file_hash[:16])
             return file_hash
 
         except Exception as e:
-            pdf_logger.error("Failed to calculate hash",
+            logger.error("Failed to calculate hash",
                             file_path=file_path,
                             error=str(e))
             return None

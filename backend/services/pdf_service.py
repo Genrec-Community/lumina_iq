@@ -8,7 +8,10 @@ from typing import List
 from config.settings import settings
 from utils.storage import pdf_contexts, pdf_metadata, storage_manager, storage_manager
 from utils.cache import cache_service
-from utils.logger import pdf_logger
+from utils.logging_config import get_logger
+
+# Use enhanced logger
+logger = get_logger("pdf_service")
 from models.pdf import PDFInfo, PDFListResponse, PDFUploadResponse, PDFMetadata
 from services.rag_service import rag_service
 from services.llamaindex_service import llamaindex_service
@@ -33,19 +36,19 @@ class PDFService:
 
     @staticmethod
     async def extract_text_from_pdf(file_path: str) -> str:
-        pdf_logger.info("Starting PDF text extraction", file_path=file_path)
+        logger.info("Starting PDF text extraction", file_path=file_path)
 
         # Check cache first
         cached_text = await cache_service.get_cached_text(file_path)
         if cached_text is not None:
-            pdf_logger.info(
+            logger.info(
                 "Using cached text", file_path=file_path, text_length=len(cached_text)
             )
             return cached_text
 
         # Cache miss - extract text from PDF
         text = ""
-        pdf_logger.info("Cache miss - extracting text from PDF", file_path=file_path)
+        logger.info("Cache miss - extracting text from PDF", file_path=file_path)
 
         try:
             # Lazy import PyPDF2 only when needed for text extraction
@@ -54,7 +57,7 @@ class PDFService:
             with open(file_path, "rb") as file:
                 pdf_reader = PyPDF2.PdfReader(file)
                 page_count = len(pdf_reader.pages)
-                pdf_logger.info(
+                logger.info(
                     "PDF loaded successfully", file_path=file_path, pages=page_count
                 )
 
@@ -62,14 +65,14 @@ class PDFService:
                     page_text = page.extract_text()
                     if page_text:
                         text += page_text + "\n"
-                        pdf_logger.debug(
+                        logger.debug(
                             "Page extracted", page=i + 1, text_length=len(page_text)
                         )
                     else:
-                        pdf_logger.debug("Page has no text", page=i + 1)
+                        logger.debug("Page has no text", page=i + 1)
 
         except Exception as e:
-            pdf_logger.warning(
+            logger.warning(
                 "PyPDF2 extraction failed, trying pdfplumber",
                 file_path=file_path,
                 error=str(e),
@@ -78,7 +81,7 @@ class PDFService:
             try:
                 with pdfplumber.open(file_path) as pdf:
                     page_count = len(pdf.pages)
-                    pdf_logger.info(
+                    logger.info(
                         "PDF loaded with pdfplumber",
                         file_path=file_path,
                         pages=page_count,
@@ -88,18 +91,18 @@ class PDFService:
                         page_text = page.extract_text()
                         if page_text:
                             text += page_text + "\n"
-                            pdf_logger.debug(
+                            logger.debug(
                                 "Page extracted with pdfplumber",
                                 page=i + 1,
                                 text_length=len(page_text),
                             )
                         else:
-                            pdf_logger.debug(
+                            logger.debug(
                                 "Page has no text with pdfplumber", page=i + 1
                             )
 
             except Exception as e2:
-                pdf_logger.error(
+                logger.error(
                     "Both extraction methods failed",
                     file_path=file_path,
                     pypdf_error=str(e),
@@ -111,14 +114,14 @@ class PDFService:
                 )
 
         extracted_text = text.strip()
-        pdf_logger.info(
+        logger.info(
             "Text extraction completed",
             file_path=file_path,
             extracted_length=len(extracted_text),
         )
 
         if len(extracted_text) < 50:
-            pdf_logger.warning(
+            logger.warning(
                 "Very little text extracted",
                 file_path=file_path,
                 extracted_length=len(extracted_text),
@@ -128,9 +131,9 @@ class PDFService:
         # Save to cache for future use
         cache_saved = await cache_service.save_to_cache(file_path, extracted_text)
         if cache_saved:
-            pdf_logger.info("Successfully cached extracted text", file_path=file_path)
+            logger.info("Successfully cached extracted text", file_path=file_path)
         else:
-            pdf_logger.warning("Failed to cache extracted text", file_path=file_path)
+            logger.warning("Failed to cache extracted text", file_path=file_path)
 
         return extracted_text
 
@@ -191,7 +194,7 @@ class PDFService:
                 }
                 return metadata
         except Exception as e:
-            pdf_logger.warning(
+            logger.warning(
                 "Failed to extract full metadata", file_path=file_path, error=str(e)
             )
             return basic_metadata
@@ -283,13 +286,13 @@ class PDFService:
             storage_manager.safe_set(pdf_metadata, token, metadata)
 
             # Index document for RAG with duplicate detection
-            pdf_logger.info("Starting RAG indexing for selected PDF", filename=filename)
+            logger.info("Starting RAG indexing for selected PDF", filename=filename)
 
             # Check if should use LlamaIndex for large PDFs
             use_llamaindex = PDFService.should_use_llamaindex(str(file_path))
 
             if use_llamaindex:
-                pdf_logger.info(
+                logger.info(
                     "Using LlamaIndex for large PDF indexing", filename=filename
                 )
                 indexing_result = (
@@ -298,14 +301,14 @@ class PDFService:
                     )
                 )
             else:
-                pdf_logger.info("Using standard RAG indexing", filename=filename)
+                logger.info("Using standard RAG indexing", filename=filename)
                 indexing_result = await rag_service.index_document(
                     filename=filename,
                     content=text_content,
                     token=token,
                     file_path=str(file_path),
                 )
-            pdf_logger.info(
+            logger.info(
                 "RAG indexing completed",
                 filename=filename,
                 result=indexing_result.get("status"),
@@ -383,7 +386,7 @@ class PDFService:
             storage_manager.safe_set(pdf_metadata, token, metadata)
 
             # Index document for RAG with duplicate detection
-            pdf_logger.info(
+            logger.info(
                 "Starting RAG indexing for uploaded PDF", filename=unique_filename
             )
 
@@ -391,7 +394,7 @@ class PDFService:
             use_llamaindex = PDFService.should_use_llamaindex(str(file_path))
 
             if use_llamaindex:
-                pdf_logger.info(
+                logger.info(
                     "Using LlamaIndex for large PDF indexing", filename=unique_filename
                 )
                 indexing_result = (
@@ -402,14 +405,14 @@ class PDFService:
                     )
                 )
             else:
-                pdf_logger.info("Using standard RAG indexing", filename=unique_filename)
+                logger.info("Using standard RAG indexing", filename=unique_filename)
                 indexing_result = await rag_service.index_document(
                     filename=unique_filename,
                     content=text_content,
                     token=token,
                     file_path=str(file_path),
                 )
-            pdf_logger.info(
+            logger.info(
                 "RAG indexing completed",
                 filename=unique_filename,
                 result=indexing_result.get("status"),
