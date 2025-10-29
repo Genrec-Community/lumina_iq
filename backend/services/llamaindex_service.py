@@ -86,9 +86,7 @@ class LlamaIndexService:
                         separator=" ",
                     )
                 except Exception as e:
-                    chat_logger.warning(
-                        f"Failed to create SentenceSplitter, falling back to TokenTextSplitter: {str(e)}",
-                    )
+                    chat_logger.warning(f"Failed to create SentenceSplitter, falling back to TokenTextSplitter: {str(e)}")
                     # Fall back to basic text splitter
                     from llama_index.core.node_parser import TokenTextSplitter
 
@@ -101,14 +99,10 @@ class LlamaIndexService:
                 settings.LLAMAINDEX_CHUNK_OVERLAP,
             )
 
-            chat_logger.info(
-                f"LlamaIndex settings configured: {settings.EMBEDDING_MODEL}"
-            )
+            chat_logger.info(f"LlamaIndex settings configured: {settings.EMBEDDING_MODEL}")
 
         except Exception as e:
-            chat_logger.error(
-                f"Failed to setup LlamaIndex settings: {str(e)}",
-            )
+            chat_logger.error(f"Failed to setup LlamaIndex settings: {str(e)}")
             # Set minimal fallback settings
             Settings.embed_model = TogetherEmbedding(
                 model_name=settings.EMBEDDING_MODEL, api_key=settings.TOGETHER_API_KEY
@@ -157,26 +151,16 @@ class LlamaIndexService:
                     batch_texts
                 )
                 embeddings.extend(batch_embeddings)
-                chat_logger.info(
-                    "Generated embeddings for batch",
-                    batch_num=i // batch_size + 1,
-                    batch_size=len(batch_texts),
-                )
+                chat_logger.info(f"Generated embeddings for batch: batch_num={i // batch_size + 1}, batch_size={len(batch_texts)}")
             except Exception as e:
-                chat_logger.error(
-                    "Failed to generate embeddings for batch",
-                    batch_num=i // batch_size + 1,
-                    error=str(e),
-                )
+                chat_logger.error(f"Failed to generate embeddings for batch: batch_num={i // batch_size + 1}, error={str(e)}")
                 # Fallback to individual
                 for text in batch_texts:
                     try:
                         emb = Settings.embed_model.get_text_embedding(text)
                         embeddings.append(emb)
                     except Exception as e2:
-                        chat_logger.error(
-                            "Failed to generate embedding for text", error=str(e2)
-                        )
+                        chat_logger.error(f"Failed to generate embedding for text: {str(e2)}")
                         embeddings.append([0.0] * settings.EMBEDDING_DIMENSIONS)
 
         return embeddings
@@ -193,36 +177,24 @@ class LlamaIndexService:
             List of LlamaIndex Document objects
         """
         try:
-            chat_logger.info("Loading PDF with LlamaIndex", file_path=file_path)
+            chat_logger.info(f"Loading PDF with LlamaIndex: {file_path}")
 
             # Check file size for large PDF handling
             file_size = os.path.getsize(file_path)
             threshold = settings.LLAMAINDEX_LARGE_PDF_THRESHOLD_MB * 1024 * 1024
             if file_size > threshold:
-                chat_logger.warning(
-                    "Large PDF detected, using memory-efficient loading",
-                    file_path=file_path,
-                    size_mb=file_size / (1024 * 1024),
-                    threshold_mb=settings.LLAMAINDEX_LARGE_PDF_THRESHOLD_MB,
-                )
+                chat_logger.warning(f"Large PDF detected, using memory-efficient loading: file_path={file_path}, size_mb={file_size / (1024 * 1024)}, threshold_mb={settings.LLAMAINDEX_LARGE_PDF_THRESHOLD_MB}")
 
             # Use PDFReader for efficient parsing
             reader = PDFReader()
             documents = reader.load_data(Path(file_path))
 
-            chat_logger.info(
-                "Loaded documents from PDF",
-                file_path=file_path,
-                total_pages=len(documents),
-                num_documents=len(documents),
-            )
+            chat_logger.info(f"Loaded documents from PDF: file_path={file_path}, total_pages={len(documents)}, num_documents={len(documents)}")
 
             return documents
 
         except Exception as e:
-            chat_logger.error(
-                "Failed to load PDF with LlamaIndex", file_path=file_path, error=str(e)
-            )
+            chat_logger.error(f"Failed to load PDF with LlamaIndex: file_path={file_path}, error={str(e)}")
             raise
 
     async def create_ingestion_pipeline(
@@ -293,11 +265,7 @@ class LlamaIndexService:
             Dictionary with indexing results
         """
         try:
-            chat_logger.info(
-                "Starting LlamaIndex document indexing",
-                filename=filename,
-                chunk_size=chunk_size,
-            )
+            chat_logger.info(f"Starting LlamaIndex document indexing: filename={filename}, chunk_size={chunk_size}")
 
             # Load and parse document
             documents = await self.load_and_parse_pdf(str(file_path))
@@ -331,7 +299,7 @@ class LlamaIndexService:
             try:
                 await pipeline.vector_store.aadd_nodes_to_index(nodes_with_metadata)
             except Exception as e:
-                chat_logger.error("Failed to add nodes to vector store", error=str(e))
+                chat_logger.error(f"Failed to add nodes to vector store: {str(e)}")
                 # Fall back to standard indexing if LlamaIndex vector store fails
                 from services.rag_service import rag_service
 
@@ -343,11 +311,7 @@ class LlamaIndexService:
                 )
                 return fallback_result
 
-            chat_logger.info(
-                "LlamaIndex indexing completed",
-                filename=filename,
-                num_nodes=len(nodes),
-            )
+            chat_logger.info(f"LlamaIndex indexing completed: filename={filename}, num_nodes={len(nodes)}")
 
             return {
                 "status": "success",
@@ -360,9 +324,7 @@ class LlamaIndexService:
             }
 
         except Exception as e:
-            chat_logger.error(
-                "LlamaIndex indexing failed", filename=filename, error=str(e)
-            )
+            chat_logger.error(f"LlamaIndex indexing failed: filename={filename}, error={str(e)}")
             return {
                 "status": "error",
                 "filename": filename,
@@ -391,9 +353,7 @@ class LlamaIndexService:
             Dictionary with retrieved nodes and context
         """
         try:
-            chat_logger.info(
-                "Starting LlamaIndex retrieval", query_length=len(query), top_k=top_k
-            )
+            chat_logger.info(f"Starting LlamaIndex retrieval: query_length={len(query)}, top_k={top_k}")
 
             # Set up vector store
             vector_store = QdrantVectorStore(
@@ -439,7 +399,7 @@ class LlamaIndexService:
 
             combined_context = "\n\n".join(context_parts)
 
-            chat_logger.info("LlamaIndex retrieval completed", num_nodes=len(nodes))
+            chat_logger.info(f"LlamaIndex retrieval completed: {len(nodes)}")
 
             return {
                 "status": "success",
@@ -451,7 +411,7 @@ class LlamaIndexService:
             }
 
         except Exception as e:
-            chat_logger.error("LlamaIndex retrieval failed", error=str(e))
+            chat_logger.error(f"LlamaIndex retrieval failed: {str(e)}")
             return {
                 "status": "error",
                 "nodes": [],
@@ -480,9 +440,7 @@ class LlamaIndexService:
             )
             return len(result[0]) > 0
         except Exception as e:
-            chat_logger.error(
-                "Failed to check LlamaIndex indexing", filename=filename, error=str(e)
-            )
+            chat_logger.error(f"Failed to check LlamaIndex indexing: filename={filename}, error={str(e)}")
             return False
 
 

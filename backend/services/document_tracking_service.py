@@ -110,7 +110,7 @@ class DocumentTrackingService:
                 return None
 
         except Exception as e:
-            logger.error("Failed to check document existence", error=str(e))
+            logger.error(f"Failed to check document existence: {str(e)}")
             return None
 
     def add_document(
@@ -155,16 +155,15 @@ class DocumentTrackingService:
                 conn.commit()
                 conn.close()
 
-                logger.info(
-                    "Document added to tracking",
-                    user_id=user_id,
-                    filename=filename,
-                    hash=file_hash[:16],
+                logger.info("Document added to tracking")
+
+                logger.debug(
+                    f"Document details: user_id={user_id}, filename={filename}, hash={file_hash[:16]}, size={file_size}, chunks={chunk_count}"
                 )
                 return True
 
         except Exception as e:
-            logger.error("Failed to add document to tracking", error=str(e))
+            logger.error(f"Failed to add document to tracking: {str(e)}")
             return False
 
     def get_user_documents(self, user_id: str) -> List[Dict]:
@@ -213,7 +212,7 @@ class DocumentTrackingService:
                 return documents
 
         except Exception as e:
-            logger.error("Failed to get user documents", error=str(e))
+            logger.error(f"Failed to get user documents: {str(e)}")
             return []
 
     def update_chunk_count(
@@ -249,7 +248,7 @@ class DocumentTrackingService:
                 return True
 
         except Exception as e:
-            logger.error("Failed to update chunk count", error=str(e))
+            logger.error(f"Failed to update chunk count: {str(e)}")
             return False
 
     def delete_document(self, user_id: str, file_hash: str) -> bool:
@@ -279,15 +278,15 @@ class DocumentTrackingService:
                 conn.commit()
                 conn.close()
 
-                logger.info(
-                    "Document deleted from tracking",
-                    user_id=user_id,
-                    hash=file_hash[:16],
+                logger.info("Document deleted from tracking")
+                logger.debug(
+                    f"Deleted document details: user_id={user_id}, hash={file_hash[:16]}"
                 )
+
                 return True
 
         except Exception as e:
-            logger.error("Failed to delete document", error=str(e))
+            logger.error(f"Failed to delete document: {str(e)}")
             return False
 
     def get_document_by_filename(self, user_id: str, filename: str) -> Optional[Dict]:
@@ -334,7 +333,7 @@ class DocumentTrackingService:
                 return None
 
         except Exception as e:
-            logger.error("Failed to get document by filename", error=str(e))
+            logger.error(f"Failed to get document by filename: {str(e)}")
             return None
 
 

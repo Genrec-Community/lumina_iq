@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 # Import warning suppression first
-from utils.suppress_warnings import suppress_third_party_warnings
 
 from config.settings import settings
 from routes import auth, pdf, chat
@@ -11,8 +10,6 @@ from utils.logger import get_logger
 from utils.nltk_init import initialize_nltk_data
 import asyncio
 import platform
-import logging
-import os
 
 # Windows-compatible async optimizations
 if platform.system() == "Windows":
@@ -21,7 +18,7 @@ if platform.system() == "Windows":
 else:
     # Try uvloop on Unix systems
     try:
-        import uvloop
+        import uvloop  # type: ignore
 
         asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     except ImportError:

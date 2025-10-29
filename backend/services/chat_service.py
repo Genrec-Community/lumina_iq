@@ -151,7 +151,9 @@ async def generate_content_async(
 
                     logger.debug(
                         f"AI response generated in {response_time:.2f}s",
-                        priority=priority,
+                    )
+                    logger.debug(
+                        f"Response priority={priority}, attempt={attempt + 1}, response_length={len(response)}"
                     )
                     return response.strip()
                 else:
@@ -165,9 +167,7 @@ async def generate_content_async(
                     for keyword in ["rate limit", "quota", "exhausted", "429"]
                 ):
                     logger.warning(
-                        "Rate limit/quota hit, waiting before retry",
-                        attempt=attempt + 1,
-                        error=error_str,
+                        f"Rate limit/quota hit, waiting before retry |  attempt: {attempt + 1} Error: {error_str}",
                     )
                     # Exponential backoff for rate limits
                     wait_time = min(2.0**attempt, 10.0)  # Cap at 10 seconds
@@ -175,14 +175,13 @@ async def generate_content_async(
                 else:
                     logger.warning(
                         "AI generation attempt failed",
-                        attempt=attempt + 1,
-                        error=error_str,
                     )
+                    logger.warning("Attempt: " + str(attempt + 1))
+                    logger.warning(f"Error: {error_str}")
                     if attempt == max_retries - 1:
                         logger.error(
                             "All AI generation attempts failed",
-                            max_retries=max_retries,
-                            error=error_str,
+                            f"{max_retries=}, {error_str=}",
                         )
                         raise
                     # Shorter retry delay for other errors
@@ -207,14 +206,14 @@ class ChatService:
         # Thread-safe check for PDF context with better error handling
         def check_pdf_context():
             if token not in pdf_contexts:
-                logger.error("No PDF context found", token=token)
+                logger.error(f"No PDF context found: {token}")
                 raise HTTPException(
                     status_code=400,
                     detail="No PDF selected. Please select a PDF first.",
                 )
             context = pdf_contexts[token]
             if not context or "content" not in context:
-                logger.error("Invalid PDF context", token=token)
+                logger.error(f"Invalid PDF context: {token}")
                 raise HTTPException(
                     status_code=400,
                     detail="PDF context is invalid. Please select a PDF again.",
@@ -224,7 +223,7 @@ class ChatService:
         try:
             pdf_context = safe_storage_access(check_pdf_context, token)
         except Exception as e:
-            logger.error("Error accessing PDF context", token=token, error=str(e))
+            logger.error(f"Error accessing PDF context: token={token}, error={str(e)}")
             raise
 
         # Thread-safe initialization of chat history
@@ -243,7 +242,7 @@ class ChatService:
 
         # Use RAG to retrieve relevant context
         logger.debug(
-            f"Retrieving relevant context using RAG, query length: {len(message.message)}"
+            f"Retrieving relevant context using RAG: query_length={len(message.message)}"
         )
 
         use_rag = True
@@ -269,13 +268,12 @@ class ChatService:
             else:
                 content_info = f"Relevant Content:\n{rag_result['context']}"
                 logger.debug(
-                    f"Using RAG context with {rag_result['num_chunks']} chunks"
+                    f"Using RAG context: num_chunks={rag_result['num_chunks']}"
                 )
         except Exception as rag_error:
             error_str = str(rag_error).lower()
             logger.warning(
-                "RAG retrieval failed, falling back to full content",
-                error=str(rag_error),
+                "RAG retrieval failed, falling back to full content: " + (rag_error),
             )
             use_rag = False
 
@@ -330,7 +328,7 @@ class ChatService:
 
             safe_storage_access(store_chat_entry, token)
 
-            logger.debug(f"Successfully generated response, length: {len(ai_response)}")
+            logger.debug(f"Successfully generated response: length={len(ai_response)}")
             return ChatResponse(
                 response=ai_response, timestamp=datetime.now().isoformat()
             )
@@ -340,7 +338,9 @@ class ChatService:
             raise
         except Exception as e:
             error_msg = str(e)
-            logger.error("Failed to generate response", token=token, error=error_msg)
+            logger.error(
+                f"Failed to generate response: token={token}, error={error_msg}"
+            )
 
             # Check if it's a rate limit or overload error
             if any(
@@ -399,7 +399,7 @@ class ChatService:
         # Get PDF context thread-safely
         def get_pdf_context():
             if token not in pdf_contexts:
-                logger.error("No PDF context found", token=token)
+                logger.error(f"No PDF context found: {token}")
                 raise HTTPException(status_code=400, detail="No PDF selected")
             return pdf_contexts[token]
 
@@ -452,7 +452,7 @@ class ChatService:
                         difficulty_info = qa_result.get("difficulty_analysis", {})
 
                         logger.debug(
-                            f"Using Q&A Generation Service: {metadata.get('total_chunks', 0)} chunks"
+                            f"Using Q&A Generation Service: total_chunks={metadata.get('total_chunks', 0)}"
                         )
 
                         topic_instruction = f"""
@@ -514,7 +514,7 @@ class ChatService:
                 if rag_result["status"] == "success" and rag_result["context"]:
                     document_content = rag_result["context"]
                     logger.debug(
-                        f"Using basic RAG with {rag_result['num_chunks']} chunks"
+                        f"Using basic RAG: num_chunks={rag_result['num_chunks']}"
                     )
                     topic_instruction = f"""
         SPECIFIC TOPIC FOCUS: "{topic.strip()}"
@@ -557,7 +557,7 @@ class ChatService:
                         difficulty_info = qa_result.get("difficulty_analysis", {})
 
                         logger.debug(
-                            f"Using Q&A Generation Service: {metadata.get('total_chunks', 0)} chunks"
+                            f"Using Q&A Generation Service: total_chunks={metadata.get('total_chunks', 0)}"
                         )
 
                         topic_instruction = f"""
@@ -704,7 +704,7 @@ class ChatService:
         try:
             # Generate response using Together.ai
             ai_response = await generate_content_async(context)
-            logger.debug(f"Together.ai response received, length: {len(ai_response)}")
+            logger.debug(f"Together.ai response received: length={len(ai_response)}")
 
             if not ai_response:
                 logger.error("No response from Together.ai")
@@ -728,8 +728,7 @@ class ChatService:
             # Validate that response contains JSON-like structure
             if "{" not in cleaned_response or "}" not in cleaned_response:
                 logger.warning(
-                    "Response doesn't contain JSON structure",
-                    response_preview=ai_response[:100],
+                    "Response doesn't contain JSON structure: " + ai_response[:100],
                 )
 
                 # Fallback: create a simple question structure
@@ -775,7 +774,7 @@ class ChatService:
                     raise ValueError("JSON missing 'questions' field")
 
         except Exception as e:
-            logger.error("Error generating questions", error=str(e))
+            logger.error(f"Error generating questions: {str(e)}")
             raise HTTPException(
                 status_code=500, detail=f"Failed to generate questions: {str(e)}"
             )
@@ -943,7 +942,7 @@ class ChatService:
             )
 
         except Exception as e:
-            logger.error("Error evaluating answer", error=str(e))
+            logger.error(f"Error evaluating answer: {str(e)}")
             raise HTTPException(
                 status_code=500, detail=f"Failed to evaluate answer: {str(e)}"
             )
@@ -1016,7 +1015,7 @@ class ChatService:
                     )
 
                 except Exception as e:
-                    logger.warning("Error getting answer explanation", error=str(e))
+                    logger.warning(f"Error getting answer explanation: {str(e)}")
                     correct_answer_explanation = f"Option {correct_answer_clean} is the correct answer according to the document."
 
                 # Get the actual option texts for better feedback
@@ -1188,7 +1187,7 @@ class ChatService:
             )
 
         except Exception as e:
-            logger.error("Error generating overall feedback", error=str(e))
+            logger.error(f"Error generating overall feedback: {str(e)}")
             # Return basic response without AI-generated feedback
             return QuizSubmissionResponse(
                 overall_score=total_score,

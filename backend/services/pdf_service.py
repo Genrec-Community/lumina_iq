@@ -36,19 +36,19 @@ class PDFService:
 
     @staticmethod
     async def extract_text_from_pdf(file_path: str) -> str:
-        logger.info("Starting PDF text extraction", file_path=file_path)
+        logger.info(f"Starting PDF text extraction: {file_path}")
 
         # Check cache first
         cached_text = await cache_service.get_cached_text(file_path)
         if cached_text is not None:
             logger.info(
-                "Using cached text", file_path=file_path, text_length=len(cached_text)
+                f"Using cached text: file_path={file_path}, text_length={len(cached_text)}"
             )
             return cached_text
 
         # Cache miss - extract text from PDF
         text = ""
-        logger.info("Cache miss - extracting text from PDF", file_path=file_path)
+        logger.info(f"Cache miss - extracting text from PDF: {file_path}")
 
         try:
             # Lazy import PyPDF2 only when needed for text extraction
@@ -58,7 +58,7 @@ class PDFService:
                 pdf_reader = PyPDF2.PdfReader(file)
                 page_count = len(pdf_reader.pages)
                 logger.info(
-                    "PDF loaded successfully", file_path=file_path, pages=page_count
+                    f"PDF loaded successfully: file_path={file_path}, pages={page_count}"
                 )
 
                 for i, page in enumerate(pdf_reader.pages):
@@ -66,25 +66,21 @@ class PDFService:
                     if page_text:
                         text += page_text + "\n"
                         logger.debug(
-                            "Page extracted", page=i + 1, text_length=len(page_text)
+                            f"Page extracted: page={i + 1}, text_length={len(page_text)}"
                         )
                     else:
-                        logger.debug("Page has no text", page=i + 1)
+                        logger.debug(f"Page has no text: page={i + 1}")
 
         except Exception as e:
             logger.warning(
-                "PyPDF2 extraction failed, trying pdfplumber",
-                file_path=file_path,
-                error=str(e),
+                f"PyPDF2 extraction failed, trying pdfplumber: file_path={file_path}, error={str(e)}"
             )
             # Fallback to pdfplumber
             try:
                 with pdfplumber.open(file_path) as pdf:
                     page_count = len(pdf.pages)
                     logger.info(
-                        "PDF loaded with pdfplumber",
-                        file_path=file_path,
-                        pages=page_count,
+                        f"PDF loaded with pdfplumber: file_path={file_path}, pages={page_count}"
                     )
 
                     for i, page in enumerate(pdf.pages):
@@ -92,19 +88,18 @@ class PDFService:
                         if page_text:
                             text += page_text + "\n"
                             logger.debug(
-                                "Page extracted with pdfplumber",
-                                page=i + 1,
-                                text_length=len(page_text),
+                                "Page extracted with pdfplumber: "
+                                f"page={i + 1}, "
+                                f"text_length={len(page_text)}"
                             )
                         else:
-                            logger.debug("Page has no text with pdfplumber", page=i + 1)
+                            logger.debug(
+                                f"Page has no text with pdfplumber: page={i + 1}"
+                            )
 
             except Exception as e2:
                 logger.error(
-                    "Both extraction methods failed",
-                    file_path=file_path,
-                    pypdf_error=str(e),
-                    pdfplumber_error=str(e2),
+                    f"Both extraction methods failed: file_path={file_path}, pypdf_error={str(e)}, pdfplumber_error={str(e2)}"
                 )
                 raise HTTPException(
                     status_code=500,
@@ -113,25 +108,20 @@ class PDFService:
 
         extracted_text = text.strip()
         logger.info(
-            "Text extraction completed",
-            file_path=file_path,
-            extracted_length=len(extracted_text),
+            f"Text extraction completed: file_path={file_path}, extracted_length={len(extracted_text)}"
         )
 
         if len(extracted_text) < 50:
             logger.warning(
-                "Very little text extracted",
-                file_path=file_path,
-                extracted_length=len(extracted_text),
-                preview=extracted_text[:100],
+                f"Very little text extracted: file_path={file_path}, extracted_length={len(extracted_text)}, preview={extracted_text[:100]}"
             )
 
         # Save to cache for future use
         cache_saved = await cache_service.save_to_cache(file_path, extracted_text)
         if cache_saved:
-            logger.info("Successfully cached extracted text", file_path=file_path)
+            logger.info(f"Successfully cached extracted text: {file_path}")
         else:
-            logger.warning("Failed to cache extracted text", file_path=file_path)
+            logger.warning(f"Failed to cache extracted text: {file_path}")
 
         return extracted_text
 
@@ -193,7 +183,7 @@ class PDFService:
                 return metadata
         except Exception as e:
             logger.warning(
-                "Failed to extract full metadata", file_path=file_path, error=str(e)
+                f"Failed to extract full metadata: file_path={file_path}, error={str(e)}"
             )
             return basic_metadata
 
@@ -284,22 +274,20 @@ class PDFService:
             storage_manager.safe_set(pdf_metadata, token, metadata)
 
             # Index document for RAG with duplicate detection
-            logger.info("Starting RAG indexing for selected PDF", filename=filename)
+            logger.info(f"Starting RAG indexing for selected PDF: {filename}")
 
             # Check if should use LlamaIndex for large PDFs
             use_llamaindex = PDFService.should_use_llamaindex(str(file_path))
 
             if use_llamaindex:
-                logger.info(
-                    "Using LlamaIndex for large PDF indexing", filename=filename
-                )
+                logger.info(f"Using LlamaIndex for large PDF indexing: {filename}")
                 indexing_result = (
                     await llamaindex_service.index_document_with_llamaindex(
                         file_path=file_path, filename=filename, token=token
                     )
                 )
             else:
-                logger.info("Using standard RAG indexing", filename=filename)
+                logger.info(f"Using standard RAG indexing: {filename}")
                 indexing_result = await rag_service.index_document(
                     filename=filename,
                     content=text_content,
@@ -307,10 +295,7 @@ class PDFService:
                     file_path=str(file_path),
                 )
             logger.info(
-                "RAG indexing completed",
-                filename=filename,
-                result=indexing_result.get("status"),
-                is_duplicate=indexing_result.get("status") == "duplicate",
+                f"RAG indexing completed: filename={filename}, result={indexing_result.get('status')}, is_duplicate={indexing_result.get('status') == 'duplicate'}"
             )
 
             return {
@@ -384,16 +369,14 @@ class PDFService:
             storage_manager.safe_set(pdf_metadata, token, metadata)
 
             # Index document for RAG with duplicate detection
-            logger.info(
-                "Starting RAG indexing for uploaded PDF", filename=unique_filename
-            )
+            logger.info(f"Starting RAG indexing for uploaded PDF: {unique_filename}")
 
             # Check if should use LlamaIndex for large PDFs
             use_llamaindex = PDFService.should_use_llamaindex(str(file_path))
 
             if use_llamaindex:
                 logger.info(
-                    "Using LlamaIndex for large PDF indexing", filename=unique_filename
+                    f"Using LlamaIndex for large PDF indexing: {unique_filename}"
                 )
                 indexing_result = (
                     await llamaindex_service.index_document_with_llamaindex(
@@ -403,7 +386,7 @@ class PDFService:
                     )
                 )
             else:
-                logger.info("Using standard RAG indexing", filename=unique_filename)
+                logger.info(f"Using standard RAG indexing: {unique_filename}")
                 indexing_result = await rag_service.index_document(
                     filename=unique_filename,
                     content=text_content,
@@ -411,10 +394,7 @@ class PDFService:
                     file_path=str(file_path),
                 )
             logger.info(
-                "RAG indexing completed",
-                filename=unique_filename,
-                result=indexing_result.get("status"),
-                is_duplicate=indexing_result.get("status") == "duplicate",
+                f"RAG indexing completed: filename={unique_filename}, result={indexing_result.get('status')}, is_duplicate={indexing_result.get('status') == 'duplicate'}"
             )
 
             # Add indexing info to response

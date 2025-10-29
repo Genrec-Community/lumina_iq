@@ -105,15 +105,5 @@ class Settings(BaseSettings):
     CACHE_TTL_SECONDS: int = Field(default=3600)  # 1 hour cache TTL
     LOG_LEVEL: str = Field(default="DEBUG")  # Logging level
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # Debug log to validate API key loading
-        if self.TOGETHER_API_KEY:
-            print(
-                f"TOGETHER_API_KEY loaded successfully: {self.TOGETHER_API_KEY[:10]}..."
-            )  # Masked for security
-        else:
-            print("WARNING: TOGETHER_API_KEY not loaded from .env file")
-
 
 settings = Settings()

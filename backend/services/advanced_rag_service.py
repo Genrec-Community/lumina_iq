@@ -46,9 +46,7 @@ class AdvancedRAGService:
             Deduplicated list of chunks with diversity
         """
         chat_logger.info(
-            "Starting multi-query retrieval",
-            base_query=base_query[:50],
-            num_queries=queries_to_generate,
+            f"Starting multi-query retrieval: base_query={base_query[:50]}, num_queries={queries_to_generate}"
         )
 
         # Generate query variations
@@ -89,16 +87,20 @@ class AdvancedRAGService:
 
                 except Exception as e:
                     chat_logger.warning(
-                        f"Query variation failed: {query_var[:30]}", error=str(e)
+                        f"Query variation failed: query_var={query_var[:30]}, error={str(e)}"
                     )
                     continue
 
         except Exception as e:
-            chat_logger.warning("Batch embedding failed, falling back to individual", error=str(e))
+            chat_logger.warning(
+                f"Batch embedding failed, falling back to individual: {str(e)}"
+            )
             # Fallback to individual embeddings
             for query_var in query_variations:
                 try:
-                    query_embedding = await EmbeddingService.generate_query_embedding(query_var)
+                    query_embedding = await EmbeddingService.generate_query_embedding(
+                        query_var
+                    )
                     results = await qdrant_service.search_similar_chunks(
                         query_embedding=query_embedding,
                         token=token,
@@ -111,7 +113,9 @@ class AdvancedRAGService:
                             seen_texts.add(chunk_text)
                             all_chunks.append(chunk)
                 except Exception as e2:
-                    chat_logger.warning(f"Query variation failed: {query_var[:30]}", error=str(e2))
+                    chat_logger.warning(
+                        f"Query variation failed: query_var={query_var[:30]}, error={str(e2)}"
+                    )
                     continue
 
         chat_logger.info(f"Multi-query retrieval found {len(all_chunks)} unique chunks")
@@ -362,10 +366,7 @@ class AdvancedRAGService:
             Dictionary with retrieved chunks and metadata
         """
         chat_logger.info(
-            "Starting advanced retrieval for question generation",
-            query=query[:50],
-            num_questions=num_questions,
-            mode=mode,
+            f"Starting advanced retrieval for question generation query={query[:50]}, num_questions={num_questions}, mode={mode}"
         )
 
         try:
@@ -392,8 +393,7 @@ class AdvancedRAGService:
                     all_chunks.extend(chunks)
                 except Exception as e:
                     chat_logger.warning(
-                        f"Failed to retrieve for subtopic: {sub_query[:30]}",
-                        error=str(e),
+                        f"Failed to retrieve for subtopic: {sub_query[:30]}\n, error={str(e)}",
                     )
 
             if not all_chunks:
@@ -436,11 +436,16 @@ class AdvancedRAGService:
             combined_context = "\n\n".join(context_parts)
 
             chat_logger.info(
-                f"Advanced retrieval completed with {len(reranked_chunks)} chunks",
-                avg_density=sum(c.get("density_score", 0) for c in reranked_chunks)
-                / len(reranked_chunks)
-                if reranked_chunks
-                else 0,
+                f"Advanced retrieval completed with {len(reranked_chunks)} chunks"
+            )
+            chat_logger.debug(f"Combined context length: {len(combined_context)} chars")
+            chat_logger.debug(
+                "Average chunk info density: {:.2f}".format(
+                    sum(c.get("density_score", 0) for c in reranked_chunks)
+                    / len(reranked_chunks)
+                    if reranked_chunks
+                    else 0
+                )
             )
 
             return {
@@ -453,7 +458,7 @@ class AdvancedRAGService:
             }
 
         except Exception as e:
-            chat_logger.error("Advanced retrieval failed", error=str(e))
+            chat_logger.error(f"Advanced retrieval failed: {str(e)}")
             return {
                 "status": "error",
                 "chunks": [],
@@ -536,9 +541,10 @@ class AdvancedRAGService:
             )
 
         try:
-            chat_logger.info(
-                "Using LlamaIndex for retrieval", query_length=len(query), top_k=top_k
-            )
+            chat_logger.info("Using LlamaIndex for retrieval")
+            chat_logger.debug(f"Filename for retrieval: {filename}")
+            chat_logger.debug(f"Query content length: {len(query)} chars")
+            chat_logger.debug(f"Top k requested: {top_k}")
 
             # Use LlamaIndex service for retrieval
             result = await llamaindex_service.retrieve_with_llamaindex(

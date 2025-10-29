@@ -100,7 +100,7 @@ class RetrievalStrategyManager:
         - Reranks for best top-k results
         - Medium chunk size
         """
-        chat_logger.info("Using CHAT retrieval strategy", top_k=top_k)
+        chat_logger.info(f"Using CHAT retrieval strategy: {top_k}")
 
         try:
             # Generate query embedding
@@ -161,7 +161,7 @@ class RetrievalStrategyManager:
             }
 
         except Exception as e:
-            chat_logger.error("CHAT strategy failed", error=str(e))
+            chat_logger.error(f"CHAT strategy failed: {str(e)}")
             return {
                 "status": "error",
                 "chunks": [],
@@ -187,7 +187,7 @@ class RetrievalStrategyManager:
         - Filters by chapter/section if mentioned
         - Small chunks but with expanded context
         """
-        chat_logger.info("Using EVALUATION retrieval strategy", top_k=top_k)
+        chat_logger.info(f"Using EVALUATION retrieval strategy: {top_k}")
 
         try:
             # Generate query embedding
@@ -263,7 +263,7 @@ class RetrievalStrategyManager:
             }
 
         except Exception as e:
-            chat_logger.error("EVALUATION strategy failed", error=str(e))
+            chat_logger.error(f"EVALUATION strategy failed: {str(e)}")
             return {
                 "status": "error",
                 "chunks": [],
@@ -289,9 +289,7 @@ class RetrievalStrategyManager:
         - Maintains document order (sequential_id)
         - No cross-chapter mixing
         """
-        chat_logger.info(
-            "Using QA_GENERATION retrieval strategy", num_questions=num_questions
-        )
+        chat_logger.info(f"Using QA_GENERATION retrieval strategy: {num_questions}")
 
         try:
             # Generate query embedding
@@ -308,9 +306,7 @@ class RetrievalStrategyManager:
                         "value": query_metadata["chapter"]["value"],
                     }
                 )
-                chat_logger.info(
-                    f"Filtering to chapter {query_metadata['chapter']['value']}"
-                )
+                chat_logger.info(f"Filtering to chapter {query_metadata['chapter']['value']}")
 
             # Section filter
             if query_metadata["section"]["confidence"] > 0.80:
@@ -382,7 +378,7 @@ class RetrievalStrategyManager:
             }
 
         except Exception as e:
-            chat_logger.error("QA_GENERATION strategy failed", error=str(e))
+            chat_logger.error(f"QA_GENERATION strategy failed: {str(e)}")
             return {
                 "status": "error",
                 "chunks": [],
@@ -408,7 +404,7 @@ class RetrievalStrategyManager:
         - Groups by subtopics/sections
         - Large chunks for comprehensive coverage
         """
-        chat_logger.info("Using NOTES retrieval strategy", top_k=top_k)
+        chat_logger.info(f"Using NOTES retrieval strategy: {top_k}")
 
         try:
             # Build filter for chapter/section
@@ -422,9 +418,7 @@ class RetrievalStrategyManager:
                         "value": query_metadata["chapter"]["value"],
                     }
                 )
-                chat_logger.info(
-                    f"Generating notes for chapter {query_metadata['chapter']['value']}"
-                )
+                chat_logger.info(f"Generating notes for chapter {query_metadata['chapter']['value']}")
             elif query_metadata["section"]["confidence"] > 0.80:
                 filter_conditions.append(
                     {
@@ -494,7 +488,7 @@ class RetrievalStrategyManager:
             }
 
         except Exception as e:
-            chat_logger.error("NOTES strategy failed", error=str(e))
+            chat_logger.error(f"NOTES strategy failed: {str(e)}")
             return {
                 "status": "error",
                 "chunks": [],

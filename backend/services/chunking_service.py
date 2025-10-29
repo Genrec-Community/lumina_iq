@@ -157,8 +157,9 @@ class ChunkingService:
         """
         chat_logger.info(
             "Chunking with rich metadata extraction",
-            document_name=document_name,
-            chunk_size=chunk_size,
+        )
+        chat_logger.debug(
+            f"Document name: {document_name}, text length: {len(text)} chars"
         )
 
         # Create chunks

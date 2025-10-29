@@ -36,9 +36,7 @@ class CacheService:
 
             return cache_key
         except Exception as e:
-            logger.error(
-                "Error generating cache key", file_path=file_path, error=str(e)
-            )
+            logger.error(f"Error generating cache key: file_path={file_path}, error={str(e)}")
             # Fallback to just file path hash if stat fails
             return hashlib.md5(file_path.encode()).hexdigest()
 
@@ -61,7 +59,7 @@ class CacheService:
             cache_file_path = self._get_cache_file_path(cache_key)
 
             if not cache_file_path.exists():
-                logger.debug("No cache found", file_path=file_path)
+                logger.debug(f"No cache found: {file_path}")
                 return None
 
             # Read cached data
@@ -70,16 +68,14 @@ class CacheService:
 
             # Verify cache data structure
             if not all(key in cache_data for key in ["text", "cached_at", "file_path"]):
-                logger.warning("Invalid cache data structure", file_path=file_path)
+                logger.warning(f"Invalid cache data structure: {file_path}")
                 return None
 
-            logger.info(
-                "Cache hit", file_path=file_path, cached_at=cache_data["cached_at"]
-            )
+            logger.info(f"Cache hit: file_path={file_path}, cached_at={cache_data['cached_at']}")
             return cache_data["text"]
 
         except Exception as e:
-            logger.error("Error reading cache", file_path=file_path, error=str(e))
+            logger.error(f"Error reading cache: file_path={file_path}, error={str(e)}")
             return None
 
     async def save_to_cache(self, file_path: str, extracted_text: str) -> bool:
@@ -110,13 +106,11 @@ class CacheService:
             async with aiofiles.open(cache_file_path, "w", encoding="utf-8") as f:
                 await f.write(json.dumps(cache_data, ensure_ascii=False, indent=2))
 
-            logger.info(
-                "Successfully cached text", file_path=file_path, cache_key=cache_key
-            )
+            logger.info(f"Successfully cached text: file_path={file_path}, cache_key={cache_key}")
             return True
 
         except Exception as e:
-            logger.error("Error saving to cache", file_path=file_path, error=str(e))
+            logger.error(f"Error saving to cache: file_path={file_path}, error={str(e)}")
             return False
 
     def clear_cache(self) -> int:
@@ -132,11 +126,11 @@ class CacheService:
                 cache_file.unlink()
                 deleted_count += 1
 
-            logger.info("Cache cleared", deleted_count=deleted_count)
+            logger.info(f"Cache cleared: {deleted_count}")
             return deleted_count
 
         except Exception as e:
-            logger.error("Error clearing cache", error=str(e))
+            logger.error(f"Error clearing cache: {str(e)}")
             return 0
 
     def get_cache_info(self) -> dict:
@@ -159,7 +153,7 @@ class CacheService:
             }
 
         except Exception as e:
-            logger.error("Error getting cache info", error=str(e))
+            logger.error(f"Error getting cache info: {str(e)}")
             return {}
 
     def _generate_embedding_cache_key(self, text: str) -> str:
@@ -188,11 +182,11 @@ class CacheService:
                 cache_file_path.unlink()  # Remove expired cache
                 return None
 
-            logger.debug("Embedding cache hit", cache_key=cache_key[:8])
+            logger.debug(f"Embedding cache hit: {cache_key[:8]}")
             return cache_data["embedding"]
 
         except Exception as e:
-            logger.error("Error reading embedding cache", error=str(e))
+            logger.error(f"Error reading embedding cache: {str(e)}")
             return None
 
     async def save_embedding_to_cache(self, text: str, embedding: List[float]) -> bool:
@@ -214,11 +208,11 @@ class CacheService:
             async with aiofiles.open(cache_file_path, "w") as f:
                 await f.write(json.dumps(cache_data))
 
-            logger.debug("Embedding cached", cache_key=cache_key[:8])
+            logger.debug(f"Embedding cached: {cache_key[:8]}")
             return True
 
         except Exception as e:
-            logger.error("Error saving embedding to cache", error=str(e))
+            logger.error(f"Error saving embedding to cache: {str(e)}")
             return False
 
     async def get_cached_query_result(
@@ -245,11 +239,11 @@ class CacheService:
                 cache_file_path.unlink()
                 return None
 
-            logger.debug("Query result cache hit", cache_key=cache_key[:8])
+            logger.debug(f"Query result cache hit: {cache_key[:8]}")
             return cache_data["result"]
 
         except Exception as e:
-            logger.error("Error reading query cache", error=str(e))
+            logger.error(f"Error reading query cache: {str(e)}")
             return None
 
     async def save_query_result_to_cache(
@@ -274,11 +268,11 @@ class CacheService:
             async with aiofiles.open(cache_file_path, "w") as f:
                 await f.write(json.dumps(cache_data))
 
-            logger.debug("Query result cached", cache_key=cache_key[:8])
+            logger.debug(f"Query result cached: {cache_key[:8]}")
             return True
 
         except Exception as e:
-            logger.error("Error saving query result to cache", error=str(e))
+            logger.error(f"Error saving query result to cache: {str(e)}")
             return False
 
 

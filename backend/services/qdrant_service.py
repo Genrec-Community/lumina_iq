@@ -51,8 +51,9 @@ class QdrantService:
                         distance=Distance.COSINE,
                     ),
                 )
-                chat_logger.info(
-                    "Created collection", collection_name=self.collection_name
+                chat_logger.info("Created collection")
+                chat_logger.debug(
+                    f"Collection details: name={self.collection_name}, vector_size={settings.EMBEDDING_DIMENSIONS}, distance_metric=COSINE"
                 )
 
                 # Create payload indexes for filtering
@@ -87,8 +88,9 @@ class QdrantService:
                     field_name="metadata.primary_content_type",
                     field_schema=PayloadSchemaType.KEYWORD,
                 )
-                chat_logger.info(
-                    "Created payload indexes", collection_name=self.collection_name
+                chat_logger.info("Created payload indexes")
+                chat_logger.debug(
+                    f"Payload indexes created for collection: {self.collection_name}"
                 )
             else:
                 chat_logger.info(f"Collection already exists: {self.collection_name}")
@@ -164,11 +166,11 @@ class QdrantService:
 
                 except Exception as batch_error:
                     chat_logger.error(
-                        f"Failed to index batch {batch_num + 1}/{total_batches} for {filename}",
-                        batch_size=len(batch_points),
-                        start_idx=start_idx,
-                        end_idx=end_idx,
-                        error=str(batch_error),
+                        f"Failed to index batch {batch_num + 1}/{total_batches} for {filename}: "
+                        f"batch_size={len(batch_points)} "
+                        f"start_idx={start_idx} "
+                        f"end_idx={end_idx} "
+                        f"error={str(batch_error)} "
                     )
                     # Continue with other batches even if one fails
                     continue
@@ -180,7 +182,7 @@ class QdrantService:
 
         except Exception as e:
             chat_logger.error(
-                "Failed to index document", filename=filename, error=str(e)
+                f"Failed to index document: filename={filename} error={str(e)}"
             )
             raise
 
@@ -252,10 +254,9 @@ class QdrantService:
                     }
                 )
 
-            chat_logger.info(
-                f"Found {len(results)} similar chunks",
-                token=token,
-                filters=len(metadata_filters) if metadata_filters else 0,
+            chat_logger.info(f"Found {len(results)} similar chunks")
+            chat_logger.debug(
+                f"Search details: token={token}, filename={filename}, limit={limit}"
             )
             return results
         except Exception as e:
@@ -276,10 +277,13 @@ class QdrantService:
                     ]
                 ),
             )
-            chat_logger.info("Deleted chunks", filename=filename)
+            chat_logger.info("Deleted chunks")
+            chat_logger.debug(
+                f"Deleted all chunks for document: filename={filename}, token={token}"
+            )
         except Exception as e:
             chat_logger.error(
-                "Failed to delete document chunks", filename=filename, error=str(e)
+                f"Failed to delete document chunks: filename={filename}, token={token}, error={str(e)}"
             )
             raise
 
@@ -302,9 +306,8 @@ class QdrantService:
             return len(result[0]) > 0
         except Exception as e:
             chat_logger.error(
-                "Failed to check if document is indexed",
-                filename=filename,
-                error=str(e),
+                "Failed to check if document is indexed: ",
+                f"filename={filename}, error={str(e)} ",
             )
             return False
 
@@ -360,13 +363,14 @@ class QdrantService:
                     }
                 )
 
-            chat_logger.info(
-                "Retrieved chunks by filter", num_chunks=len(chunks), token=token
+            chat_logger.info("Retrieved chunks by filter")
+            chat_logger.debug(
+                f"Get chunks by filter details: token={token}, filename={filename}, filters={len(metadata_filters) if metadata_filters else 0}, limit={limit}"
             )
             return chunks
 
         except Exception as e:
-            chat_logger.error("Failed to get chunks by filter", error=str(e))
+            chat_logger.error(f"Failed to get chunks by filter: error={str(e)}")
             raise
 
 

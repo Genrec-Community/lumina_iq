@@ -91,7 +91,7 @@ def update_frontend_env(ip_address, port=8000):
         logger.info(
             "Please manually update the NEXT_PUBLIC_API_BASE_URL in frontend/.env"
         )
-        logger.info("Set API URL", url=f"http://{ip_address}:{port}/api")
+        logger.info(f"Set API URL: {f'http://{ip_address}:{port}/api'}")
 
 
 def setup_frontend_env(port=8000):

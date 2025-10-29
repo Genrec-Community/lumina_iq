@@ -31,16 +31,11 @@ class FileHashService:
                     hash_obj.update(chunk)
 
             file_hash = hash_obj.hexdigest()
-            logger.debug(
-                "Calculated hash",
-                algorithm=algorithm,
-                file_path=file_path,
-                hash_value=file_hash[:16],
-            )
+            logger.debug(f"Calculated hash: algorithm={algorithm}, file_path={file_path}, hash_value={file_hash[:16]}")
             return file_hash
 
         except Exception as e:
-            logger.error("Failed to calculate hash", file_path=file_path, error=str(e))
+            logger.error(f"Failed to calculate hash: file_path={file_path}, error={str(e)}")
             return None
 
     @staticmethod
