@@ -8,7 +8,7 @@ from typing import List
 from config.settings import settings
 from utils.storage import pdf_contexts, pdf_metadata, storage_manager, storage_manager
 from utils.cache import cache_service
-from utils.logging_config import get_logger
+from utils.logger import get_logger
 
 # Use enhanced logger
 logger = get_logger("pdf_service")
@@ -97,9 +97,7 @@ class PDFService:
                                 text_length=len(page_text),
                             )
                         else:
-                            logger.debug(
-                                "Page has no text with pdfplumber", page=i + 1
-                            )
+                            logger.debug("Page has no text with pdfplumber", page=i + 1)
 
             except Exception as e2:
                 logger.error(

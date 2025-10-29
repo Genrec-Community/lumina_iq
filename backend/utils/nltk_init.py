@@ -9,7 +9,7 @@ import shutil
 import logging
 from pathlib import Path
 import nltk
-from utils.logging_config import get_logger
+from utils.logger import get_logger
 
 # Use enhanced logger
 logger = get_logger("nltk_init")

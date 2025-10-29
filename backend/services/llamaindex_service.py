@@ -86,8 +86,9 @@ class LlamaIndexService:
                         separator=" ",
                     )
                 except Exception as e:
-                    chat_logger.warning("Failed to create SentenceSplitter, falling back to TokenTextSplitter",
-                                       error=str(e))
+                    chat_logger.warning(
+                        f"Failed to create SentenceSplitter, falling back to TokenTextSplitter: {str(e)}",
+                    )
                     # Fall back to basic text splitter
                     from llama_index.core.node_parser import TokenTextSplitter
 
@@ -101,13 +102,13 @@ class LlamaIndexService:
             )
 
             chat_logger.info(
-                "LlamaIndex settings configured",
-                embedding_model=settings.EMBEDDING_MODEL,
+                f"LlamaIndex settings configured: {settings.EMBEDDING_MODEL}"
             )
 
         except Exception as e:
-            chat_logger.error("Failed to setup LlamaIndex settings",
-                             error=str(e))
+            chat_logger.error(
+                f"Failed to setup LlamaIndex settings: {str(e)}",
+            )
             # Set minimal fallback settings
             Settings.embed_model = TogetherEmbedding(
                 model_name=settings.EMBEDDING_MODEL, api_key=settings.TOGETHER_API_KEY
@@ -146,29 +147,36 @@ class LlamaIndexService:
 
     def generate_batch_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Generate embeddings in batches to reduce API calls"""
-        batch_size = getattr(settings, 'EMBEDDING_BATCH_SIZE', 10)
+        batch_size = getattr(settings, "EMBEDDING_BATCH_SIZE", 10)
         embeddings = []
 
         for i in range(0, len(texts), batch_size):
-            batch_texts = texts[i:i + batch_size]
+            batch_texts = texts[i : i + batch_size]
             try:
-                batch_embeddings = Settings.embed_model.get_text_embedding_batch(batch_texts)
+                batch_embeddings = Settings.embed_model.get_text_embedding_batch(
+                    batch_texts
+                )
                 embeddings.extend(batch_embeddings)
-                chat_logger.info("Generated embeddings for batch",
-                                batch_num=i//batch_size + 1,
-                                batch_size=len(batch_texts))
+                chat_logger.info(
+                    "Generated embeddings for batch",
+                    batch_num=i // batch_size + 1,
+                    batch_size=len(batch_texts),
+                )
             except Exception as e:
-                chat_logger.error("Failed to generate embeddings for batch",
-                                 batch_num=i//batch_size + 1,
-                                 error=str(e))
+                chat_logger.error(
+                    "Failed to generate embeddings for batch",
+                    batch_num=i // batch_size + 1,
+                    error=str(e),
+                )
                 # Fallback to individual
                 for text in batch_texts:
                     try:
                         emb = Settings.embed_model.get_text_embedding(text)
                         embeddings.append(emb)
                     except Exception as e2:
-                        chat_logger.error("Failed to generate embedding for text",
-                                         error=str(e2))
+                        chat_logger.error(
+                            "Failed to generate embedding for text", error=str(e2)
+                        )
                         embeddings.append([0.0] * settings.EMBEDDING_DIMENSIONS)
 
         return embeddings
@@ -238,7 +246,7 @@ class LlamaIndexService:
         vector_store = QdrantVectorStore(
             client=self.qdrant_client, collection_name=self.collection_name
         )
-        if getattr(settings, 'QDRANT_USE_HYBRID_SEARCH', False):
+        if getattr(settings, "QDRANT_USE_HYBRID_SEARCH", False):
             # Enable hybrid search
             vector_store.enable_hybrid = True
             vector_store.dense_vector_name = "dense"
@@ -323,8 +331,7 @@ class LlamaIndexService:
             try:
                 await pipeline.vector_store.aadd_nodes_to_index(nodes_with_metadata)
             except Exception as e:
-                chat_logger.error("Failed to add nodes to vector store",
-                                 error=str(e))
+                chat_logger.error("Failed to add nodes to vector store", error=str(e))
                 # Fall back to standard indexing if LlamaIndex vector store fails
                 from services.rag_service import rag_service
 

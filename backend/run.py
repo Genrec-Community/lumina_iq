@@ -13,21 +13,41 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config.settings import settings
 from utils.ip_detector import setup_frontend_env
+from utils.logger import app_logger
+from utils.logger import mutate_logger
+
+logger = app_logger.getChild("api")
+
+
+def setup_other_loggers():
+    """Set up other module-specific loggers if needed."""
+    mutate_logger("uvicorn", logging_level=settings.LOG_LEVEL)
+    mutate_logger("uvicorn.error", logging_level=settings.LOG_LEVEL)
+    mutate_logger("uvicorn.access", logging_level=settings.LOG_LEVEL)
+    mutate_logger("urllib3", logging_level=settings.LOG_LEVEL)
+    mutate_logger("qdrant_client", logging_level=settings.LOG_LEVEL)
+    mutate_logger("llama_index", logging_level=settings.LOG_LEVEL)
+    mutate_logger("httpx", logging_level=settings.LOG_LEVEL)
+    mutate_logger("asyncio", logging_level=settings.LOG_LEVEL)
+    mutate_logger("sqlalchemy", logging_level=settings.LOG_LEVEL)
+    mutate_logger("multipart", logging_level=settings.LOG_LEVEL)
+    mutate_logger("fastapi", logging_level=settings.LOG_LEVEL)
+    mutate_logger("starlette", logging_level=settings.LOG_LEVEL)
+    mutate_logger("requests", logging_level=settings.LOG_LEVEL)
 
 
 def main():
     """Start the FastAPI server."""
-    print("🚀 Starting Learning App Backend...")
+    logger.info("🚀 Starting Learning App Backend...")
 
     # Auto-detect IP and update frontend .env file
-    print("\n🔧 Setting up frontend environment...")
+    logger.info("🔧 Setting up frontend environment...")
     detected_ip = setup_frontend_env(settings.PORT)
 
-    print(f"\n📍 Server will run on: http://{settings.HOST}:{settings.PORT}")
-    print(f"🌐 Accessible at: http://{detected_ip}:{settings.PORT}")
-    print(f"📚 Books directory: {settings.BOOKS_DIR}")
-    print(f"🔑 Using Together.ai model: {settings.TOGETHER_MODEL}")
-    print("=" * 50)
+    logger.debug(f"📍 Server will run on: http://{settings.HOST}:{settings.PORT}")
+    logger.debug(f"🌐 Accessible at: http://{detected_ip}:{settings.PORT}")
+    logger.debug(f"📚 Books directory: {settings.BOOKS_DIR}")
+    logger.debug(f"🔑 Using Together.ai model: {settings.TOGETHER_MODEL}")
 
     try:
         uvicorn.run(
@@ -43,9 +63,9 @@ def main():
             limit_concurrency=500,
         )
     except KeyboardInterrupt:
-        print("\n👋 Server stopped by user")
+        logger.warning("\n👋 Server stopped by user")
     except Exception as e:
-        print(f"❌ Error starting server: {e}")
+        logger.critical(f"❌ Error starting server: {e}")
         sys.exit(1)
 
 

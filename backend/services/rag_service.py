@@ -5,7 +5,7 @@ from services.chunking_service import chunking_service
 from services.document_tracking_service import document_tracking_service
 from services.retrieval_strategy_manager import retrieval_strategy_manager
 from utils.file_hash import file_hash_service
-from utils.logging_config import get_logger
+from utils.logger import get_logger
 
 # Use enhanced logger
 logger = get_logger("rag_service")
@@ -32,7 +32,9 @@ class RAGService:
             Dictionary with indexing results
         """
         try:
-            print(f"[DEBUG] Starting RAG indexing for {filename} with token {token[:12]} and file_path {file_path}")
+            print(
+                f"[DEBUG] Starting RAG indexing for {filename} with token {token[:12]} and file_path {file_path}"
+            )
             logger.info(
                 "Starting document indexing",
                 filename=filename,
@@ -80,7 +82,9 @@ class RAGService:
                     filename=filename,
                     hash=file_hash[:16],
                     exists=existing_doc is not None,
-                    existing_filename=existing_doc["filename"] if existing_doc else None,
+                    existing_filename=existing_doc["filename"]
+                    if existing_doc
+                    else None,
                 )
                 if existing_doc:
                     logger.info(
@@ -107,9 +111,7 @@ class RAGService:
                 is_indexed=is_indexed,
             )
             if is_indexed:
-                logger.info(
-                    "Document already indexed in Qdrant", filename=filename
-                )
+                logger.info("Document already indexed in Qdrant", filename=filename)
                 # Still add to tracking if not there
                 if file_hash:
                     document_tracking_service.add_document(
@@ -146,9 +148,7 @@ class RAGService:
             # Generate embeddings for all chunks
             embeddings = await EmbeddingService.generate_embeddings_batch(chunks_text)
 
-            logger.info(
-                f"Generated {len(embeddings)} embeddings", filename=filename
-            )
+            logger.info(f"Generated {len(embeddings)} embeddings", filename=filename)
 
             # Index in Qdrant WITH METADATA
             num_indexed = await qdrant_service.index_document(
@@ -198,9 +198,7 @@ class RAGService:
             }
 
         except Exception as e:
-            logger.error(
-                "Failed to index document", filename=filename, error=str(e)
-            )
+            logger.error("Failed to index document", filename=filename, error=str(e))
             return {
                 "status": "error",
                 "filename": filename,

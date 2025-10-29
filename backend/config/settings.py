@@ -50,12 +50,14 @@ class Settings(BaseSettings):
     # Qdrant Cloud Configuration
     QDRANT_URL: str = Field(
         default="https://1f6b3bbc-d09e-40c2-b333-0a823825f876.europe-west3-0.gcp.cloud.qdrant.io:6333"
-    )
+    )  # i Know this is the worst possible way to actually handle api keys but im in a rush, can fix later i suppose :} -\_(ツ)_/-
     QDRANT_API_KEY: str = Field(
         default="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.O8xNwnZuHGOxo1dcIdcgKrRVZGryxKPYyGaCVyNXziQ"
     )
     QDRANT_COLLECTION_NAME: str = Field(default="learning_app_documents")
-    QDRANT_USE_HYBRID_SEARCH: bool = Field(default=True)  # Enable hybrid search for better recall
+    QDRANT_USE_HYBRID_SEARCH: bool = Field(
+        default=True
+    )  # Enable hybrid search for better recall
 
     # CORS - Dynamic IP detection for development
     @property
@@ -92,12 +94,16 @@ class Settings(BaseSettings):
 
     # Performance Settings for Render Free Tier (512MB RAM, 1 CPU core)
     MAX_WORKERS: int = Field(default=1)  # Single-threaded for 1 CPU core
-    MAX_CONCURRENT_REQUESTS: int = Field(default=10)  # Reduced to prevent memory overload
-    EMBEDDING_BATCH_SIZE: int = Field(default=10)  # Batch embeddings to reduce API calls
+    MAX_CONCURRENT_REQUESTS: int = Field(
+        default=10
+    )  # Reduced to prevent memory overload
+    EMBEDDING_BATCH_SIZE: int = Field(
+        default=10
+    )  # Batch embeddings to reduce API calls
     CACHE_EMBEDDINGS: bool = Field(default=True)  # Enable caching for embeddings
     CACHE_QUERY_RESULTS: bool = Field(default=True)  # Enable caching for query results
     CACHE_TTL_SECONDS: int = Field(default=3600)  # 1 hour cache TTL
-    LOG_LEVEL: str = Field(default="WARNING")  # Logging level
+    LOG_LEVEL: str = Field(default="DEBUG")  # Logging level
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

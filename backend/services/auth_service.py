@@ -4,19 +4,21 @@ from config.settings import settings
 from utils.storage import user_sessions
 from utils.security import create_session_id
 from models.auth import LoginRequest, LoginResponse
-from utils.logging_config import get_logger
+from utils.logger import get_logger
 
 # Use enhanced logger
 logger = get_logger("auth_service")
+
 
 class AuthService:
     @staticmethod
     def login(request: LoginRequest) -> LoginResponse:
         logger.debug(f"Login attempt for user: {request.username}")
 
-        if (request.username == settings.LOGIN_USERNAME and
-            request.password == settings.LOGIN_PASSWORD):
-
+        if (
+            request.username == settings.LOGIN_USERNAME
+            and request.password == settings.LOGIN_PASSWORD
+        ):
             logger.info("Login successful - credentials match")
 
             # Create a simple session ID for tracking (optional)
@@ -24,13 +26,14 @@ class AuthService:
             user_sessions[session_id] = {
                 "username": request.username,
                 "created_at": datetime.now(),
-                "expires_at": datetime.now() + timedelta(hours=settings.SESSION_EXPIRE_HOURS)
+                "expires_at": datetime.now()
+                + timedelta(hours=settings.SESSION_EXPIRE_HOURS),
             }
 
             return LoginResponse(
                 access_token=session_id,  # Return session ID but don't require it for API calls
                 token_type="session",
-                message="Login successful"
+                message="Login successful",
             )
         else:
             logger.warning("❌ Login failed - invalid credentials")

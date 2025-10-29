@@ -1,0 +1,40 @@
+Oct-29-2025 01:59:06 PM INFO     🚀 Starting Learning App Backend... run.py:41
+Oct-29-2025 01:59:06 PM INFO     🔧 Setting up frontend environment... run.py:44
+Oct-29-2025 01:59:06 PM INFO     Local IP address detected: 172.16.21.87 ip_detector.py:33
+Oct-29-2025 01:59:06 PM INFO     Updated frontend .env file with new API URL: http://172.16.21.87:8000/api ip_detector.py:86
+Oct-29-2025 01:59:06 PM INFO     Updated frontend .env file: C:\Users\CSELAB5\Downloads\dev\lumina_iq\frontend\.env ip_detector.py:87
+Oct-29-2025 01:59:06 PM DEBUG    📍 Server will run on: http://0.0.0.0:8000 run.py:47
+Oct-29-2025 01:59:06 PM DEBUG    🌐 Accessible at: http://172.16.21.87:8000 run.py:48
+Oct-29-2025 01:59:06 PM DEBUG    📚 Books directory: C:\Users\CSELAB5\Downloads\dev\lumina_iq\books run.py:49
+Oct-29-2025 01:59:06 PM DEBUG    🔑 Using Together.ai model: openai/gpt-oss-20b run.py:50
+Oct-29-2025 01:59:07 PM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-29-2025 01:59:08 PM INFO     Collection already exists: learning_app_documents qdrant_service.py:94
+Oct-29-2025 01:59:08 PM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-29-2025 01:59:09 PM INFO     Initializing NLTK data... nltk_init.py:90
+Oct-29-2025 01:59:09 PM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
+Oct-29-2025 01:59:09 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
+Oct-29-2025 01:59:09 PM DEBUG    NLTK resource stopwords is available nltk_init.py:119
+Oct-29-2025 01:59:09 PM WARNING  NLTK resource wordnet is missing nltk_init.py:122
+Oct-29-2025 01:59:09 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
+Oct-29-2025 01:59:09 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
+Oct-29-2025 01:59:09 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
+Oct-29-2025 01:59:09 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
+Oct-29-2025 01:59:09 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
+Oct-29-2025 01:59:09 PM INFO     NLTK data initialization completed nltk_init.py:144
+Oct-29-2025 01:59:09 PM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
+Oct-29-2025 01:59:09 PM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:104
+Oct-29-2025 01:59:09 PM INFO     Starting Learning App API... main.py:37
+Oct-29-2025 01:59:09 PM INFO     Initializing NLTK data... main.py:38
+Oct-29-2025 01:59:09 PM INFO     Initializing NLTK data... nltk_init.py:90
+Oct-29-2025 01:59:09 PM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
+Oct-29-2025 01:59:09 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
+Oct-29-2025 01:59:09 PM DEBUG    NLTK resource stopwords is available nltk_init.py:119
+Oct-29-2025 01:59:09 PM WARNING  NLTK resource wordnet is missing nltk_init.py:122
+Oct-29-2025 01:59:09 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
+Oct-29-2025 01:59:09 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
+Oct-29-2025 01:59:09 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
+Oct-29-2025 01:59:10 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
+Oct-29-2025 01:59:10 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
+Oct-29-2025 01:59:10 PM INFO     NLTK data initialization completed nltk_init.py:144
+Oct-29-2025 01:59:37 PM DEBUG    Login attempt for user: vsbec auth_service.py:16
+Oct-29-2025 01:59:37 PM INFO     Login successful - credentials match auth_service.py:22

@@ -34,7 +34,7 @@ class QdrantService:
             chat_logger.info("Qdrant client initialized successfully")
             self._ensure_collection_exists()
         except Exception as e:
-            chat_logger.error("Failed to initialize Qdrant client", error=str(e))
+            chat_logger.error(f"Failed to initialize Qdrant client: {str(e)}")
             raise
 
     def _ensure_collection_exists(self):
@@ -51,7 +51,9 @@ class QdrantService:
                         distance=Distance.COSINE,
                     ),
                 )
-                chat_logger.info("Created collection", collection_name=self.collection_name)
+                chat_logger.info(
+                    "Created collection", collection_name=self.collection_name
+                )
 
                 # Create payload indexes for filtering
                 self.client.create_payload_index(
@@ -85,11 +87,13 @@ class QdrantService:
                     field_name="metadata.primary_content_type",
                     field_schema=PayloadSchemaType.KEYWORD,
                 )
-                chat_logger.info("Created payload indexes", collection_name=self.collection_name)
+                chat_logger.info(
+                    "Created payload indexes", collection_name=self.collection_name
+                )
             else:
-                chat_logger.info("Collection already exists", collection_name=self.collection_name)
+                chat_logger.info(f"Collection already exists: {self.collection_name}")
         except Exception as e:
-            chat_logger.error("Failed to ensure collection exists", error=str(e))
+            chat_logger.error(f"Failed to ensure collection exists: {str(e)}")
             raise
 
     def generate_chunk_id(self, filename: str, chunk_index: int) -> str:
@@ -356,7 +360,9 @@ class QdrantService:
                     }
                 )
 
-            chat_logger.info("Retrieved chunks by filter", num_chunks=len(chunks), token=token)
+            chat_logger.info(
+                "Retrieved chunks by filter", num_chunks=len(chunks), token=token
+            )
             return chunks
 
         except Exception as e:

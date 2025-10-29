@@ -25,7 +25,7 @@ import asyncio
 import concurrent.futures
 import json
 from threading import Lock
-from utils.logging_config import get_logger
+from utils.logger import get_logger
 
 # Use enhanced logger
 logger = get_logger("chat_service")
@@ -330,9 +330,7 @@ class ChatService:
 
             safe_storage_access(store_chat_entry, token)
 
-            logger.debug(
-                f"Successfully generated response, length: {len(ai_response)}"
-            )
+            logger.debug(f"Successfully generated response, length: {len(ai_response)}")
             return ChatResponse(
                 response=ai_response, timestamp=datetime.now().isoformat()
             )
@@ -342,9 +340,7 @@ class ChatService:
             raise
         except Exception as e:
             error_msg = str(e)
-            logger.error(
-                "Failed to generate response", token=token, error=error_msg
-            )
+            logger.error("Failed to generate response", token=token, error=error_msg)
 
             # Check if it's a rate limit or overload error
             if any(
@@ -426,9 +422,7 @@ class ChatService:
         use_qa_generation_service = True
 
         if topic and topic.strip():
-            logger.debug(
-                f"Using QA GENERATION SERVICE with HyDE for topic: {topic}"
-            )
+            logger.debug(f"Using QA GENERATION SERVICE with HyDE for topic: {topic}")
 
             if use_qa_generation_service:
                 try:
@@ -487,9 +481,7 @@ class ChatService:
                         raise Exception("QA Generation Service returned no results")
 
                 except Exception as e:
-                    logger.warning(
-                        f"Advanced RAG failed, falling back to basic: {e}"
-                    )
+                    logger.warning(f"Advanced RAG failed, falling back to basic: {e}")
                     # Fallback to basic RAG
                     rag_result = await rag_service.retrieve_context(
                         query=f"Generate questions about: {topic}",
@@ -712,9 +704,7 @@ class ChatService:
         try:
             # Generate response using Together.ai
             ai_response = await generate_content_async(context)
-            logger.debug(
-                f"Together.ai response received, length: {len(ai_response)}"
-            )
+            logger.debug(f"Together.ai response received, length: {len(ai_response)}")
 
             if not ai_response:
                 logger.error("No response from Together.ai")
@@ -1026,9 +1016,7 @@ class ChatService:
                     )
 
                 except Exception as e:
-                    logger.warning(
-                        "Error getting answer explanation", error=str(e)
-                    )
+                    logger.warning("Error getting answer explanation", error=str(e))
                     correct_answer_explanation = f"Option {correct_answer_clean} is the correct answer according to the document."
 
                 # Get the actual option texts for better feedback

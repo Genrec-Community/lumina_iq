@@ -7,7 +7,7 @@ from utils.suppress_warnings import suppress_third_party_warnings
 
 from config.settings import settings
 from routes import auth, pdf, chat
-from utils.logging_config import configure_logging, get_logger
+from utils.logger import get_logger
 from utils.nltk_init import initialize_nltk_data
 import asyncio
 import platform
@@ -32,18 +32,14 @@ else:
 async def lifespan(app: FastAPI):
     # Startup
     # Configure enhanced logging
-    worker_id = configure_logging()
     logger = get_logger("main")
 
-    if worker_id == "1":  # Only log from first worker
-        logger.info("Starting Learning App API...")
-        logger.info("Initializing NLTK data...")
-        initialize_nltk_data()
-        logger.info("NLTK data initialization completed")
+    logger.info("Starting Learning App API...")
+    logger.info("Initializing NLTK data...")
+    initialize_nltk_data()
     yield
     # Shutdown
-    if worker_id == "1":  # Only log from first worker
-        print("Shutting down Learning App API...")
+    logger.debug("Shutting down Learning App API...")
 
 
 app = FastAPI(
