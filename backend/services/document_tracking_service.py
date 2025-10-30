@@ -14,55 +14,62 @@ class DocumentTrackingService:
     """Service for tracking uploaded documents per user to prevent duplicate indexing"""
 
     def __init__(self, db_path: str = "document_tracking.db"):
-        """Initialize the document tracking service with SQLite database"""
+        """Initialize the document tracking service with SQLite database (lazy initialization)"""
         # Store database in backend directory
         backend_dir = Path(__file__).parent.parent
         self.db_path = str(backend_dir / db_path)
         self._lock = threading.Lock()
-        self._initialize_database()
+        self._initialized = False
+
+    def ensure_initialized(self):
+        """Ensure the database is initialized (lazy initialization)"""
+        if not self._initialized:
+            with self._lock:
+                if not self._initialized:  # Double-check pattern
+                    self._initialize_database()
+                    self._initialized = True
 
     def _initialize_database(self):
         """Create the documents table if it doesn't exist"""
         try:
-            with self._lock:
-                conn = sqlite3.connect(self.db_path)
-                cursor = conn.cursor()
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
 
-                # Create documents table
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS documents (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id TEXT NOT NULL,
-                        filename TEXT NOT NULL,
-                        file_hash TEXT NOT NULL,
-                        file_size INTEGER,
-                        upload_date TEXT NOT NULL,
-                        index_status TEXT DEFAULT 'indexed',
-                        chunk_count INTEGER DEFAULT 0,
-                        UNIQUE(user_id, file_hash)
-                    )
-                """)
+            # Create documents table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS documents (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    filename TEXT NOT NULL,
+                    file_hash TEXT NOT NULL,
+                    file_size INTEGER,
+                    upload_date TEXT NOT NULL,
+                    index_status TEXT DEFAULT 'indexed',
+                    chunk_count INTEGER DEFAULT 0,
+                    UNIQUE(user_id, file_hash)
+                )
+            """)
 
-                # Create indexes for faster queries
-                cursor.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_user_id 
-                    ON documents(user_id)
-                """)
+            # Create indexes for faster queries
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_user_id
+                ON documents(user_id)
+            """)
 
-                cursor.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_file_hash 
-                    ON documents(file_hash)
-                """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_file_hash
+                ON documents(file_hash)
+            """)
 
-                cursor.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_user_hash 
-                    ON documents(user_id, file_hash)
-                """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_user_hash
+                ON documents(user_id, file_hash)
+            """)
 
-                conn.commit()
-                conn.close()
+            conn.commit()
+            conn.close()
 
-                logger.info(f"Document tracking database initialized: {self.db_path}")
+            logger.info(f"Document tracking database initialized: {self.db_path}")
 
         except Exception as e:
             logger.error(f"Failed to initialize document tracking database: {str(e)}")
@@ -79,6 +86,7 @@ class DocumentTrackingService:
         Returns:
             Document info dict if exists, None otherwise
         """
+        self.ensure_initialized()
         try:
             with self._lock:
                 conn = sqlite3.connect(self.db_path)
@@ -134,6 +142,7 @@ class DocumentTrackingService:
         Returns:
             True if successful, False otherwise
         """
+        self.ensure_initialized()
         try:
             with self._lock:
                 conn = sqlite3.connect(self.db_path)
@@ -176,6 +185,7 @@ class DocumentTrackingService:
         Returns:
             List of document info dicts
         """
+        self.ensure_initialized()
         try:
             with self._lock:
                 conn = sqlite3.connect(self.db_path)
@@ -229,6 +239,7 @@ class DocumentTrackingService:
         Returns:
             True if successful
         """
+        self.ensure_initialized()
         try:
             with self._lock:
                 conn = sqlite3.connect(self.db_path)
@@ -262,6 +273,7 @@ class DocumentTrackingService:
         Returns:
             True if successful
         """
+        self.ensure_initialized()
         try:
             with self._lock:
                 conn = sqlite3.connect(self.db_path)
@@ -300,6 +312,7 @@ class DocumentTrackingService:
         Returns:
             Document info dict if found, None otherwise
         """
+        self.ensure_initialized()
         try:
             with self._lock:
                 conn = sqlite3.connect(self.db_path)

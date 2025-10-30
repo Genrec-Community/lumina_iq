@@ -415,18 +415,30 @@ class CacheService:
 
     async def initialize(self) -> None:
         """Initialize the cache service and all cache backends."""
+        logger.info("Initializing cache service...")
+
+        # Initialize Redis cache (critical for performance)
         try:
-            logger.info("Initializing cache service...")
-
-            # Redis cache uses lazy initialization, no explicit init needed
-            # Semantic cache uses lazy initialization, no explicit init needed
-            # File cache doesn't need initialization
-
-            logger.info("Cache service initialized successfully")
-
+            await self.redis_cache.initialize()
+            logger.info("Redis cache initialized successfully")
         except Exception as e:
-            logger.error(f"Error initializing cache service: {str(e)}")
-            raise
+            logger.error(f"Failed to initialize Redis cache: {str(e)}")
+            logger.warning("Cache service will fallback to file-based caching only")
+            # Don't raise - allow fallback to file cache
+
+        # Semantic cache uses lazy initialization, no explicit init needed
+        # File cache doesn't need initialization
+
+        # Test cache functionality
+        try:
+            health = await self.get_cache_health()
+            if health.get('redis_available', False):
+                logger.info("Cache service initialized successfully with Redis support")
+            else:
+                logger.warning("Cache service initialized with limited functionality (Redis unavailable)")
+        except Exception as e:
+            logger.error(f"Error testing cache health during initialization: {str(e)}")
+            logger.warning("Cache service initialized but health check failed")
 
     async def close(self) -> None:
         """Close all cache connections and cleanup resources."""

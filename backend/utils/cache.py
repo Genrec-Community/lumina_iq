@@ -564,6 +564,16 @@ class RedisCache:
             logger.error(f"Error getting Redis stats: {str(e)}")
             return {"error": str(e)}
 
+    async def initialize(self) -> None:
+        """Initialize the Redis cache."""
+        try:
+            # Test connection
+            await self.ping()
+            logger.info("Redis cache initialized successfully")
+        except Exception as e:
+            logger.warning(f"Redis cache initialization failed: {str(e)}")
+            # Don't raise - Redis is optional fallback to file cache
+
 
 # Global cache service instance
 cache_service = CacheService()

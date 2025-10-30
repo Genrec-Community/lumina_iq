@@ -32,6 +32,13 @@ class RAGService:
             Dictionary with indexing results
         """
         try:
+            # Log event loop status for debugging
+            try:
+                loop = asyncio.get_running_loop()
+                logger.warning(f"EVENT_LOOP_DEBUG: Running event loop already exists in index_document for {filename}: {loop}")
+            except RuntimeError:
+                logger.debug(f"EVENT_LOOP_DEBUG: No running event loop in index_document for {filename}")
+
             print(
                 f"[DEBUG] Starting RAG indexing for {filename} with token {token[:12]} and file_path {file_path}"
             )

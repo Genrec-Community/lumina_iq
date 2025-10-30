@@ -70,7 +70,18 @@ class Settings(BaseSettings):
     QDRANT_API_KEY: str = Field(
         default="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.O8xNwnZuHGOxo1dcIdcgKrRVZGryxKPYyGaCVyNXziQ"
     )
-    QDRANT_COLLECTION_NAME: str = Field(default="learning_app_documents")
+    @computed_field
+    @property
+    def QDRANT_COLLECTION_NAME(self) -> str:
+        """Generate environment-specific collection name for Qdrant"""
+        base_name = "lumina_iq_documents"
+        env_suffixes = {
+            "development": "_dev",
+            "staging": "_staging",
+            "production": "_prod"
+        }
+        suffix = env_suffixes.get(self.ENVIRONMENT, "_dev")  # Default to dev if unknown
+        return f"{base_name}{suffix}"
     QDRANT_USE_HYBRID_SEARCH: bool = Field(
         default=True
     )  # Enable hybrid search for better recall

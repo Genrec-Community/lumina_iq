@@ -1,15 +1,18 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import time
+import os
+import platform
 
 # Import warning suppression first
 
 from config.settings import settings
 from routes import auth, pdf, chat, health
 from utils.logger import get_logger
+from utils.logging_config import log_performance
 from utils.nltk_init import initialize_nltk_data
 import asyncio
-import platform
 
 # Initialize services
 from services.cache_service import cache_service
@@ -32,30 +35,155 @@ else:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    # Configure enhanced logging
+    startup_start = time.time()
     logger = get_logger("main")
 
-    logger.info("Starting Learning App API...")
+    # Log version and environment information
+    logger.info(
+        "Starting Learning App API",
+        extra={
+            "extra_fields": {
+                # "version": settings.VERSION,
+                "version": "0.0.9",
+                "environment": os.getenv("ENVIRONMENT", "development"),
+                "platform": platform.platform(),
+                "python_version": platform.python_version(),
+                "workers": os.getenv("WEB_CONCURRENCY", "1"),
+            }
+        },
+    )
+
+    # Initialize NLTK data (critical for text processing)
+    nltk_start = time.time()
     logger.info("Initializing NLTK data...")
-    initialize_nltk_data()
+    try:
+        initialize_nltk_data()
+        nltk_duration = time.time() - nltk_start
+        log_performance(logger, "nltk_initialization", nltk_duration)
+        logger.info("NLTK data initialized successfully")
+    except Exception as e:
+        nltk_duration = time.time() - nltk_start
+        logger.error(
+            f"Failed to initialize NLTK data: {str(e)}",
+            extra={
+                "extra_fields": {
+                    "error_type": type(e).__name__,
+                    "duration_ms": round(nltk_duration * 1000, 2),
+                }
+            },
+        )
+        logger.warning("Application may experience issues with text processing")
+        # Continue startup - NLTK is important but not critical for basic functionality
 
-    # Initialize services
+    # Initialize cache service (critical for performance)
+    cache_start = time.time()
     logger.info("Initializing cache service...")
-    await cache_service.initialize()
+    cache_initialized = False
+    try:
+        await cache_service.initialize()
+        cache_duration = time.time() - cache_start
+        cache_initialized = True
+        log_performance(logger, "cache_initialization", cache_duration)
+        logger.info("Cache service initialized successfully")
+    except Exception as e:
+        cache_duration = time.time() - cache_start
+        logger.error(
+            f"Failed to initialize cache service: {str(e)}",
+            extra={
+                "extra_fields": {
+                    "error_type": type(e).__name__,
+                    "duration_ms": round(cache_duration * 1000, 2),
+                }
+            },
+        )
+        logger.warning(
+            "Application will continue without caching - performance may be degraded"
+        )
+        # Continue without cache - it's not critical for basic functionality
 
-    # logger.info("Initializing Celery service...")
-    # celery_service.initialize()
+    # Initialize Celery service (non-critical - background tasks)
+    celery_start = time.time()
+    logger.info("Initializing Celery service...")
+    celery_initialized = False
+    try:
+        celery_service.initialize()
+        celery_duration = time.time() - celery_start
+        celery_initialized = True
+        log_performance(logger, "celery_initialization", celery_duration)
+        logger.info("Celery service initialized successfully")
+    except Exception as e:
+        celery_duration = time.time() - celery_start
+        logger.error(
+            f"Failed to initialize Celery service: {str(e)}",
+            extra={
+                "extra_fields": {
+                    "error_type": type(e).__name__,
+                    "duration_ms": round(celery_duration * 1000, 2),
+                }
+            },
+        )
+        logger.warning("Background task processing will be unavailable")
 
-    logger.info("All services initialized successfully")
+    # Calculate total startup time
+    total_startup_time = time.time() - startup_start
+
+    # Log initialization summary with performance metrics
+    initialized_services = []
+    failed_services = []
+
+    if "nltk" in globals() or True:  # NLTK is always attempted
+        try:
+            import nltk
+
+            initialized_services.append("NLTK")
+        except:
+            failed_services.append("NLTK")
+
+    if cache_initialized:
+        initialized_services.append("Cache")
+    else:
+        failed_services.append("Cache")
+
+    if celery_initialized:
+        initialized_services.append("Celery")
+    else:
+        failed_services.append("Celery")
+
+    logger.info(
+        "Service initialization complete",
+        extra={
+            "extra_fields": {
+                "initialized_services": initialized_services,
+                "failed_services": failed_services,
+                "total_startup_time_ms": round(total_startup_time * 1000, 2),
+                "ready_for_requests": True,
+            }
+        },
+    )
+
+    if failed_services:
+        logger.warning(f"Failed services detected: {', '.join(failed_services)}")
+
     yield
     # Shutdown
     logger.debug("Shutting down Learning App API...")
-    await cache_service.close()
+
+    # Gracefully shut down services
+    if cache_initialized:
+        try:
+            await cache_service.close()
+            logger.info("Cache service closed successfully")
+        except Exception as e:
+            logger.error(
+                f"Error closing cache service: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
 
 
 app = FastAPI(
     title="Learning App API",
-    version="1.0.0",
+    # version=settings.VERSION,
+    version="0.9.0",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",

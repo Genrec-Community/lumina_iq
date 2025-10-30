@@ -401,3 +401,9 @@ Oct-30-2025 12:46:26 PM INFO     All services initialized successfully main.py:4
 Oct-30-2025 02:08:18 PM DEBUG    Shutting down Learning App API... main.py:52
 Oct-30-2025 02:08:18 PM INFO     Closing cache service... cache_service.py:434
 Oct-30-2025 02:08:18 PM INFO     Cache service closed successfully cache_service.py:440
+Oct-30-2025 02:57:58 PM DEBUG    Shutting down Learning App API... main.py:52
+Oct-30-2025 02:57:58 PM INFO     Closing cache service... cache_service.py:434
+Oct-30-2025 02:57:58 PM INFO     Cache service closed successfully cache_service.py:440
+Oct-30-2025 02:57:58 PM DEBUG    Shutting down Learning App API... main.py:52
+Oct-30-2025 02:57:58 PM INFO     Closing cache service... cache_service.py:434
+Oct-30-2025 02:57:58 PM INFO     Cache service closed successfully cache_service.py:440

@@ -26,16 +26,28 @@ class QdrantService:
         self._initialize_client()
 
     def _initialize_client(self):
-        """Initialize Qdrant client"""
-        try:
-            self.client = QdrantClient(
-                url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY, timeout=120
-            )
-            chat_logger.info("Qdrant client initialized successfully")
-            self._ensure_collection_exists()
-        except Exception as e:
-            chat_logger.error(f"Failed to initialize Qdrant client: {str(e)}")
-            raise
+        """Initialize Qdrant client with error handling and retries"""
+        max_retries = 3
+        retry_delay = 2
+
+        for attempt in range(max_retries):
+            try:
+                self.client = QdrantClient(
+                    url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY, timeout=120
+                )
+                chat_logger.info("Qdrant client initialized successfully")
+                self._ensure_collection_exists()
+                return  # Success, exit retry loop
+            except Exception as e:
+                chat_logger.warning(f"Qdrant client initialization attempt {attempt + 1}/{max_retries} failed: {str(e)}")
+                if attempt < max_retries - 1:
+                    chat_logger.info(f"Retrying Qdrant client initialization in {retry_delay} seconds...")
+                    import time
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    chat_logger.error(f"Failed to initialize Qdrant client after {max_retries} attempts: {str(e)}")
+                    raise
 
     def _ensure_collection_exists(self):
         """Ensure the collection exists, create if not"""
@@ -114,6 +126,13 @@ class QdrantService:
     ):
         """Index document chunks with their embeddings and rich metadata using batching"""
         try:
+            # Log event loop status for debugging
+            try:
+                import asyncio
+                loop = asyncio.get_running_loop()
+                chat_logger.warning(f"EVENT_LOOP_DEBUG: Running event loop already exists in qdrant index_document for {filename}: {loop}")
+            except RuntimeError:
+                chat_logger.debug(f"EVENT_LOOP_DEBUG: No running event loop in qdrant index_document for {filename}")
             points = []
             for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
                 point_id = str(uuid.uuid4())

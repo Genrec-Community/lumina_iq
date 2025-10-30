@@ -9,6 +9,7 @@ from fastapi.responses import PlainTextResponse
 
 from services.health_service import health_service
 from utils.logger import get_logger
+from utils.logging_config import set_request_id, clear_request_id
 
 logger = get_logger("health_routes")
 
@@ -27,12 +28,34 @@ async def health_live():
     Returns:
         dict: Simple liveness status
     """
+    # Set request ID for tracing
+    request_id = set_request_id()
+
+    logger.debug("Liveness probe requested", extra={"extra_fields": {"endpoint": "/health/live"}})
+
     try:
         health_data = await health_service.check_liveness()
+
+        logger.debug(
+            "Liveness check completed",
+            extra={"extra_fields": {
+                "status": health_data.get("status", "unknown"),
+                "uptime_seconds": health_data.get("uptime_seconds", 0)
+            }}
+        )
+
         return health_data
     except Exception as e:
-        logger.error(f"Liveness check failed: {str(e)}")
+        logger.error(
+            "Liveness check failed",
+            extra={"extra_fields": {
+                "error_type": type(e).__name__,
+                "error_message": str(e)
+            }}
+        )
         raise HTTPException(status_code=503, detail="Service unhealthy")
+    finally:
+        clear_request_id()
 
 
 @router.get("/ready", response_model=None)
@@ -46,8 +69,24 @@ async def health_ready():
     Returns:
         dict: Readiness status with detailed dependency information
     """
+    # Set request ID for tracing
+    request_id = set_request_id()
+
+    logger.debug("Readiness probe requested", extra={"extra_fields": {"endpoint": "/health/ready"}})
+
     try:
         health_data = await health_service.check_readiness()
+
+        # Log readiness status with detailed information
+        logger.info(
+            "Readiness check completed",
+            extra={"extra_fields": {
+                "status": health_data.get("status", "unknown"),
+                "dependencies": health_data.get("dependencies", {}),
+                "checks_passed": len([d for d in health_data.get("dependencies", {}).values() if d.get("healthy", False)]),
+                "checks_total": len(health_data.get("dependencies", {}))
+            }}
+        )
 
         # Return appropriate HTTP status based on readiness
         if health_data["status"] == "ready":
@@ -58,7 +97,13 @@ async def health_ready():
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Readiness check failed: {str(e)}")
+        logger.error(
+            "Readiness check failed",
+            extra={"extra_fields": {
+                "error_type": type(e).__name__,
+                "error_message": str(e)
+            }}
+        )
         raise HTTPException(
             status_code=503,
             detail={
@@ -67,6 +112,8 @@ async def health_ready():
                 "error": str(e)
             }
         )
+    finally:
+        clear_request_id()
 
 
 @router.get("/detailed", response_model=None)

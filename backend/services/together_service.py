@@ -1,13 +1,18 @@
 import os
 import asyncio
 import concurrent.futures
+import time
 from typing import List, Optional, Dict, Any
 import together
-from utils.logger import chat_logger
+from utils.logger import get_logger
+from utils.logging_config import log_performance
 from config.settings import settings
 
 # Thread pool for concurrent requests
 together_pool = concurrent.futures.ThreadPoolExecutor(max_workers=20)
+
+# Get logger for this service
+together_logger = get_logger("together_service")
 
 
 class TogetherService:
@@ -34,14 +39,16 @@ class TogetherService:
         api_key = TogetherService.get_api_key()
         base_url = TogetherService.get_base_url()
 
-        chat_logger.debug(
-            f"Initializing client with API key: {'[SET]' if api_key else '[NOT SET]'}"
+        together_logger.debug(
+            "Initializing Together.ai client",
+            extra={"extra_fields": {"api_key_set": bool(api_key), "base_url": base_url}}
         )
         if not api_key:
-            chat_logger.error("TOGETHER_API_KEY is not set in settings")
+            together_logger.error("TOGETHER_API_KEY is not set in settings")
             raise ValueError("TOGETHER_API_KEY environment variable is required")
 
         client = together.Together(api_key=api_key, base_url=base_url)
+        together_logger.debug("Together.ai client initialized successfully")
         return client
 
     @staticmethod
@@ -92,14 +99,38 @@ class TogetherService:
                 # Add any additional kwargs
                 request_params.update(kwargs)
 
-                chat_logger.debug(f"Generating completion with model: {model}")
+                together_logger.debug(
+                    "Sending completion request to Together.ai",
+                    extra={"extra_fields": {
+                        "model": model,
+                        "message_count": len(messages),
+                        "max_tokens": max_tokens,
+                        "temperature": temperature
+                    }}
+                )
 
                 response = client.chat.completions.create(**request_params)
+                result = response.choices[0].message.content
 
-                return response.choices[0].message.content, None
+                together_logger.debug(
+                    "Successfully received completion from Together.ai",
+                    extra={"extra_fields": {
+                        "response_length": len(result) if result else 0,
+                        "model_used": model
+                    }}
+                )
+
+                return result, None
 
             except Exception as e:
-                chat_logger.error(f"Together.ai API error: {str(e)}")
+                together_logger.error(
+                    "Together.ai API error",
+                    extra={"extra_fields": {
+                        "error_type": type(e).__name__,
+                        "error_message": str(e),
+                        "model": model
+                    }}
+                )
                 return None, e
 
         try:
@@ -114,7 +145,14 @@ class TogetherService:
             return result
 
         except Exception as e:
-            chat_logger.error(f"Failed to generate completion: {str(e)}")
+            together_logger.error(
+                "Failed to generate completion",
+                extra={"extra_fields": {
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                    "model": model
+                }}
+            )
             raise
 
     @staticmethod
@@ -182,13 +220,13 @@ class TogetherService:
             result, error = await loop.run_in_executor(together_pool, _health_check)
 
             if error:
-                chat_logger.error(f"Together.ai health check failed: {str(error)}")
+                together_logger.error(f"Together.ai health check failed: {str(error)}")
                 return False
 
             return result
 
         except Exception as e:
-            chat_logger.error(f"Health check error: {str(e)}")
+            together_logger.error(f"Health check error: {str(e)}")
             return False
 
     @staticmethod
@@ -204,5 +242,5 @@ class TogetherService:
             models = client.models.list()
             return [model.id for model in models if hasattr(model, "id")]
         except Exception as e:
-            chat_logger.error(f"Failed to get models: {str(e)}")
+            together_logger.error(f"Failed to get models: {str(e)}")
             return []

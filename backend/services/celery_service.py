@@ -21,25 +21,95 @@ class CeleryService:
     """
 
     def __init__(self):
-        self.app = self._create_celery_app()
+        self.app = None
+        self._initialized = False
+
+    def initialize(self) -> None:
+        """Initialize the Celery service."""
+        if self._initialized:
+            logger.debug("Celery service already initialized")
+            return
+
+        try:
+            self.app = self._create_celery_app()
+            # Configure Celery settings
+            self.app.conf.update(
+                # Task routing
+                task_routes={
+                    'tasks.document_tasks.*': {'queue': 'ingestion'},
+                    'tasks.cache_tasks.*': {'queue': 'maintenance'},
+                    'tasks.rag_tasks.*': {'queue': 'rag_operations'},
+                },
+
+                # Task serialization
+                task_serializer='json',
+                accept_content=['json'],
+                result_serializer='json',
+                timezone='UTC',
+                enable_utc=True,
+
+                # Worker configuration
+                worker_prefetch_multiplier=1,  # Process one task at a time
+                task_acks_late=True,  # Acknowledge after task completion
+                worker_max_tasks_per_child=50,  # Restart worker after 50 tasks
+
+                # Result backend settings
+                result_expires=3600,  # Results expire after 1 hour
+                result_cache_max=10000,  # Maximum cached results
+
+                # Monitoring and logging
+                worker_log_format='[%(asctime)s: %(levelname)s/%(processName)s] %(message)s',
+                worker_task_log_format='[%(asctime)s: %(levelname)s/%(processName)s][%(task_name)s(%(task_id)s)] %(message)s',
+
+                # Task time limits
+                task_soft_time_limit=300,  # 5 minutes soft limit
+                task_time_limit=600,  # 10 minutes hard limit
+
+                # Retry configuration
+                task_default_retry_delay=60,  # 1 minute retry delay
+                task_max_retries=3,
+
+                # Rate limiting
+                worker_disable_rate_limits=False,
+
+                # Monitoring
+                task_send_sent_event=True,
+                task_track_started=True,
+            )
+
+            self._initialized = True
+            logger.info("Celery service initialized successfully")
+
+        except Exception as e:
+            logger.error(f"Failed to initialize Celery service: {str(e)}")
+            self.app = None
+            raise
 
     def _create_celery_app(self) -> Celery:
-        """Create and configure Celery application instance."""
-        # Redis URLs for broker and result backend
-        broker_url = getattr(settings, 'REDIS_URL', 'redis://localhost:6379/1')
-        result_backend = getattr(settings, 'REDIS_URL', 'redis://localhost:6379/1')
+        """Create and configure Celery application instance with error handling."""
+        try:
+            # Redis URLs for broker and result backend
+            broker_url = getattr(settings, 'REDIS_URL', 'redis://localhost:6379/1')
+            result_backend = getattr(settings, 'REDIS_URL', 'redis://localhost:6379/1')
 
-        # Create Celery app
-        app = Celery(
-            'lumina_rag_tasks',
-            broker=broker_url,
-            backend=result_backend,
-            include=[
-                'tasks.document_tasks',
-                'tasks.cache_tasks',
-                'tasks.rag_tasks'
-            ]
-        )
+            # Create Celery app
+            app = Celery(
+                'lumina_rag_tasks',
+                broker=broker_url,
+                backend=result_backend,
+                include=[
+                    'tasks.document_tasks',
+                    'tasks.cache_tasks',
+                    'tasks.rag_tasks'
+                ]
+            )
+
+            logger.info(f"Celery app created successfully with broker: {broker_url}")
+            return app
+
+        except Exception as e:
+            logger.error(f"Failed to create Celery app: {str(e)}")
+            raise
 
         # Configure Celery settings
         app.conf.update(
