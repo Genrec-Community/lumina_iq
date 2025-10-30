@@ -5,11 +5,15 @@ from contextlib import asynccontextmanager
 # Import warning suppression first
 
 from config.settings import settings
-from routes import auth, pdf, chat
+from routes import auth, pdf, chat, health
 from utils.logger import get_logger
 from utils.nltk_init import initialize_nltk_data
 import asyncio
 import platform
+
+# Initialize services
+from services.cache_service import cache_service
+from services.celery_service import celery_service
 
 # Windows-compatible async optimizations
 if platform.system() == "Windows":
@@ -34,9 +38,19 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Learning App API...")
     logger.info("Initializing NLTK data...")
     initialize_nltk_data()
+
+    # Initialize services
+    logger.info("Initializing cache service...")
+    await cache_service.initialize()
+
+    logger.info("Initializing Celery service...")
+    celery_service.initialize()
+
+    logger.info("All services initialized successfully")
     yield
     # Shutdown
     logger.debug("Shutting down Learning App API...")
+    await cache_service.close()
 
 
 app = FastAPI(
@@ -60,18 +74,12 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(pdf.router)
 app.include_router(chat.router)
+app.include_router(health.router)
 
-
-# Health check endpoint
+# Health check endpoint (legacy - now handled by health router)
 @app.get("/")
 async def root():
     return {"message": "Learning App API is running"}
-
-
-# Additional health check endpoint
-@app.head("/healthz")
-async def healthz():
-    return Response(status_code=200)
 
 
 if __name__ == "__main__":

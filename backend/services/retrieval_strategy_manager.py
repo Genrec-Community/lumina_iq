@@ -43,7 +43,11 @@ class RetrievalStrategyManager:
             use_case = classification["use_case"]
             chat_logger.info(
                 f"Auto-detected use case: {use_case}",
-                confidence=classification["confidence"],
+                # confidence=classification["confidence"],
+            )
+            chat_logger.debug(
+                f"Classification details: {classification}"
+                f"Classification confidence={classification['confidence']:.2f}"
             )
 
         # Extract query metadata
@@ -306,7 +310,9 @@ class RetrievalStrategyManager:
                         "value": query_metadata["chapter"]["value"],
                     }
                 )
-                chat_logger.info(f"Filtering to chapter {query_metadata['chapter']['value']}")
+                chat_logger.info(
+                    f"Filtering to chapter {query_metadata['chapter']['value']}"
+                )
 
             # Section filter
             if query_metadata["section"]["confidence"] > 0.80:
@@ -418,7 +424,9 @@ class RetrievalStrategyManager:
                         "value": query_metadata["chapter"]["value"],
                     }
                 )
-                chat_logger.info(f"Generating notes for chapter {query_metadata['chapter']['value']}")
+                chat_logger.info(
+                    f"Generating notes for chapter {query_metadata['chapter']['value']}"
+                )
             elif query_metadata["section"]["confidence"] > 0.80:
                 filter_conditions.append(
                     {

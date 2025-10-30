@@ -1,8 +1,9 @@
 import socket
+import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
-from pydantic import Field
+from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,16 +18,31 @@ def get_local_ip() -> str:
 
 
 class Settings(BaseSettings):
-    # Load environment variables from backend/.env
+    # Environment-based configuration loading
+    @property
+    def env_file_path(self) -> str:
+        """Get environment-specific .env file path."""
+        env = os.getenv("ENVIRONMENT", "development")
+        env_file_map = {
+            "development": ".env.development",
+            "staging": ".env.staging",
+            "production": ".env.production"
+        }
+        env_file = env_file_map.get(env, ".env")
+        return str(Path(__file__).parent.parent / env_file)
+
     model_config = SettingsConfigDict(
-        env_file=str(Path(__file__).parent.parent / ".env"),
+        env_file=None,  # Will be set dynamically
         env_file_encoding="utf-8",
         extra="ignore",  # For backwards compatibility with pydantic 1.x
     )
 
+    # Environment
+    ENVIRONMENT: str = Field(default="development")
+
     # Authentication
-    LOGIN_USERNAME: str = Field(default="vsbec")
-    LOGIN_PASSWORD: str = Field(default="vsbec")
+    LOGIN_USERNAME: str = Field(default="admin")
+    LOGIN_PASSWORD: str = Field(default="password")
 
     # Gemini AI
     GEMINI_API_KEY: str = Field(default="AIzaSyBiKBADQGhRuFn5glEU-frmORFc0KRleVQ")
@@ -105,5 +121,75 @@ class Settings(BaseSettings):
     CACHE_TTL_SECONDS: int = Field(default=3600)  # 1 hour cache TTL
     LOG_LEVEL: str = Field(default="DEBUG")  # Logging level
 
+    # Redis Configuration for Production Caching
+    REDIS_URL: str = Field(default="redis://localhost:6379")
+    REDIS_CACHE_DB: int = Field(default=0)  # Database for caching
+    REDIS_TASK_DB: int = Field(default=1)   # Database for Celery tasks
 
+    # Celery Configuration
+    CELERY_BROKER_URL: str = Field(default="redis://localhost:6379/1")
+    CELERY_RESULT_BACKEND: str = Field(default="redis://localhost:6379/2")
+    CELERY_TASK_SERIALIZER: str = Field(default="json")
+    CELERY_RESULT_SERIALIZER: str = Field(default="json")
+    CELERY_ACCEPT_CONTENT: List[str] = Field(default=["json"])
+    CELERY_TIMEZONE: str = Field(default="UTC")
+    CELERY_ENABLE_UTC: bool = Field(default=True)
+
+    # Circuit Breaker Configuration
+    CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = Field(default=5)
+    CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = Field(default=60)
+    CIRCUIT_BREAKER_EXPECTED_EXCEPTION: str = Field(default="Exception")
+
+    # LangChain Configuration
+    LANGCHAIN_TRACING_V2: bool = Field(default=False)
+    LANGCHAIN_ENDPOINT: str = Field(default="https://api.smith.langchain.com")
+    LANGCHAIN_API_KEY: str = Field(default="")
+    LANGCHAIN_PROJECT: str = Field(default="production_lumina_iq")
+
+    # Rate Limiting Configuration
+    RATE_LIMIT_REQUESTS_PER_MINUTE: int = Field(default=1000)
+    RATE_LIMIT_BURST_SIZE: int = Field(default=100)
+
+    # Database Configuration
+    DATABASE_URL: str = Field(default="")
+    DATABASE_POOL_SIZE: int = Field(default=20)
+    DATABASE_MAX_OVERFLOW: int = Field(default=30)
+
+    # External Services
+    TELEGRAM_BOT_TOKEN: str = Field(default="")
+
+    # Advanced LlamaIndex Configuration
+    LLAMAINDEX_SIMILARITY_TOP_K: int = Field(default=10)
+    LLAMAINDEX_SIMILARITY_CUTOFF: float = Field(default=0.0)
+    LLAMAINDEX_NODE_POSTPROCESSORS: List[str] = Field(default_factory=list)
+
+    # Production scaling settings
+    GUNICORN_WORKERS: int = Field(default=4)
+    GUNICORN_THREADS: int = Field(default=4)
+    GUNICORN_WORKER_TIMEOUT: int = Field(default=30)
+    GUNICORN_MAX_REQUESTS: int = Field(default=1000)
+    GUNICORN_MAX_REQUESTS_JITTER: int = Field(default=50)
+
+    # Health check settings
+    HEALTH_CHECK_INTERVAL: int = Field(default=30)
+    HEALTH_CHECK_TIMEOUT: int = Field(default=10)
+    HEALTH_CHECK_RETRIES: int = Field(default=3)
+
+    # Monitoring and observability
+    ENABLE_PROMETHEUS_METRICS: bool = Field(default=False)
+    METRICS_PORT: int = Field(default=9090)
+
+    # Graceful shutdown settings
+    SHUTDOWN_TIMEOUT: int = Field(default=30)
+    WORKER_SHUTDOWN_TIMEOUT: int = Field(default=25)
+
+
+# Initialize settings with dynamic env file loading
+settings = Settings()
+
+# Manually load the environment file after initialization to handle dynamic paths
+from dotenv import load_dotenv
+load_dotenv(settings.env_file_path, override=True)
+
+# Reinitialize settings with loaded environment variables
 settings = Settings()

@@ -373,5 +373,32 @@ class QdrantService:
             chat_logger.error(f"Failed to get chunks by filter: error={str(e)}")
             raise
 
+    async def health_check(self) -> Dict[str, Any]:
+        """Check Qdrant service health and connectivity."""
+        import time
+        try:
+            start_time = time.time()
+
+            # Simple connectivity check - get collection info
+            collections = self.client.get_collections()
+            collection_exists = any(c.name == self.collection_name for c in collections.collections)
+
+            latency_ms = (time.time() - start_time) * 1000
+
+            return {
+                "available": True,
+                "collection_exists": collection_exists,
+                "collection_name": self.collection_name,
+                "latency_ms": latency_ms,
+                "timestamp": datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            return {
+                "available": False,
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+
 
 qdrant_service = QdrantService()

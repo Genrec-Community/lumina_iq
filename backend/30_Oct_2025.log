@@ -1,0 +1,123 @@
+Oct-30-2025 11:07:15 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:07:16 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:07:17 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:31:05 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:31:05 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:31:07 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:31:57 AM INFO     Logger test successful <string>:1
+Oct-30-2025 11:32:05 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:32:06 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:32:07 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:33:31 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:33:32 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:33:32 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:33:33 AM INFO     Initializing NLTK data... nltk_init.py:90
+Oct-30-2025 11:33:33 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
+Oct-30-2025 11:33:33 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
+Oct-30-2025 11:33:33 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
+Oct-30-2025 11:33:33 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
+Oct-30-2025 11:33:33 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
+Oct-30-2025 11:33:33 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
+Oct-30-2025 11:33:33 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
+Oct-30-2025 11:33:34 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
+Oct-30-2025 11:33:34 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
+Oct-30-2025 11:33:34 AM INFO     NLTK data initialization completed nltk_init.py:144
+Oct-30-2025 11:33:35 AM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
+Oct-30-2025 11:33:35 AM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
+Oct-30-2025 11:34:13 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:34:14 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:34:14 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:34:15 AM INFO     Initializing NLTK data... nltk_init.py:90
+Oct-30-2025 11:34:15 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
+Oct-30-2025 11:34:15 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
+Oct-30-2025 11:34:15 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
+Oct-30-2025 11:34:15 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
+Oct-30-2025 11:34:15 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
+Oct-30-2025 11:34:15 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
+Oct-30-2025 11:34:15 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
+Oct-30-2025 11:34:17 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
+Oct-30-2025 11:34:17 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
+Oct-30-2025 11:34:17 AM INFO     NLTK data initialization completed nltk_init.py:144
+Oct-30-2025 11:34:18 AM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
+Oct-30-2025 11:34:18 AM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
+Oct-30-2025 11:34:18 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
+Oct-30-2025 11:34:18 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:34:53 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:34:54 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:34:54 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:34:55 AM INFO     Initializing NLTK data... nltk_init.py:90
+Oct-30-2025 11:34:55 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
+Oct-30-2025 11:34:55 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
+Oct-30-2025 11:34:55 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
+Oct-30-2025 11:34:55 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
+Oct-30-2025 11:34:55 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
+Oct-30-2025 11:34:55 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
+Oct-30-2025 11:34:55 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
+Oct-30-2025 11:34:56 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
+Oct-30-2025 11:34:56 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
+Oct-30-2025 11:34:56 AM INFO     NLTK data initialization completed nltk_init.py:144
+Oct-30-2025 11:35:16 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:35:16 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:35:17 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:35:17 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
+Oct-30-2025 11:35:17 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:35:22 AM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-30-2025 11:35:26 AM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-30-2025 11:35:30 AM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-30-2025 11:35:34 AM ERROR    Celery health check failed: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it. celery_service.py:271
+Oct-30-2025 11:38:26 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:38:27 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:38:27 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:38:29 AM INFO     Initializing NLTK data... nltk_init.py:90
+Oct-30-2025 11:38:29 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
+Oct-30-2025 11:38:29 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
+Oct-30-2025 11:38:30 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
+Oct-30-2025 11:38:30 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
+Oct-30-2025 11:38:30 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
+Oct-30-2025 11:38:30 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
+Oct-30-2025 11:38:30 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
+Oct-30-2025 11:38:30 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
+Oct-30-2025 11:38:30 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
+Oct-30-2025 11:38:30 AM INFO     NLTK data initialization completed nltk_init.py:144
+Oct-30-2025 11:38:32 AM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
+Oct-30-2025 11:38:32 AM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
+Oct-30-2025 11:38:32 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
+Oct-30-2025 11:38:32 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
+Oct-30-2025 11:38:32 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:38:33 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:38:34 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:38:40 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:38:41 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 11:38:41 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:38:43 AM INFO     Initializing NLTK data... nltk_init.py:90
+Oct-30-2025 11:38:43 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
+Oct-30-2025 11:38:43 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
+Oct-30-2025 11:38:43 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
+Oct-30-2025 11:38:43 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
+Oct-30-2025 11:38:43 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
+Oct-30-2025 11:38:43 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
+Oct-30-2025 11:38:43 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
+Oct-30-2025 11:38:45 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
+Oct-30-2025 11:38:45 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
+Oct-30-2025 11:38:45 AM INFO     NLTK data initialization completed nltk_init.py:144
+Oct-30-2025 11:38:46 AM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
+Oct-30-2025 11:38:46 AM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
+Oct-30-2025 11:38:46 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
+Oct-30-2025 11:38:46 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 11:50:56 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:51:01 AM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
+Oct-30-2025 11:51:01 AM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37
+Oct-30-2025 11:51:21 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
+Oct-30-2025 11:51:32 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
+Oct-30-2025 11:51:32 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:51:37 AM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
+Oct-30-2025 11:51:37 AM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37
+Oct-30-2025 11:51:52 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:51:56 AM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
+Oct-30-2025 11:51:56 AM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37
+Oct-30-2025 11:52:44 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 11:52:48 AM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
+Oct-30-2025 11:52:48 AM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37
+Oct-30-2025 12:01:18 PM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 12:01:22 PM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
+Oct-30-2025 12:01:22 PM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37

@@ -5,6 +5,10 @@ import aiofiles
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
+import asyncio
+import redis.asyncio as redis
+from circuitbreaker import circuit
+
 from config.settings import settings
 from utils.logger import get_logger
 
@@ -274,6 +278,291 @@ class CacheService:
         except Exception as e:
             logger.error(f"Error saving query result to cache: {str(e)}")
             return False
+
+
+class RedisCache:
+    """
+    Redis-based cache with async operations, circuit breaker pattern,
+    and fallback to file system cache when Redis is unavailable.
+    """
+
+    def __init__(self):
+        self.redis_url = getattr(settings, 'REDIS_URL', 'redis://localhost:6379')
+        self.redis_db = getattr(settings, 'REDIS_CACHE_DB', 0)
+        self.redis_client = None
+        self._connection_lock = asyncio.Lock()
+        self._circuit_open = False
+        self._last_failure_time = None
+        self._failure_count = 0
+        self._max_failures = 3  # Circuit breaker threshold
+        self._circuit_timeout = 60  # seconds to wait before retrying
+
+        # Fallback to file cache
+        self.file_cache = CacheService()
+
+    async def _get_client(self):
+        """Get or create Redis client with connection pooling."""
+        if self.redis_client is None:
+            try:
+                self.redis_client = redis.Redis.from_url(
+                    self.redis_url,
+                    db=self.redis_db,
+                    decode_responses=True,
+                    socket_connect_timeout=5,
+                    socket_timeout=5,
+                    retry_on_timeout=True,
+                    max_connections=20
+                )
+                # Test connection
+                await self.redis_client.ping()
+                logger.info("Redis connection established")
+            except Exception as e:
+                logger.warning(f"Failed to connect to Redis: {str(e)}")
+                self.redis_client = None
+
+        return self.redis_client
+
+    def _is_circuit_open(self) -> bool:
+        """Check if circuit breaker is open."""
+        if not self._circuit_open:
+            return False
+
+        # Check if timeout has passed
+        if self._last_failure_time and \
+           (datetime.now() - self._last_failure_time).total_seconds() > self._circuit_timeout:
+            logger.info("Circuit breaker timeout passed, attempting to close")
+            self._circuit_open = False
+            self._failure_count = 0
+            return False
+
+        return True
+
+    def _record_failure(self):
+        """Record a failure for circuit breaker."""
+        self._failure_count += 1
+        self._last_failure_time = datetime.now()
+
+        if self._failure_count >= self._max_failures:
+            logger.warning("Circuit breaker opened due to repeated failures")
+            self._circuit_open = True
+
+    def _record_success(self):
+        """Record a success to reset circuit breaker."""
+        self._failure_count = 0
+        if self._circuit_open:
+            logger.info("Circuit breaker closed after successful operation")
+            self._circuit_open = False
+
+    @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=Exception)
+    async def get(self, key: str) -> Optional[Any]:
+        """
+        Get value from Redis cache.
+
+        Returns:
+            Cached value or None if not found or cache unavailable.
+        """
+        if self._is_circuit_open():
+            logger.debug("Circuit breaker open, skipping Redis get")
+            return None
+
+        try:
+            client = await self._get_client()
+            if client is None:
+                return None
+
+            value = await client.get(key)
+            if value is None:
+                return None
+
+            # Try to parse JSON
+            try:
+                return json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                return value
+
+        except Exception as e:
+            logger.warning(f"Redis get failed for key {key}: {str(e)}")
+            self._record_failure()
+            return None
+
+    @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=Exception)
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+        """
+        Set value in Redis cache.
+
+        Args:
+            key: Cache key
+            value: Value to cache (will be JSON serialized)
+            ttl: Time-to-live in seconds
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        if self._is_circuit_open():
+            logger.debug("Circuit breaker open, skipping Redis set")
+            return False
+
+        try:
+            client = await self._get_client()
+            if client is None:
+                return False
+
+            # Serialize value
+            if isinstance(value, (dict, list)):
+                serialized_value = json.dumps(value)
+            else:
+                serialized_value = str(value)
+
+            if ttl:
+                success = await client.setex(key, ttl, serialized_value)
+            else:
+                success = await client.set(key, serialized_value)
+
+            if success:
+                self._record_success()
+
+            return bool(success)
+
+        except Exception as e:
+            logger.warning(f"Redis set failed for key {key}: {str(e)}")
+            self._record_failure()
+            return False
+
+    @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=Exception)
+    async def delete(self, key: str) -> bool:
+        """Delete key from Redis cache."""
+        if self._is_circuit_open():
+            logger.debug("Circuit breaker open, skipping Redis delete")
+            return False
+
+        try:
+            client = await self._get_client()
+            if client is None:
+                return False
+
+            result = await client.delete(key)
+            self._record_success()
+            return result > 0
+
+        except Exception as e:
+            logger.warning(f"Redis delete failed for key {key}: {str(e)}")
+            self._record_failure()
+            return False
+
+    @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=Exception)
+    async def exists(self, key: str) -> bool:
+        """Check if key exists in Redis cache."""
+        if self._is_circuit_open():
+            logger.debug("Circuit breaker open, skipping Redis exists")
+            return False
+
+        try:
+            client = await self._get_client()
+            if client is None:
+                return False
+
+            result = await client.exists(key)
+            self._record_success()
+            return bool(result)
+
+        except Exception as e:
+            logger.warning(f"Redis exists failed for key {key}: {str(e)}")
+            self._record_failure()
+            return False
+
+    @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=Exception)
+    async def scan_keys(self, pattern: str) -> List[str]:
+        """Scan for keys matching pattern."""
+        if self._is_circuit_open():
+            logger.debug("Circuit breaker open, skipping Redis scan")
+            return []
+
+        try:
+            client = await self._get_client()
+            if client is None:
+                return []
+
+            keys = []
+            async for key in client.scan_iter(match=pattern):
+                keys.append(key)
+
+            self._record_success()
+            return keys
+
+        except Exception as e:
+            logger.warning(f"Redis scan failed for pattern {pattern}: {str(e)}")
+            self._record_failure()
+            return []
+
+    @circuit(failure_threshold=3, recovery_timeout=60, expected_exception=Exception)
+    async def ping(self) -> bool:
+        """Ping Redis server to check connectivity."""
+        try:
+            client = await self._get_client()
+            if client is None:
+                return False
+
+            await client.ping()
+            self._record_success()
+            return True
+
+        except Exception as e:
+            logger.warning(f"Redis ping failed: {str(e)}")
+            self._record_failure()
+            return False
+
+    async def clear_all(self) -> int:
+        """Clear all keys in current database."""
+        try:
+            client = await self._get_client()
+            if client is None:
+                return 0
+
+            # Get all keys (be careful in production!)
+            keys = await self.scan_keys("*")
+            if not keys:
+                return 0
+
+            # Delete all keys
+            result = await client.delete(*keys)
+            self._record_success()
+            logger.info(f"Cleared {result} keys from Redis")
+            return result
+
+        except Exception as e:
+            logger.error(f"Error clearing Redis cache: {str(e)}")
+            self._record_failure()
+            return 0
+
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get Redis cache statistics."""
+        try:
+            client = await self._get_client()
+            stats = {
+                "circuit_breaker_open": self._circuit_open,
+                "failure_count": self._failure_count,
+                "last_failure": self._last_failure_time.isoformat() if self._last_failure_time else None,
+                "redis_connected": client is not None,
+                "timestamp": datetime.now().isoformat()
+            }
+
+            if client:
+                try:
+                    info = await client.info()
+                    stats.update({
+                        "redis_version": info.get("redis_version"),
+                        "connected_clients": info.get("connected_clients"),
+                        "used_memory_human": info.get("used_memory_human"),
+                        "total_connections_received": info.get("total_connections_received"),
+                    })
+                except Exception as e:
+                    logger.warning(f"Could not get Redis info: {str(e)}")
+
+            return stats
+
+        except Exception as e:
+            logger.error(f"Error getting Redis stats: {str(e)}")
+            return {"error": str(e)}
 
 
 # Global cache service instance

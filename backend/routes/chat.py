@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import hashlib
@@ -9,8 +9,13 @@ from models.chat import (
     AnswerEvaluationResponse,
     QuizSubmissionRequest,
     QuizSubmissionResponse,
+    QuizAnswer,
 )
 from services.chat_service import ChatService
+from services.rag_orchestrator import rag_orchestrator
+from utils.logger import get_logger
+
+logger = get_logger("chat_routes")
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -57,9 +62,41 @@ async def clear_chat_history(request: Request):
 async def generate_questions(request: QuestionGenerationRequest, http_request: Request):
     """Generate Q&A questions from the selected PDF content, optionally focused on a specific topic"""
     user_session = get_simple_user_id(http_request)
-    return await ChatService.generate_questions(
-        user_session, request.topic, request.count, request.mode
+
+    # Get PDF context to extract filename
+    from utils.storage import pdf_contexts
+
+    if user_session not in pdf_contexts:
+        raise HTTPException(status_code=400, detail="No PDF selected. Please select a PDF first.")
+
+    pdf_context = pdf_contexts[user_session]
+    filename = pdf_context.get("filename", "")
+
+    if not filename:
+        raise HTTPException(status_code=400, detail="PDF context is invalid. Please select a PDF again.")
+
+    # Use the new RAG orchestrator instead of direct ChatService call
+    logger.info(f"Generating {request.count} questions for topic '{request.topic}' using RAG orchestrator")
+
+    result = await rag_orchestrator.retrieve_and_generate_questions(
+        query=request.topic or "comprehensive document coverage",
+        token=user_session,
+        filename=filename,
+        count=request.count or 25,
+        mode=request.mode or "practice"
     )
+
+    if result["status"] == "success":
+        return ChatResponse(
+            response=result["response"],
+            timestamp=result.get("timestamp", "")
+        )
+    else:
+        # Fallback to original ChatService if orchestrator fails
+        logger.warning(f"RAG orchestrator failed, falling back to ChatService: {result.get('message', 'Unknown error')}")
+        return await ChatService.generate_questions(
+            user_session, request.topic, request.count, request.mode
+        )
 
 
 @router.post("/evaluate-answer", response_model=AnswerEvaluationResponse)
@@ -96,6 +133,9 @@ async def get_performance_stats():
         else:
             avg_time = min_time = max_time = recent_requests = 0
 
+    # Get orchestrator health
+    orchestrator_health = await rag_orchestrator.get_orchestrator_health()
+
     return {
         "performance": {
             "avg_response_time": round(avg_time, 2),
@@ -109,5 +149,6 @@ async def get_performance_stats():
             "model_creation_active": model_creation_pool._threads,
             "model_creation_max": model_creation_pool._max_workers,
         },
-        "status": "optimized_for_25_plus_users",
+        "orchestrator": orchestrator_health,
+        "status": "production_ready_rag_orchestrator",
     }
