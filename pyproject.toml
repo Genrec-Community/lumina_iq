@@ -9,7 +9,7 @@ dependencies = [
     "aiofiles==23.2.1",
     "fastapi==0.115.6",
     "google-generativeai==0.3.2",
-    "orjson==3.9.10",
+    "orjson>=3.9.14",
     "passlib[bcrypt]==1.7.4",
     "pdfplumber==0.10.3",
     "pypdf2==3.0.1",
@@ -84,8 +84,8 @@ docs = [
     "mkdocs-material>=9.5.0",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "black>=24.0.0",
     "isort>=5.12.0",
     "flake8>=7.0.0",
@@ -97,7 +97,7 @@ where = ["."]
 include = ["backend*"]
 
 [tool.setuptools.package-dir]
-"" = "backend"
+"lumina_iq" = "backend"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]

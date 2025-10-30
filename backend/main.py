@@ -43,8 +43,8 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing cache service...")
     await cache_service.initialize()
 
-    logger.info("Initializing Celery service...")
-    celery_service.initialize()
+    # logger.info("Initializing Celery service...")
+    # celery_service.initialize()
 
     logger.info("All services initialized successfully")
     yield
@@ -75,6 +75,7 @@ app.include_router(auth.router)
 app.include_router(pdf.router)
 app.include_router(chat.router)
 app.include_router(health.router)
+
 
 # Health check endpoint (legacy - now handled by health router)
 @app.get("/")

@@ -24,15 +24,15 @@ class Settings(BaseSettings):
         """Get environment-specific .env file path."""
         env = os.getenv("ENVIRONMENT", "development")
         env_file_map = {
-            "development": ".env.development",
+            "development": ".env",
             "staging": ".env.staging",
-            "production": ".env.production"
+            "production": ".env.production",
         }
         env_file = env_file_map.get(env, ".env")
         return str(Path(__file__).parent.parent / env_file)
 
     model_config = SettingsConfigDict(
-        env_file=None,  # Will be set dynamically
+        env_file=".env",  # Will be set dynamically
         env_file_encoding="utf-8",
         extra="ignore",  # For backwards compatibility with pydantic 1.x
     )
@@ -124,7 +124,7 @@ class Settings(BaseSettings):
     # Redis Configuration for Production Caching
     REDIS_URL: str = Field(default="redis://localhost:6379")
     REDIS_CACHE_DB: int = Field(default=0)  # Database for caching
-    REDIS_TASK_DB: int = Field(default=1)   # Database for Celery tasks
+    REDIS_TASK_DB: int = Field(default=1)  # Database for Celery tasks
 
     # Celery Configuration
     CELERY_BROKER_URL: str = Field(default="redis://localhost:6379/1")
@@ -189,6 +189,7 @@ settings = Settings()
 
 # Manually load the environment file after initialization to handle dynamic paths
 from dotenv import load_dotenv
+
 load_dotenv(settings.env_file_path, override=True)
 
 # Reinitialize settings with loaded environment variables

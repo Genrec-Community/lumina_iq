@@ -1,123 +1,458 @@
-Oct-30-2025 11:07:15 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:07:16 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:07:17 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:31:05 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:31:05 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:31:07 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:31:57 AM INFO     Logger test successful <string>:1
-Oct-30-2025 11:32:05 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:32:06 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:32:07 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:33:31 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:33:32 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:33:32 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:33:33 AM INFO     Initializing NLTK data... nltk_init.py:90
-Oct-30-2025 11:33:33 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
-Oct-30-2025 11:33:33 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
-Oct-30-2025 11:33:33 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
-Oct-30-2025 11:33:33 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
-Oct-30-2025 11:33:33 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
-Oct-30-2025 11:33:33 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
-Oct-30-2025 11:33:33 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
-Oct-30-2025 11:33:34 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
-Oct-30-2025 11:33:34 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
-Oct-30-2025 11:33:34 AM INFO     NLTK data initialization completed nltk_init.py:144
-Oct-30-2025 11:33:35 AM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
-Oct-30-2025 11:33:35 AM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
-Oct-30-2025 11:34:13 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:34:14 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:34:14 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:34:15 AM INFO     Initializing NLTK data... nltk_init.py:90
-Oct-30-2025 11:34:15 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
-Oct-30-2025 11:34:15 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
-Oct-30-2025 11:34:15 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
-Oct-30-2025 11:34:15 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
-Oct-30-2025 11:34:15 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
-Oct-30-2025 11:34:15 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
-Oct-30-2025 11:34:15 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
-Oct-30-2025 11:34:17 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
-Oct-30-2025 11:34:17 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
-Oct-30-2025 11:34:17 AM INFO     NLTK data initialization completed nltk_init.py:144
-Oct-30-2025 11:34:18 AM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
-Oct-30-2025 11:34:18 AM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
-Oct-30-2025 11:34:18 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
-Oct-30-2025 11:34:18 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:34:53 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:34:54 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:34:54 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:34:55 AM INFO     Initializing NLTK data... nltk_init.py:90
-Oct-30-2025 11:34:55 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
-Oct-30-2025 11:34:55 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
-Oct-30-2025 11:34:55 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
-Oct-30-2025 11:34:55 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
-Oct-30-2025 11:34:55 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
-Oct-30-2025 11:34:55 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
-Oct-30-2025 11:34:55 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
-Oct-30-2025 11:34:56 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
-Oct-30-2025 11:34:56 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
-Oct-30-2025 11:34:56 AM INFO     NLTK data initialization completed nltk_init.py:144
-Oct-30-2025 11:35:16 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:35:16 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:35:17 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:35:17 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
-Oct-30-2025 11:35:17 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:35:22 AM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
-Oct-30-2025 11:35:26 AM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
-Oct-30-2025 11:35:30 AM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
-Oct-30-2025 11:35:34 AM ERROR    Celery health check failed: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it. celery_service.py:271
-Oct-30-2025 11:38:26 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:38:27 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:38:27 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:38:29 AM INFO     Initializing NLTK data... nltk_init.py:90
-Oct-30-2025 11:38:29 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
-Oct-30-2025 11:38:29 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
-Oct-30-2025 11:38:30 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
-Oct-30-2025 11:38:30 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
-Oct-30-2025 11:38:30 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
-Oct-30-2025 11:38:30 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
-Oct-30-2025 11:38:30 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
-Oct-30-2025 11:38:30 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
-Oct-30-2025 11:38:30 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
-Oct-30-2025 11:38:30 AM INFO     NLTK data initialization completed nltk_init.py:144
-Oct-30-2025 11:38:32 AM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
-Oct-30-2025 11:38:32 AM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
-Oct-30-2025 11:38:32 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
-Oct-30-2025 11:38:32 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
-Oct-30-2025 11:38:32 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:38:33 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:38:34 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:38:40 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:38:41 AM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
-Oct-30-2025 11:38:41 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:38:43 AM INFO     Initializing NLTK data... nltk_init.py:90
-Oct-30-2025 11:38:43 AM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
-Oct-30-2025 11:38:43 AM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
-Oct-30-2025 11:38:43 AM DEBUG    NLTK resource stopwords is available nltk_init.py:119
-Oct-30-2025 11:38:43 AM WARNING  NLTK resource wordnet is missing nltk_init.py:122
-Oct-30-2025 11:38:43 AM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
-Oct-30-2025 11:38:43 AM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
-Oct-30-2025 11:38:43 AM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
-Oct-30-2025 11:38:45 AM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
-Oct-30-2025 11:38:45 AM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
-Oct-30-2025 11:38:45 AM INFO     NLTK data initialization completed nltk_init.py:144
-Oct-30-2025 11:38:46 AM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
-Oct-30-2025 11:38:46 AM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
-Oct-30-2025 11:38:46 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
-Oct-30-2025 11:38:46 AM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
-Oct-30-2025 11:50:56 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:51:01 AM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
-Oct-30-2025 11:51:01 AM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37
-Oct-30-2025 11:51:21 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
-Oct-30-2025 11:51:32 AM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
-Oct-30-2025 11:51:32 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:51:37 AM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
-Oct-30-2025 11:51:37 AM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37
-Oct-30-2025 11:51:52 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:51:56 AM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
-Oct-30-2025 11:51:56 AM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37
-Oct-30-2025 11:52:44 AM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 11:52:48 AM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
-Oct-30-2025 11:52:48 AM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37
-Oct-30-2025 12:01:18 PM INFO     Qdrant client initialized successfully qdrant_service.py:34
-Oct-30-2025 12:01:22 PM ERROR    Failed to ensure collection exists: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:98
-Oct-30-2025 12:01:22 PM ERROR    Failed to initialize Qdrant client: [WinError 10061] No connection could be made because the target machine actively refused it qdrant_service.py:37
+Oct-30-2025 12:40:37 PM INFO     Qdrant client initialized successfully qdrant_service.py:34
+Oct-30-2025 12:40:37 PM INFO     Collection already exists: learning_app_documents qdrant_service.py:96
+Oct-30-2025 12:40:38 PM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 12:40:39 PM INFO     Initializing NLTK data... nltk_init.py:90
+Oct-30-2025 12:40:39 PM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
+Oct-30-2025 12:40:39 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
+Oct-30-2025 12:40:39 PM DEBUG    NLTK resource stopwords is available nltk_init.py:119
+Oct-30-2025 12:40:39 PM WARNING  NLTK resource wordnet is missing nltk_init.py:122
+Oct-30-2025 12:40:39 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
+Oct-30-2025 12:40:39 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
+Oct-30-2025 12:40:39 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
+Oct-30-2025 12:40:39 PM ERROR    Failed to download NLTK resource wordnet: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\CSELAB5/nltk_data\\corpora\\wordnet.zip' nltk_init.py:56
+Oct-30-2025 12:40:39 PM ERROR    Failed to download NLTK resource: wordnet nltk_init.py:130
+Oct-30-2025 12:40:39 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
+Oct-30-2025 12:40:39 PM INFO     NLTK data initialization completed nltk_init.py:144
+Oct-30-2025 12:40:40 PM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
+Oct-30-2025 12:40:40 PM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
+Oct-30-2025 12:40:40 PM INFO     Celery app configured with broker: redis://localhost:6379 celery_service.py:89
+Oct-30-2025 12:40:40 PM INFO     Document tracking database initialized: C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\document_tracking.db document_tracking_service.py:65
+Oct-30-2025 12:40:40 PM INFO     Starting Learning App API... main.py:38
+Oct-30-2025 12:40:40 PM INFO     Initializing NLTK data... main.py:39
+Oct-30-2025 12:40:40 PM INFO     Initializing NLTK data... nltk_init.py:90
+Oct-30-2025 12:40:40 PM INFO     NLTK data directory: C:\Users\CSELAB5\nltk_data nltk_init.py:29
+Oct-30-2025 12:40:40 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:119
+Oct-30-2025 12:40:40 PM DEBUG    NLTK resource stopwords is available nltk_init.py:119
+Oct-30-2025 12:40:40 PM WARNING  NLTK resource wordnet is missing nltk_init.py:122
+Oct-30-2025 12:40:40 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:119
+Oct-30-2025 12:40:40 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:126
+Oct-30-2025 12:40:40 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:51
+Oct-30-2025 12:40:40 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:53
+Oct-30-2025 12:40:40 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:136
+Oct-30-2025 12:40:40 PM INFO     NLTK data initialization completed nltk_init.py:144
+Oct-30-2025 12:40:40 PM INFO     Initializing cache service... main.py:43
+Oct-30-2025 12:40:40 PM INFO     Initializing cache service... cache_service.py:419
+Oct-30-2025 12:40:40 PM INFO     Cache service initialized successfully cache_service.py:425
+Oct-30-2025 12:40:40 PM INFO     All services initialized successfully main.py:49
+Oct-30-2025 12:40:56 PM INFO     Starting PDF text extraction: C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf pdf_service.py:39
+Oct-30-2025 12:40:56 PM DEBUG    No cache found: C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf cache.py:66
+Oct-30-2025 12:40:56 PM INFO     Cache miss - extracting text from PDF: C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf pdf_service.py:51
+Oct-30-2025 12:40:56 PM INFO     PDF loaded successfully: file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, pages=123 pdf_service.py:60
+Oct-30-2025 12:40:56 PM DEBUG    Page has no text: page=1 pdf_service.py:72
+Oct-30-2025 12:40:56 PM DEBUG    Page has no text: page=2 pdf_service.py:72
+Oct-30-2025 12:40:56 PM DEBUG    Page extracted: page=3, text_length=2821 pdf_service.py:68
+Oct-30-2025 12:40:56 PM DEBUG    Page extracted: page=4, text_length=246 pdf_service.py:68
+Oct-30-2025 12:40:56 PM DEBUG    Page extracted: page=5, text_length=82 pdf_service.py:68
+Oct-30-2025 12:40:56 PM DEBUG    Page extracted: page=6, text_length=472 pdf_service.py:68
+Oct-30-2025 12:40:56 PM DEBUG    Page extracted: page=7, text_length=452 pdf_service.py:68
+Oct-30-2025 12:40:56 PM DEBUG    Page extracted: page=8, text_length=1718 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=9, text_length=2494 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=10, text_length=588 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=11, text_length=52 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=12, text_length=473 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=13, text_length=1959 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=14, text_length=1787 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=15, text_length=2222 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=16, text_length=2280 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=17, text_length=196 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=18, text_length=72 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=19, text_length=1684 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=20, text_length=2719 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=21, text_length=2255 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=22, text_length=2275 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=23, text_length=2211 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=24, text_length=2099 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=25, text_length=1801 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=26, text_length=2038 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=27, text_length=353 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=28, text_length=86 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=29, text_length=1486 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=30, text_length=2079 pdf_service.py:68
+Oct-30-2025 12:40:57 PM DEBUG    Page extracted: page=31, text_length=2146 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=32, text_length=1979 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=33, text_length=2413 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=34, text_length=2054 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=35, text_length=2482 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=36, text_length=2186 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=37, text_length=1303 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=38, text_length=88 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=39, text_length=1809 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=40, text_length=2345 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=41, text_length=1789 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=42, text_length=2210 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=43, text_length=2368 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=44, text_length=2144 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=45, text_length=2550 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=46, text_length=2369 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=47, text_length=2026 pdf_service.py:68
+Oct-30-2025 12:40:58 PM DEBUG    Page extracted: page=48, text_length=2515 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=49, text_length=2256 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=50, text_length=2311 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=51, text_length=2379 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=52, text_length=2475 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=53, text_length=2383 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=54, text_length=2138 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=55, text_length=2209 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=56, text_length=2427 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=57, text_length=132 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=58, text_length=83 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=59, text_length=1912 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=60, text_length=2056 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=61, text_length=2137 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=62, text_length=2240 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=63, text_length=2078 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=64, text_length=1882 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=65, text_length=89 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=66, text_length=2189 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=67, text_length=2287 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=68, text_length=2092 pdf_service.py:68
+Oct-30-2025 12:40:59 PM DEBUG    Page extracted: page=69, text_length=2060 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=70, text_length=1987 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=71, text_length=1696 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=72, text_length=2149 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=73, text_length=1855 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=74, text_length=1342 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=75, text_length=75 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=76, text_length=1093 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=77, text_length=2193 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=78, text_length=2129 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=79, text_length=2095 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=80, text_length=1132 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=81, text_length=1620 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=82, text_length=1951 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=83, text_length=100 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=84, text_length=93 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=85, text_length=2016 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=86, text_length=2524 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=87, text_length=851 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page has no text: page=88 pdf_service.py:72
+Oct-30-2025 12:41:00 PM DEBUG    Page has no text: page=89 pdf_service.py:72
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=90, text_length=1653 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=91, text_length=1664 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=92, text_length=404 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=93, text_length=1570 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=94, text_length=1657 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=95, text_length=1028 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=96, text_length=1653 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=97, text_length=1014 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=98, text_length=702 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=99, text_length=548 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=100, text_length=856 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=101, text_length=237 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=102, text_length=1899 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=103, text_length=1106 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=104, text_length=99 pdf_service.py:68
+Oct-30-2025 12:41:00 PM DEBUG    Page extracted: page=105, text_length=1776 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=106, text_length=2198 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=107, text_length=2239 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=108, text_length=2210 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=109, text_length=2464 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=110, text_length=2572 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=111, text_length=2467 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=112, text_length=2039 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=113, text_length=950 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=114, text_length=1761 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=115, text_length=2584 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=116, text_length=2263 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=117, text_length=2947 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=118, text_length=1815 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=119, text_length=1318 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=120, text_length=798 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=121, text_length=144 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=122, text_length=42 pdf_service.py:68
+Oct-30-2025 12:41:01 PM DEBUG    Page extracted: page=123, text_length=168 pdf_service.py:68
+Oct-30-2025 12:41:01 PM INFO     Text extraction completed: file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, extracted_length=191455 pdf_service.py:110
+Oct-30-2025 12:41:01 PM INFO     Successfully cached text: file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, cache_key=2fdab496076617b488313377cbe4c37a cache.py:113
+Oct-30-2025 12:41:01 PM INFO     Successfully cached extracted text: C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf pdf_service.py:122
+Oct-30-2025 12:41:01 PM INFO     Starting RAG indexing for uploaded PDF: Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf pdf_service.py:372
+Oct-30-2025 12:41:01 PM INFO     Using standard RAG indexing: Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf pdf_service.py:389
+Oct-30-2025 12:41:01 PM INFO     Starting document indexing: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, content_length=191455, user_id=user_1b2de34, file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf rag_service.py:38
+Oct-30-2025 12:41:01 PM DEBUG    Calculated hash: algorithm=sha256, file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, hash_value=4f592ae01c9c961e file_hash.py:34
+Oct-30-2025 12:41:01 PM INFO     Calculated file hash: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, hash=4f592ae01c9c961e rag_service.py:48
+Oct-30-2025 12:41:01 PM INFO     Document tracking check result: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, hash=4f592ae01c9c961e, exists=False, existing_filename=None rag_service.py:71
+Oct-30-2025 12:41:02 PM INFO     Qdrant indexing check result rag_service.py:89
+Oct-30-2025 12:41:02 PM DEBUG    Qdrant indexing check details: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, user_id=user_1b2de34, is_indexed=False rag_service.py:92
+Oct-30-2025 12:41:02 PM ERROR    Failed to index document: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, error=Cannot run the event loop while another loop is running rag_service.py:180
+Oct-30-2025 12:41:02 PM INFO     RAG indexing completed: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, result=error, is_duplicate=False pdf_service.py:396
+Oct-30-2025 12:41:02 PM INFO     Starting PDF text extraction: C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf pdf_service.py:39
+Oct-30-2025 12:41:02 PM INFO     Cache hit: file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, cached_at=2025-10-30T12:41:01.720792 cache.py:78
+Oct-30-2025 12:41:02 PM INFO     Using cached text: file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, text_length=191455 pdf_service.py:44
+Oct-30-2025 12:41:02 PM INFO     Starting RAG indexing for selected PDF: Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf pdf_service.py:277
+Oct-30-2025 12:41:02 PM INFO     Using standard RAG indexing: Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf pdf_service.py:290
+Oct-30-2025 12:41:02 PM INFO     Starting document indexing: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, content_length=191455, user_id=user_1b2de34, file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf rag_service.py:38
+Oct-30-2025 12:41:02 PM DEBUG    Calculated hash: algorithm=sha256, file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, hash_value=4f592ae01c9c961e file_hash.py:34
+Oct-30-2025 12:41:02 PM INFO     Calculated file hash: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, file_path=C:\Users\CSELAB5\Downloads\dev\lumina_iq\books\Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, hash=4f592ae01c9c961e rag_service.py:48
+Oct-30-2025 12:41:02 PM INFO     Document tracking check result: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, hash=4f592ae01c9c961e, exists=False, existing_filename=None rag_service.py:71
+Oct-30-2025 12:41:02 PM INFO     Qdrant indexing check result rag_service.py:89
+Oct-30-2025 12:41:02 PM DEBUG    Qdrant indexing check details: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, user_id=user_1b2de34, is_indexed=False rag_service.py:92
+Oct-30-2025 12:41:02 PM ERROR    Failed to index document: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, error=Cannot run the event loop while another loop is running rag_service.py:180
+Oct-30-2025 12:41:02 PM INFO     RAG indexing completed: filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, result=error, is_duplicate=False pdf_service.py:297
+Oct-30-2025 12:41:57 PM DEBUG    Retrieving relevant context using RAG: query_length=2 chat_service.py:244
+Oct-30-2025 12:41:57 PM INFO     Retrieving context with ADVANCED RAG: query_length=2, top_k=5, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:41:57 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:41:57 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:41:57 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:41:57 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:41:57 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:41:57 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=None(0.00), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:41:57 PM INFO     Using CHAT retrieval strategy: 5 retrieval_strategy_manager.py:107
+Oct-30-2025 12:42:00 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x132934bb440 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:42:00 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:42:00 PM WARNING  No relevant context found, falling back to full content preview chat_service.py:261
+Oct-30-2025 12:42:01 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:42:01 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:42:05 PM DEBUG    AI response generated in 4.15s chat_service.py:152
+Oct-30-2025 12:42:05 PM DEBUG    Response priority=normal, attempt=1, response_length=2492 chat_service.py:155
+Oct-30-2025 12:42:05 PM DEBUG    Successfully generated response: length=2492 chat_service.py:331
+Oct-30-2025 12:47:29 PM INFO     Generating 10 questions for topic 'Ikigai' using RAG orchestrator chat.py:79
+Oct-30-2025 12:47:29 PM WARNING  Cache retrieval failed: CacheService.get_api_response() missing 1 required positional argument: 'params' rag_orchestrator.py:109
+Oct-30-2025 12:47:29 PM INFO     Starting advanced retrieval for question generation query=Ikigai, num_questions=25, mode=comprehensive advanced_rag_service.py:368
+Oct-30-2025 12:47:29 PM INFO     Starting multi-query retrieval: base_query=Ikigai, num_queries=3 advanced_rag_service.py:48
+Oct-30-2025 12:47:29 PM WARNING  Batch embedding failed, falling back to individual: EmbeddingService.generate_batch_query_embeddings() missing 1 required positional argument: 'queries' advanced_rag_service.py:95
+Oct-30-2025 12:47:32 PM WARNING  Query variation failed: query_var=Ikigai, error=RetryError[<Future at 0x132962efd10 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:47:35 PM WARNING  Query variation failed: query_var=Explain the key concepts relat, error=RetryError[<Future at 0x132962621e0 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:47:38 PM WARNING  Query variation failed: query_var=What are the main points about, error=RetryError[<Future at 0x132962dcbc0 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:47:38 PM INFO     Multi-query retrieval found 0 unique chunks advanced_rag_service.py:121
+Oct-30-2025 12:47:38 PM WARNING  No chunks retrieved, falling back to basic retrieval advanced_rag_service.py:400
+Oct-30-2025 12:47:38 PM INFO     Retrieving context with ADVANCED RAG: query_length=6, top_k=15, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:47:38 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:47:38 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:47:38 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:47:38 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:47:38 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:47:38 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=Ikigai(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:47:38 PM INFO     Using CHAT retrieval strategy: 15 retrieval_strategy_manager.py:107
+Oct-30-2025 12:47:41 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x132962deab0 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:47:41 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:47:41 PM WARNING  Q&A generation service failed, trying basic retrieval: QAGenerationService.hyde_retrieval() got an unexpected keyword argument 'num_results' rag_orchestrator.py:359
+Oct-30-2025 12:47:41 PM INFO     Retrieving context with ADVANCED RAG: query_length=6, top_k=15, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:47:41 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:47:41 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:47:41 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:47:41 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:47:41 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:47:41 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=Ikigai(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:47:41 PM INFO     Using CHAT retrieval strategy: 15 retrieval_strategy_manager.py:107
+Oct-30-2025 12:47:44 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x132962ddf70 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:47:44 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:47:44 PM ERROR    Error in search_similar_chunks: 'CacheService' object has no attribute 'get_cached_data' search_service.py:99
+Oct-30-2025 12:47:45 PM ERROR    Error in search_similar_chunks: 'CacheService' object has no attribute 'get_cached_data' search_service.py:99
+Oct-30-2025 12:47:47 PM ERROR    Error in search_similar_chunks: 'CacheService' object has no attribute 'get_cached_data' search_service.py:99
+Oct-30-2025 12:47:47 PM ERROR    All retrieval strategies failed: RetryError[<Future at 0x132962efa70 state=finished raised AttributeError>] rag_orchestrator.py:401
+Oct-30-2025 12:47:47 PM WARNING  RAG orchestrator failed, falling back to ChatService: Failed to retrieve context for question generation chat.py:96
+Oct-30-2025 12:47:47 PM DEBUG    Generating 10 quiz questions for topic: Ikigai chat_service.py:395
+Oct-30-2025 12:47:47 PM DEBUG    Processing PDF Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf for questions, content length: 191455 chat_service.py:409
+Oct-30-2025 12:47:47 PM DEBUG    Using QA GENERATION SERVICE with HyDE for topic: Ikigai chat_service.py:425
+Oct-30-2025 12:47:47 PM INFO     Starting advanced Q&A generation: topic=Ikigai, num_questions=10, difficulty=mixed qa_generation_service.py:519
+Oct-30-2025 12:47:47 PM INFO     Starting HyDE retrieval: Ikigai qa_generation_service.py:47
+Oct-30-2025 12:47:47 PM DEBUG    Generated hypothetical passage for HyDE: length=414 qa_generation_service.py:60
+Oct-30-2025 12:47:50 PM ERROR    HyDE retrieval failed: RetryError[<Future at 0x132962dfe60 state=finished raised TypeError>] qa_generation_service.py:122
+Oct-30-2025 12:47:53 PM INFO     Starting advanced retrieval for question generation query=Ikigai, num_questions=10, mode=focused advanced_rag_service.py:368
+Oct-30-2025 12:47:53 PM INFO     Decomposing topic: Ikigai advanced_rag_service.py:320
+Oct-30-2025 12:47:53 PM INFO     Decomposed into 5 subtopics advanced_rag_service.py:343
+Oct-30-2025 12:47:53 PM INFO     Starting multi-query retrieval: base_query=Ikigai, num_queries=3 advanced_rag_service.py:48
+Oct-30-2025 12:47:53 PM WARNING  Batch embedding failed, falling back to individual: EmbeddingService.generate_batch_query_embeddings() missing 1 required positional argument: 'queries' advanced_rag_service.py:95
+Oct-30-2025 12:47:56 PM WARNING  Query variation failed: query_var=Ikigai, error=RetryError[<Future at 0x132962c08c0 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:47:59 PM WARNING  Query variation failed: query_var=Explain the key concepts relat, error=RetryError[<Future at 0x132962efd10 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:48:02 PM WARNING  Query variation failed: query_var=What are the main points about, error=RetryError[<Future at 0x132962dfbc0 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:48:02 PM INFO     Multi-query retrieval found 0 unique chunks advanced_rag_service.py:121
+Oct-30-2025 12:48:02 PM INFO     Starting multi-query retrieval: base_query=definition and meaning of Ikigai, num_queries=3 advanced_rag_service.py:48
+Oct-30-2025 12:48:02 PM WARNING  Batch embedding failed, falling back to individual: EmbeddingService.generate_batch_query_embeddings() missing 1 required positional argument: 'queries' advanced_rag_service.py:95
+Oct-30-2025 12:48:05 PM WARNING  Query variation failed: query_var=definition and meaning of Ikig, error=RetryError[<Future at 0x13296211130 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:48:08 PM WARNING  Query variation failed: query_var=Explain the key concepts relat, error=RetryError[<Future at 0x132962113d0 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:48:11 PM WARNING  Query variation failed: query_var=What are the main points about, error=RetryError[<Future at 0x13296210a40 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:48:11 PM INFO     Multi-query retrieval found 0 unique chunks advanced_rag_service.py:121
+Oct-30-2025 12:48:11 PM INFO     Starting multi-query retrieval: base_query=examples and applications of Ikigai, num_queries=3 advanced_rag_service.py:48
+Oct-30-2025 12:48:11 PM WARNING  Batch embedding failed, falling back to individual: EmbeddingService.generate_batch_query_embeddings() missing 1 required positional argument: 'queries' advanced_rag_service.py:95
+Oct-30-2025 12:48:14 PM WARNING  Query variation failed: query_var=examples and applications of I, error=RetryError[<Future at 0x13296210740 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:48:17 PM WARNING  Query variation failed: query_var=Explain the key concepts relat, error=RetryError[<Future at 0x13296211730 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:48:21 PM WARNING  Query variation failed: query_var=What are the main points about, error=RetryError[<Future at 0x132962efc50 state=finished raised TypeError>] advanced_rag_service.py:116
+Oct-30-2025 12:48:21 PM INFO     Multi-query retrieval found 0 unique chunks advanced_rag_service.py:121
+Oct-30-2025 12:48:21 PM WARNING  No chunks retrieved, falling back to basic retrieval advanced_rag_service.py:400
+Oct-30-2025 12:48:21 PM INFO     Retrieving context with ADVANCED RAG: query_length=6, top_k=15, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:48:21 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:48:21 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:48:21 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:48:21 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:48:21 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:48:21 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=Ikigai(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:48:21 PM INFO     Using CHAT retrieval strategy: 15 retrieval_strategy_manager.py:107
+Oct-30-2025 12:48:24 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x132962efbc0 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:48:24 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:48:24 PM INFO     Reranking 0 chunks advanced_rag_service.py:202
+Oct-30-2025 12:48:24 PM INFO     Reranked to 0 diverse chunks advanced_rag_service.py:255
+Oct-30-2025 12:48:24 PM INFO     Synthesizing answer from chunks: question=Generate questions about: Ikigai, num_chunks=0 qa_generation_service.py:166
+Oct-30-2025 12:48:24 PM INFO     Advanced Q&A generation completed: total_chunks=0, avg_relevance=0.00, confidence=0.00 qa_generation_service.py:616
+Oct-30-2025 12:48:24 PM WARNING  Advanced RAG failed, falling back to basic: QA Generation Service returned no results chat_service.py:484
+Oct-30-2025 12:48:24 PM INFO     Retrieving context with ADVANCED RAG: query_length=32, top_k=12, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:48:24 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:48:24 PM DEBUG    Classification details: use_case=qa_generation, confidence=0.75, matched_keywords=['generate questions'] query_classifier.py:145
+Oct-30-2025 12:48:24 PM INFO     Auto-detected use case: qa_generation retrieval_strategy_manager.py:44
+Oct-30-2025 12:48:24 PM DEBUG    Classification details: {'use_case': 'qa_generation', 'confidence': 0.75, 'matched_keywords': ['generate questions'], 'all_scores': {'qa_generation': 1, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.75 retrieval_strategy_manager.py:48
+Oct-30-2025 12:48:24 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:48:24 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=about: Ikigai(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:48:24 PM ERROR    Failed to retrieve context: query=Generate questions about: Ikigai, error=RetrievalStrategyManager._qa_generation_strategy() got an unexpected keyword argument 'top_k', error_type=TypeError, traceback=Traceback (most recent call last):
+  File "C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\services\chat_service.py", line 481, in generate_questions
+    raise Exception("QA Generation Service returned no results")
+Exception: QA Generation Service returned no results
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\services\rag_service.py", line 216, in retrieve_context
+    result = await retrieval_strategy_manager.retrieve(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CSELAB5\Downloads\dev\lumina_iq\backend\services\retrieval_strategy_manager.py", line 71, in retrieve
+    result = await RetrievalStrategyManager._qa_generation_strategy(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: RetrievalStrategyManager._qa_generation_strategy() got an unexpected keyword argument 'top_k'
+ rag_service.py:233
+Oct-30-2025 12:48:24 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:48:24 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:48:35 PM DEBUG    AI response generated in 10.93s chat_service.py:152
+Oct-30-2025 12:48:35 PM DEBUG    Response priority=normal, attempt=1, response_length=3455 chat_service.py:155
+Oct-30-2025 12:48:35 PM DEBUG    Together.ai response received: length=3455 chat_service.py:707
+Oct-30-2025 12:50:15 PM INFO     Retrieving context with ADVANCED RAG: query_length=61, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:50:15 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:50:15 PM DEBUG    Classification details: use_case=chat, confidence=0.75, matched_keywords=['what is'] query_classifier.py:145
+Oct-30-2025 12:50:15 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:50:15 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.75, 'matched_keywords': ['what is'], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 1}}Classification confidence=0.75 retrieval_strategy_manager.py:48
+Oct-30-2025 12:50:15 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:50:15 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=What main concept Ikigai according(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:50:15 PM INFO     Using CHAT retrieval strategy: 2 retrieval_strategy_manager.py:107
+Oct-30-2025 12:50:19 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x13296210320 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:50:19 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:50:19 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:50:19 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:50:20 PM DEBUG    AI response generated in 1.52s chat_service.py:152
+Oct-30-2025 12:50:20 PM DEBUG    Response priority=normal, attempt=1, response_length=291 chat_service.py:155
+Oct-30-2025 12:50:20 PM INFO     Retrieving context with ADVANCED RAG: query_length=70, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:50:20 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:50:20 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:50:20 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:50:20 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:50:20 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:50:20 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=Ikigai written Japanese characters what(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:50:20 PM INFO     Using CHAT retrieval strategy: 2 retrieval_strategy_manager.py:107
+Oct-30-2025 12:50:23 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x13293203020 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:50:23 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:50:23 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:50:23 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:50:26 PM DEBUG    AI response generated in 3.09s chat_service.py:152
+Oct-30-2025 12:50:26 PM DEBUG    Response priority=normal, attempt=1, response_length=127 chat_service.py:155
+Oct-30-2025 12:50:26 PM INFO     Retrieving context with ADVANCED RAG: query_length=74, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:50:26 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:50:26 PM DEBUG    Classification details: use_case=chat, confidence=0.75, matched_keywords=['how does'] query_classifier.py:145
+Oct-30-2025 12:50:26 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:50:26 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.75, 'matched_keywords': ['how does'], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 1}}Classification confidence=0.75 retrieval_strategy_manager.py:48
+Oct-30-2025 12:50:26 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:50:26 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=According text, does Ikigai contribute(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:50:26 PM INFO     Using CHAT retrieval strategy: 2 retrieval_strategy_manager.py:107
+Oct-30-2025 12:50:29 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x13296210b30 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:50:29 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:50:29 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:50:29 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:50:33 PM DEBUG    AI response generated in 3.52s chat_service.py:152
+Oct-30-2025 12:50:33 PM DEBUG    Response priority=normal, attempt=1, response_length=204 chat_service.py:155
+Oct-30-2025 12:50:33 PM INFO     Retrieving context with ADVANCED RAG: query_length=79, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:50:33 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:50:33 PM DEBUG    Classification details: use_case=chat, confidence=0.75, matched_keywords=['what is'] query_classifier.py:145
+Oct-30-2025 12:50:33 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:50:33 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.75, 'matched_keywords': ['what is'], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 1}}Classification confidence=0.75 retrieval_strategy_manager.py:48
+Oct-30-2025 12:50:33 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:50:33 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=What relationship between Ikigai concept(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:50:33 PM INFO     Using CHAT retrieval strategy: 2 retrieval_strategy_manager.py:107
+Oct-30-2025 12:50:36 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x13296224680 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:50:36 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:50:36 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:50:36 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:50:38 PM DEBUG    AI response generated in 2.64s chat_service.py:152
+Oct-30-2025 12:50:38 PM DEBUG    Response priority=normal, attempt=1, response_length=338 chat_service.py:155
+Oct-30-2025 12:50:38 PM INFO     Retrieving context with ADVANCED RAG: query_length=67, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:50:38 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:50:38 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:50:38 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:50:38 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:50:38 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:50:38 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=Which following best represents personal(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:50:38 PM INFO     Using CHAT retrieval strategy: 2 retrieval_strategy_manager.py:107
+Oct-30-2025 12:50:41 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x13296224c20 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:50:41 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:50:42 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:50:42 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:50:44 PM DEBUG    AI response generated in 2.17s chat_service.py:152
+Oct-30-2025 12:50:44 PM DEBUG    Response priority=normal, attempt=1, response_length=229 chat_service.py:155
+Oct-30-2025 12:50:44 PM INFO     Retrieving context with ADVANCED RAG: query_length=63, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:50:44 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:50:44 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:50:44 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:50:44 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:50:44 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:50:44 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=Which daily routine best incorporates(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:50:44 PM INFO     Using CHAT retrieval strategy: 2 retrieval_strategy_manager.py:107
+Oct-30-2025 12:50:47 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x13296225970 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:50:47 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:50:47 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:50:47 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:50:49 PM DEBUG    AI response generated in 2.71s chat_service.py:152
+Oct-30-2025 12:50:49 PM DEBUG    Response priority=normal, attempt=1, response_length=429 chat_service.py:155
+Oct-30-2025 12:50:49 PM INFO     Retrieving context with ADVANCED RAG: query_length=59, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:50:49 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:50:49 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:50:49 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:50:49 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:50:49 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:50:49 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=Which statement correctly contrasts Ikigai(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:50:49 PM INFO     Using CHAT retrieval strategy: 2 retrieval_strategy_manager.py:107
+Oct-30-2025 12:50:52 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x13296227200 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:50:52 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:50:53 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:50:53 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:50:54 PM DEBUG    AI response generated in 1.43s chat_service.py:152
+Oct-30-2025 12:50:54 PM DEBUG    Response priority=normal, attempt=1, response_length=166 chat_service.py:155
+Oct-30-2025 12:50:54 PM INFO     Retrieving context with ADVANCED RAG: query_length=74, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:50:54 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:50:54 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:50:54 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:50:54 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:50:54 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:50:54 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=According document, which factor most(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:50:54 PM INFO     Using CHAT retrieval strategy: 2 retrieval_strategy_manager.py:107
+Oct-30-2025 12:50:57 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x132960c48f0 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:50:57 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:50:57 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:50:57 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:51:00 PM DEBUG    AI response generated in 2.98s chat_service.py:152
+Oct-30-2025 12:51:00 PM DEBUG    Response priority=normal, attempt=1, response_length=193 chat_service.py:155
+Oct-30-2025 12:51:00 PM INFO     Retrieving context with ADVANCED RAG: query_length=77, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:51:00 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:51:00 PM DEBUG    Classification details: use_case=evaluation, confidence=0.75, matched_keywords=['evaluate'] query_classifier.py:145
+Oct-30-2025 12:51:00 PM INFO     Auto-detected use case: evaluation retrieval_strategy_manager.py:44
+Oct-30-2025 12:51:00 PM DEBUG    Classification details: {'use_case': 'evaluation', 'confidence': 0.75, 'matched_keywords': ['evaluate'], 'all_scores': {'qa_generation': 0, 'evaluation': 1, 'notes': 0, 'chat': 0}}Classification confidence=0.75 retrieval_strategy_manager.py:48
+Oct-30-2025 12:51:00 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:51:00 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=for longevity(0.80), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:51:00 PM INFO     Using EVALUATION retrieval strategy: 2 retrieval_strategy_manager.py:194
+Oct-30-2025 12:51:03 PM ERROR    EVALUATION strategy failed: RetryError[<Future at 0x132934b90d0 state=finished raised TypeError>] retrieval_strategy_manager.py:270
+Oct-30-2025 12:51:03 PM INFO     Advanced retrieval completed: strategy=evaluation, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:51:03 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:51:03 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:51:05 PM DEBUG    AI response generated in 1.72s chat_service.py:152
+Oct-30-2025 12:51:05 PM DEBUG    Response priority=normal, attempt=1, response_length=202 chat_service.py:155
+Oct-30-2025 12:51:05 PM INFO     Retrieving context with ADVANCED RAG: query_length=74, top_k=2, filename=Ikigai _ the Japanese secret to a long and happy life ( PDFDrive.com )(3).pdf, use_case=None rag_service.py:211
+Oct-30-2025 12:51:05 PM INFO     Query classified as query_classifier.py:144
+Oct-30-2025 12:51:05 PM DEBUG    Classification details: use_case=chat, confidence=0.50, matched_keywords=[] query_classifier.py:145
+Oct-30-2025 12:51:05 PM INFO     Auto-detected use case: chat retrieval_strategy_manager.py:44
+Oct-30-2025 12:51:05 PM DEBUG    Classification details: {'use_case': 'chat', 'confidence': 0.5, 'matched_keywords': [], 'all_scores': {'qa_generation': 0, 'evaluation': 0, 'notes': 0, 'chat': 0}}Classification confidence=0.50 retrieval_strategy_manager.py:48
+Oct-30-2025 12:51:05 PM INFO     Extracted query metadata query_classifier.py:397
+Oct-30-2025 12:51:05 PM DEBUG    Metadata details: chapter=None(0.00), section=None(0.00), topic=Design community program that incorporates(0.50), difficulty=medium(0.50) query_classifier.py:399
+Oct-30-2025 12:51:05 PM INFO     Using CHAT retrieval strategy: 2 retrieval_strategy_manager.py:107
+Oct-30-2025 12:51:08 PM ERROR    CHAT strategy failed: RetryError[<Future at 0x13296213500 state=finished raised TypeError>] retrieval_strategy_manager.py:168
+Oct-30-2025 12:51:08 PM INFO     Advanced retrieval completed: strategy=chat, num_chunks=0 rag_service.py:224
+Oct-30-2025 12:51:08 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:51:08 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:51:10 PM DEBUG    AI response generated in 1.94s chat_service.py:152
+Oct-30-2025 12:51:10 PM DEBUG    Response priority=normal, attempt=1, response_length=232 chat_service.py:155
+Oct-30-2025 12:51:10 PM DEBUG    Initializing client with API key: [SET] together_service.py:37
+Oct-30-2025 12:51:10 PM DEBUG    Generating completion with model: openai/gpt-oss-20b together_service.py:95
+Oct-30-2025 12:51:13 PM DEBUG    AI response generated in 3.18s chat_service.py:152
+Oct-30-2025 12:51:13 PM DEBUG    Response priority=normal, attempt=1, response_length=1488 chat_service.py:155

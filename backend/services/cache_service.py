@@ -413,6 +413,36 @@ class CacheService:
             logger.error(f"Error getting cache stats: {str(e)}")
             return {"error": str(e)}
 
+    async def initialize(self) -> None:
+        """Initialize the cache service and all cache backends."""
+        try:
+            logger.info("Initializing cache service...")
+
+            # Redis cache uses lazy initialization, no explicit init needed
+            # Semantic cache uses lazy initialization, no explicit init needed
+            # File cache doesn't need initialization
+
+            logger.info("Cache service initialized successfully")
+
+        except Exception as e:
+            logger.error(f"Error initializing cache service: {str(e)}")
+            raise
+
+    async def close(self) -> None:
+        """Close all cache connections and cleanup resources."""
+        try:
+            logger.info("Closing cache service...")
+
+            # Redis cache doesn't need explicit closing (connections are managed by redis-py)
+            # Semantic cache doesn't need explicit closing
+            # File cache doesn't need closing
+
+            logger.info("Cache service closed successfully")
+
+        except Exception as e:
+            logger.error(f"Error closing cache service: {str(e)}")
+            raise
+
 
 # Global cache service instance
 cache_service = CacheService()

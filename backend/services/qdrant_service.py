@@ -376,6 +376,7 @@ class QdrantService:
     async def health_check(self) -> Dict[str, Any]:
         """Check Qdrant service health and connectivity."""
         import time
+        from datetime import datetime
         try:
             start_time = time.time()
 
