@@ -1,246 +1,278 @@
-import os
-import asyncio
-import concurrent.futures
-import time
+"""
+Together AI service using LangChain for LLM and embeddings.
+Provides unified interface for Together AI's models.
+"""
+
 from typing import List, Optional, Dict, Any
-import together
-from utils.logger import get_logger
-from utils.logging_config import log_performance
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from config.settings import settings
+from utils.logger import get_logger
+import asyncio
+from functools import lru_cache
 
-# Thread pool for concurrent requests
-together_pool = concurrent.futures.ThreadPoolExecutor(max_workers=20)
-
-# Get logger for this service
-together_logger = get_logger("together_service")
+logger = get_logger("together_service")
 
 
 class TogetherService:
-    """Service for interacting with Together.ai API"""
+    """Service for interacting with Together AI using LangChain"""
 
-    @staticmethod
-    def get_api_key() -> str:
-        """Get Together.ai API key from settings"""
-        return settings.TOGETHER_API_KEY
+    def __init__(self):
+        self._llm: Optional[ChatOpenAI] = None
+        self._embeddings: Optional[OpenAIEmbeddings] = None
+        self._initialized = False
 
-    @staticmethod
-    def get_model() -> str:
-        """Get Together.ai model from settings"""
-        return settings.TOGETHER_MODEL
+    def initialize(self):
+        """Initialize Together AI LLM and embeddings"""
+        if self._initialized:
+            return
 
-    @staticmethod
-    def get_base_url() -> str:
-        """Get Together.ai base URL from settings"""
-        return settings.TOGETHER_BASE_URL
+        try:
+            # Initialize LLM using LangChain's ChatOpenAI with Together AI
+            self._llm = ChatOpenAI(
+                model=settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                temperature=0.7,
+                max_tokens=2048,
+                openai_api_key=settings.TOGETHER_API_KEY,
+                openai_api_base=settings.TOGETHER_BASE_URL,
+            )
 
-    @staticmethod
-    def initialize_client() -> together.Together:
-        """Initialize and return Together.ai client"""
-        api_key = TogetherService.get_api_key()
-        base_url = TogetherService.get_base_url()
+            # Initialize embeddings using LangChain's OpenAIEmbeddings with Together AI
+            self._embeddings = OpenAIEmbeddings(
+                model=settings.EMBEDDING_MODEL,
+                openai_api_key=settings.TOGETHER_API_KEY,
+                openai_api_base=settings.TOGETHER_BASE_URL,
+            )
 
-        together_logger.debug(
-            "Initializing Together.ai client",
-            extra={"extra_fields": {"api_key_set": bool(api_key), "base_url": base_url}}
-        )
-        if not api_key:
-            together_logger.error("TOGETHER_API_KEY is not set in settings")
-            raise ValueError("TOGETHER_API_KEY environment variable is required")
+            self._initialized = True
+            logger.info(
+                "Together AI service initialized successfully",
+                extra={
+                    "extra_fields": {
+                        "llm_model": settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                        "embedding_model": settings.EMBEDDING_MODEL,
+                    }
+                },
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to initialize Together AI service: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise
 
-        client = together.Together(api_key=api_key, base_url=base_url)
-        together_logger.debug("Together.ai client initialized successfully")
-        return client
+    def get_llm(self) -> ChatOpenAI:
+        """Get the initialized LLM instance"""
+        if not self._initialized:
+            self.initialize()
+        return self._llm
 
-    @staticmethod
-    async def generate_completion(
-        messages: List[Dict[str, str]],
-        model: Optional[str] = None,
-        max_tokens: Optional[int] = None,
+    def get_embeddings(self) -> OpenAIEmbeddings:
+        """Get the initialized embeddings instance"""
+        if not self._initialized:
+            self.initialize()
+        return self._embeddings
+
+    async def generate(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
         temperature: float = 0.7,
-        top_p: float = 0.9,
-        **kwargs,
+        max_tokens: int = 2048,
     ) -> str:
         """
-        Generate completion using Together.ai API
+        Generate text using Together AI LLM.
 
         Args:
-            messages: List of message dictionaries with 'role' and 'content'
-            model: Model to use (defaults to settings)
-            max_tokens: Maximum tokens to generate
+            prompt: The user prompt
+            system_prompt: Optional system prompt
             temperature: Sampling temperature
-            top_p: Top-p sampling parameter
-            **kwargs: Additional arguments for the API
+            max_tokens: Maximum tokens to generate
 
         Returns:
             Generated text response
         """
-        loop = asyncio.get_event_loop()
-        api_key = TogetherService.get_api_key()
-        model = model or TogetherService.get_model()
-
-        if not api_key:
-            raise ValueError("Together.ai API key not configured")
-
-        def _generate():
-            try:
-                client = TogetherService.initialize_client()
-
-                # Prepare the request parameters
-                request_params = {
-                    "model": model,
-                    "messages": messages,
-                    "temperature": temperature,
-                    "top_p": top_p,
-                }
-
-                if max_tokens:
-                    request_params["max_tokens"] = max_tokens
-
-                # Add any additional kwargs
-                request_params.update(kwargs)
-
-                together_logger.debug(
-                    "Sending completion request to Together.ai",
-                    extra={"extra_fields": {
-                        "model": model,
-                        "message_count": len(messages),
-                        "max_tokens": max_tokens,
-                        "temperature": temperature
-                    }}
-                )
-
-                response = client.chat.completions.create(**request_params)
-                result = response.choices[0].message.content
-
-                together_logger.debug(
-                    "Successfully received completion from Together.ai",
-                    extra={"extra_fields": {
-                        "response_length": len(result) if result else 0,
-                        "model_used": model
-                    }}
-                )
-
-                return result, None
-
-            except Exception as e:
-                together_logger.error(
-                    "Together.ai API error",
-                    extra={"extra_fields": {
-                        "error_type": type(e).__name__,
-                        "error_message": str(e),
-                        "model": model
-                    }}
-                )
-                return None, e
+        if not self._initialized:
+            self.initialize()
 
         try:
-            result, error = await loop.run_in_executor(together_pool, _generate)
+            messages = []
+            if system_prompt:
+                messages.append(SystemMessage(content=system_prompt))
+            messages.append(HumanMessage(content=prompt))
 
-            if error:
-                raise error
+            # Create a new LLM instance with specific parameters
+            llm = ChatOpenAI(
+                model=settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                temperature=temperature,
+                max_tokens=max_tokens,
+                openai_api_key=settings.TOGETHER_API_KEY,
+                openai_api_base=settings.TOGETHER_BASE_URL,
+            )
 
-            if not result:
-                raise ValueError("No response generated from Together.ai")
-
-            return result
+            response = await llm.ainvoke(messages)
+            return response.content
 
         except Exception as e:
-            together_logger.error(
-                "Failed to generate completion",
-                extra={"extra_fields": {
-                    "error_type": type(e).__name__,
-                    "error_message": str(e),
-                    "model": model
-                }}
+            logger.error(
+                f"Text generation failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
             )
             raise
 
-    @staticmethod
-    async def generate_chat_response(
-        user_message: str,
-        system_message: Optional[str] = None,
-        model: Optional[str] = None,
-        max_tokens: Optional[int] = None,
+    async def generate_streaming(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
         temperature: float = 0.7,
-        **kwargs,
-    ) -> str:
+        max_tokens: int = 2048,
+    ):
         """
-        Generate a chat response using Together.ai
+        Generate text with streaming response.
 
         Args:
-            user_message: The user's message
-            system_message: Optional system message for context
-            model: Model to use (defaults to settings)
-            max_tokens: Maximum tokens to generate
+            prompt: The user prompt
+            system_prompt: Optional system prompt
             temperature: Sampling temperature
-            **kwargs: Additional arguments
+            max_tokens: Maximum tokens to generate
+
+        Yields:
+            Text chunks as they are generated
+        """
+        if not self._initialized:
+            self.initialize()
+
+        try:
+            messages = []
+            if system_prompt:
+                messages.append(SystemMessage(content=system_prompt))
+            messages.append(HumanMessage(content=prompt))
+
+            llm = ChatOpenAI(
+                model=settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                temperature=temperature,
+                max_tokens=max_tokens,
+                openai_api_key=settings.TOGETHER_API_KEY,
+                openai_api_base=settings.TOGETHER_BASE_URL,
+                streaming=True,
+            )
+
+            async for chunk in llm.astream(messages):
+                if chunk.content:
+                    yield chunk.content
+
+        except Exception as e:
+            logger.error(
+                f"Streaming generation failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise
+
+    async def embed_text(self, text: str) -> List[float]:
+        """
+        Generate embedding for a single text.
+
+        Args:
+            text: Text to embed
+
+        Returns:
+            Embedding vector
+        """
+        if not self._initialized:
+            self.initialize()
+
+        try:
+            embedding = await self._embeddings.aembed_query(text)
+            return embedding
+        except Exception as e:
+            logger.error(
+                f"Text embedding failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise
+
+    async def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        """
+        Generate embeddings for multiple texts in batch.
+
+        Args:
+            texts: List of texts to embed
+
+        Returns:
+            List of embedding vectors
+        """
+        if not self._initialized:
+            self.initialize()
+
+        try:
+            # Process in batches to avoid rate limits
+            batch_size = settings.EMBEDDING_BATCH_SIZE
+            all_embeddings = []
+
+            for i in range(0, len(texts), batch_size):
+                batch = texts[i : i + batch_size]
+                embeddings = await self._embeddings.aembed_documents(batch)
+                all_embeddings.extend(embeddings)
+
+            return all_embeddings
+        except Exception as e:
+            logger.error(
+                f"Document embedding failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise
+
+    async def chat(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.7,
+        max_tokens: int = 2048,
+    ) -> str:
+        """
+        Have a chat conversation with the LLM.
+
+        Args:
+            messages: List of message dicts with 'role' and 'content'
+            temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
 
         Returns:
             AI response text
         """
-        messages = []
+        if not self._initialized:
+            self.initialize()
 
-        if system_message:
-            messages.append({"role": "system", "content": system_message})
-
-        messages.append({"role": "user", "content": user_message})
-
-        return await TogetherService.generate_completion(
-            messages=messages,
-            model=model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            **kwargs,
-        )
-
-    @staticmethod
-    async def check_api_health() -> bool:
-        """
-        Check if Together.ai API is accessible and working
-
-        Returns:
-            True if API is healthy, False otherwise
-        """
         try:
-            api_key = TogetherService.get_api_key()
-            if not api_key:
-                return False
+            langchain_messages = []
+            for msg in messages:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
 
-            loop = asyncio.get_event_loop()
+                if role == "system":
+                    langchain_messages.append(SystemMessage(content=content))
+                elif role == "assistant":
+                    langchain_messages.append(AIMessage(content=content))
+                else:
+                    langchain_messages.append(HumanMessage(content=content))
 
-            def _health_check():
-                try:
-                    client = TogetherService.initialize_client()
-                    # Simple API call to check health
-                    models = client.models.list()
-                    return len(models) > 0, None
-                except Exception as e:
-                    return False, e
+            llm = ChatOpenAI(
+                model=settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                temperature=temperature,
+                max_tokens=max_tokens,
+                openai_api_key=settings.TOGETHER_API_KEY,
+                openai_api_base=settings.TOGETHER_BASE_URL,
+            )
 
-            result, error = await loop.run_in_executor(together_pool, _health_check)
-
-            if error:
-                together_logger.error(f"Together.ai health check failed: {str(error)}")
-                return False
-
-            return result
+            response = await llm.ainvoke(langchain_messages)
+            return response.content
 
         except Exception as e:
-            together_logger.error(f"Health check error: {str(e)}")
-            return False
+            logger.error(
+                f"Chat completion failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise
 
-    @staticmethod
-    def get_available_models() -> List[str]:
-        """
-        Get list of available models from Together.ai
 
-        Returns:
-            List of model names
-        """
-        try:
-            client = TogetherService.initialize_client()
-            models = client.models.list()
-            return [model.id for model in models if hasattr(model, "id")]
-        except Exception as e:
-            together_logger.error(f"Failed to get models: {str(e)}")
-            return []
+# Global instance
+together_service = TogetherService()

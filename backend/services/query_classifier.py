@@ -1,410 +1,147 @@
 """
-Query Classifier Service
-Classifies user queries into different use cases for optimal retrieval strategy
+Query classifier service for RAG pipeline.
+Classifies queries to determine the best retrieval strategy.
 """
 
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Literal
+from services.together_service import together_service
+from utils.logger import get_logger
 import re
-from utils.logger import chat_logger
+
+logger = get_logger("query_classifier")
+
+QueryType = Literal["factual", "conceptual", "procedural", "analytical", "general"]
 
 
 class QueryClassifier:
-    """
-    Classify queries into use cases:
-    - CHAT: General conversational Q&A
-    - EVALUATION: Answer/quiz evaluation
-    - QA_GENERATION: Question and answer generation
-    - NOTES: Notes/summary generation
-    """
+    """Classifies user queries to optimize retrieval strategy"""
 
-    # Keywords for each use case
-    USE_CASE_KEYWORDS = {
-        "qa_generation": [
-            "generate questions",
-            "create questions",
-            "make questions",
-            "generate quiz",
-            "create quiz",
-            "make quiz",
-            "generate q&a",
-            "create q&a",
-            "question generation",
-            "generate mcq",
-            "create mcq",
-            "multiple choice",
-            "generate test",
-            "create test",
-        ],
-        "evaluation": [
-            "evaluate",
-            "check answer",
-            "grade",
-            "assess",
-            "is this correct",
-            "is this right",
-            "verify answer",
-            "check my answer",
-            "correct answer",
-            "validate",
-            "score",
-            "marks",
-            "feedback on",
-        ],
-        "notes": [
-            "generate notes",
-            "create notes",
-            "make notes",
-            "summarize",
-            "summary",
-            "overview",
-            "outline",
-            "key points",
-            "main points",
-            "important points",
-            "explain chapter",
-            "explain section",
-            "notes on",
-            "give me notes",
-        ],
-        "chat": [
-            "what is",
-            "explain",
-            "how does",
-            "why",
-            "tell me about",
-            "describe",
-            "define",
-            "can you explain",
-            "help me understand",
-        ],
-    }
+    def __init__(self):
+        self._initialized = False
 
-    @staticmethod
-    def classify_query(query: str) -> Dict[str, Any]:
+    def initialize(self):
+        """Initialize the classifier"""
+        if not self._initialized:
+            together_service.initialize()
+            self._initialized = True
+
+    async def classify_query(self, query: str) -> Dict[str, Any]:
         """
-        Classify a query into a use case.
+        Classify a query to determine its type and characteristics.
 
         Args:
-            query: User's query text
+            query: The user query to classify
 
         Returns:
-            Dictionary with classification results:
-            - use_case: The detected use case
-            - confidence: Confidence score (0-1)
-            - matched_keywords: Keywords that matched
+            Classification result with query_type, complexity, and suggested_strategy
         """
-        query_lower = query.lower()
+        if not self._initialized:
+            self.initialize()
 
-        # Track matches for each use case
-        matches = {"qa_generation": [], "evaluation": [], "notes": [], "chat": []}
+        try:
+            # Simple rule-based classification
+            query_lower = query.lower()
 
-        # Check for keyword matches
-        for use_case, keywords in QueryClassifier.USE_CASE_KEYWORDS.items():
-            for keyword in keywords:
-                if keyword in query_lower:
-                    matches[use_case].append(keyword)
+            # Determine query type
+            query_type = self._determine_query_type(query_lower)
 
-        # Calculate scores
-        scores = {
-            use_case: len(matched_keywords)
-            for use_case, matched_keywords in matches.items()
-        }
+            # Determine complexity
+            complexity = self._determine_complexity(query)
 
-        # Determine use case with highest score
-        if max(scores.values()) == 0:
-            # No clear match, default to CHAT
-            use_case = "chat"
-            confidence = 0.5
-            matched_keywords = []
+            # Suggest retrieval strategy
+            strategy = self._suggest_strategy(query_type, complexity)
+
+            classification = {
+                "query_type": query_type,
+                "complexity": complexity,
+                "suggested_strategy": strategy,
+                "requires_context": self._requires_context(query_lower),
+                "is_question": self._is_question(query_lower),
+            }
+
+            logger.debug(
+                f"Query classified",
+                extra={"extra_fields": {"classification": classification}},
+            )
+
+            return classification
+
+        except Exception as e:
+            logger.error(
+                f"Query classification failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            # Return default classification
+            return {
+                "query_type": "general",
+                "complexity": "medium",
+                "suggested_strategy": "hybrid",
+                "requires_context": True,
+                "is_question": True,
+            }
+
+    def _determine_query_type(self, query: str) -> QueryType:
+        """Determine the type of query"""
+        # Factual queries
+        if any(word in query for word in ["what is", "who is", "when did", "where is", "define"]):
+            return "factual"
+
+        # Conceptual queries
+        if any(word in query for word in ["explain", "describe", "concept", "theory", "why"]):
+            return "conceptual"
+
+        # Procedural queries
+        if any(word in query for word in ["how to", "steps", "process", "procedure", "guide"]):
+            return "procedural"
+
+        # Analytical queries
+        if any(word in query for word in ["analyze", "compare", "contrast", "evaluate", "assess"]):
+            return "analytical"
+
+        return "general"
+
+    def _determine_complexity(self, query: str) -> str:
+        """Determine query complexity based on length and structure"""
+        word_count = len(query.split())
+
+        if word_count < 5:
+            return "simple"
+        elif word_count < 15:
+            return "medium"
         else:
-            use_case = max(scores, key=scores.get)
-            matched_keywords = matches[use_case]
-            # Calculate confidence based on number of matches
-            confidence = min(0.6 + (len(matched_keywords) * 0.15), 1.0)
+            return "complex"
 
-        # Additional heuristics for better classification
+    def _suggest_strategy(self, query_type: QueryType, complexity: str) -> str:
+        """Suggest the best retrieval strategy based on classification"""
+        # Complex queries benefit from hybrid search
+        if complexity == "complex":
+            return "hybrid"
 
-        # Strong indicators for QA_GENERATION
-        if re.search(r"\b\d+\s+questions?\b", query_lower):
-            use_case = "qa_generation"
-            confidence = 0.95
+        # Factual queries work well with dense retrieval
+        if query_type == "factual":
+            return "dense"
 
-        # Strong indicators for EVALUATION
-        if re.search(r"(my answer|the answer) (is|was)", query_lower):
-            use_case = "evaluation"
-            confidence = 0.90
+        # Conceptual and analytical queries benefit from hybrid
+        if query_type in ["conceptual", "analytical"]:
+            return "hybrid"
 
-        # Strong indicators for NOTES
-        if re.search(
-            r"(notes? (on|for|about)|summarize (chapter|section))", query_lower
-        ):
-            use_case = "notes"
-            confidence = 0.90
+        # Default to hybrid for best results
+        return "hybrid"
 
-        chat_logger.info("Query classified as")
-        chat_logger.debug(
-            f"Classification details: use_case={use_case}, confidence={confidence:.2f}, matched_keywords={matched_keywords}"
-        )
-
-        return {
-            "use_case": use_case,
-            "confidence": confidence,
-            "matched_keywords": matched_keywords,
-            "all_scores": scores,
-        }
-
-    @staticmethod
-    def extract_context_requirements(query: str, use_case: str) -> Dict[str, Any]:
-        """
-        Extract context requirements based on use case.
-
-        Returns:
-            Dictionary with requirements:
-            - chunk_size_preference: 'small', 'medium', 'large'
-            - overlap_needed: bool
-            - sequential_context: bool (need chunks in order)
-            - num_chunks: suggested number of chunks to retrieve
-        """
-        requirements = {
-            "chunk_size_preference": "medium",
-            "overlap_needed": True,
-            "sequential_context": False,
-            "num_chunks": 5,
-            "reranking_needed": True,
-            "context_expansion": False,
-        }
-
-        if use_case == "qa_generation":
-            requirements.update(
-                {
-                    "chunk_size_preference": "large",
-                    "sequential_context": True,  # Need ordered chunks
-                    "num_chunks": 15,
-                    "reranking_needed": True,
-                    "context_expansion": False,
-                }
-            )
-            # Extract number of questions requested
-            num_match = re.search(r"(\d+)\s+questions?", query.lower())
-            if num_match:
-                num_questions = int(num_match.group(1))
-                requirements["num_chunks"] = max(num_questions, 15)
-
-        elif use_case == "evaluation":
-            requirements.update(
-                {
-                    "chunk_size_preference": "small",  # Precise matching
-                    "sequential_context": False,
-                    "num_chunks": 5,
-                    "reranking_needed": True,
-                    "context_expansion": True,  # Need surrounding context
-                }
-            )
-
-        elif use_case == "notes":
-            requirements.update(
-                {
-                    "chunk_size_preference": "large",
-                    "sequential_context": True,  # Important for notes
-                    "num_chunks": 20,
-                    "reranking_needed": False,  # Order matters more than relevance
-                    "context_expansion": False,
-                }
-            )
-
-        elif use_case == "chat":
-            requirements.update(
-                {
-                    "chunk_size_preference": "medium",
-                    "sequential_context": False,
-                    "num_chunks": 5,
-                    "reranking_needed": True,
-                    "context_expansion": False,
-                }
-            )
-
-        return requirements
-
-
-class QueryMetadataExtractor:
-    """
-    Extract metadata from queries:
-    - Chapter numbers
-    - Section numbers
-    - Topic names
-    - Difficulty levels
-    """
-
-    # Patterns for chapter extraction
-    CHAPTER_PATTERNS = [
-        r"\bchapter\s+(\d+)\b",
-        r"\bch\.?\s*(\d+)\b",
-        r"\bunit\s+(\d+)\b",
-        r"\blesson\s+(\d+)\b",
-        r"\bfrom chapter\s+(\d+)\b",
-        r"\bin chapter\s+(\d+)\b",
-    ]
-
-    # Patterns for section extraction
-    SECTION_PATTERNS = [
-        r"\bsection\s+(\d+(?:\.\d+)?)\b",
-        r"\bsec\.?\s*(\d+(?:\.\d+)?)\b",
-    ]
-
-    # Patterns for topic extraction
-    TOPIC_PATTERNS = [
-        r"(?:about|on|regarding|concerning)\s+(.+?)(?:\s+from|\s+in|\s+chapter|$)",
-        r"(?:questions? (?:on|about))\s+(.+?)(?:\s+from|\s+in|\s+chapter|$)",
-        r"(?:notes? (?:on|about))\s+(.+?)(?:\s+from|\s+in|\s+chapter|$)",
-        r"(?:explain|describe|summarize)\s+(.+?)(?:\s+from|\s+in|\s+chapter|$)",
-    ]
-
-    @staticmethod
-    def extract_chapter(query: str) -> Tuple[int, float]:
-        """
-        Extract chapter number from query.
-
-        Returns:
-            Tuple of (chapter_number, confidence) or (None, 0.0)
-        """
-        query_lower = query.lower()
-
-        for pattern in QueryMetadataExtractor.CHAPTER_PATTERNS:
-            match = re.search(pattern, query_lower)
-            if match:
-                try:
-                    chapter_num = int(match.group(1))
-                    # Higher confidence for explicit mentions
-                    confidence = (
-                        0.95
-                        if "from chapter" in query_lower or "in chapter" in query_lower
-                        else 0.85
-                    )
-                    return (chapter_num, confidence)
-                except ValueError:
-                    continue
-
-        return (None, 0.0)
-
-    @staticmethod
-    def extract_section(query: str) -> Tuple[str, float]:
-        """
-        Extract section number from query.
-
-        Returns:
-            Tuple of (section_number, confidence) or (None, 0.0)
-        """
-        query_lower = query.lower()
-
-        for pattern in QueryMetadataExtractor.SECTION_PATTERNS:
-            match = re.search(pattern, query_lower)
-            if match:
-                section_num = match.group(1)
-                confidence = 0.90
-                return (section_num, confidence)
-
-        return (None, 0.0)
-
-    @staticmethod
-    def extract_topic(query: str) -> Tuple[str, float]:
-        """
-        Extract main topic from query.
-
-        Returns:
-            Tuple of (topic, confidence) or (None, 0.0)
-        """
-        query_lower = query.lower()
-
-        for pattern in QueryMetadataExtractor.TOPIC_PATTERNS:
-            match = re.search(pattern, query_lower, re.IGNORECASE)
-            if match:
-                topic = match.group(1).strip()
-                # Clean up topic
-                topic = re.sub(
-                    r"\s+(from|in|chapter|section).*$", "", topic, flags=re.IGNORECASE
-                )
-                confidence = 0.80
-                return (topic, confidence)
-
-        # Fallback: use first few meaningful words
-        words = [
-            w
-            for w in query.split()
-            if len(w) > 3
-            and w.lower()
-            not in [
-                "generate",
-                "create",
-                "make",
-                "questions",
-                "notes",
-                "about",
-                "from",
-                "chapter",
-            ]
+    def _requires_context(self, query: str) -> bool:
+        """Check if query requires document context"""
+        standalone_patterns = [
+            "hello", "hi", "thanks", "thank you",
+            "ok", "okay", "yes", "no"
         ]
-        if words:
-            topic = " ".join(words[:5])
-            confidence = 0.50
-            return (topic, confidence)
 
-        return (None, 0.0)
+        return not any(pattern in query for pattern in standalone_patterns)
 
-    @staticmethod
-    def extract_difficulty(query: str) -> Tuple[str, float]:
-        """
-        Extract difficulty level from query.
-
-        Returns:
-            Tuple of (difficulty, confidence) or ('medium', 0.5)
-        """
-        query_lower = query.lower()
-
-        if any(word in query_lower for word in ["easy", "simple", "basic", "beginner"]):
-            return ("easy", 0.90)
-        elif any(
-            word in query_lower for word in ["hard", "difficult", "advanced", "complex"]
-        ):
-            return ("hard", 0.90)
-        elif any(
-            word in query_lower for word in ["medium", "moderate", "intermediate"]
-        ):
-            return ("medium", 0.90)
-
-        # Default to medium
-        return ("medium", 0.50)
-
-    @staticmethod
-    def extract_all_metadata(query: str) -> Dict[str, Any]:
-        """
-        Extract all metadata from query.
-
-        Returns:
-            Dictionary with all extracted metadata
-        """
-        chapter_num, chapter_conf = QueryMetadataExtractor.extract_chapter(query)
-        section_num, section_conf = QueryMetadataExtractor.extract_section(query)
-        topic, topic_conf = QueryMetadataExtractor.extract_topic(query)
-        difficulty, diff_conf = QueryMetadataExtractor.extract_difficulty(query)
-
-        metadata = {
-            "chapter": {"value": chapter_num, "confidence": chapter_conf},
-            "section": {"value": section_num, "confidence": section_conf},
-            "topic": {"value": topic, "confidence": topic_conf},
-            "difficulty": {"value": difficulty, "confidence": diff_conf},
-        }
-
-        chat_logger.info("Extracted query metadata")
-
-        chat_logger.debug(
-            f"Metadata details: chapter={chapter_num}({chapter_conf:.2f}), "
-            f"section={section_num}({section_conf:.2f}), "
-            f"topic={topic}({topic_conf:.2f}), "
-            f"difficulty={difficulty}({diff_conf:.2f})"
-        )
-
-        return metadata
+    def _is_question(self, query: str) -> bool:
+        """Check if the query is a question"""
+        question_words = ["what", "who", "when", "where", "why", "how", "is", "are", "can", "could", "would"]
+        return query.strip().endswith("?") or any(query.startswith(word) for word in question_words)
 
 
+# Global instance
 query_classifier = QueryClassifier()
-query_metadata_extractor = QueryMetadataExtractor()

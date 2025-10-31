@@ -1,276 +1,235 @@
-from typing import List, Dict, Any, Optional
-from services.embedding_service import EmbeddingService
-from services.qdrant_service import qdrant_service
-from services.chunking_service import chunking_service
-from services.document_tracking_service import document_tracking_service
-from services.retrieval_strategy_manager import retrieval_strategy_manager
-from utils.file_hash import file_hash_service
-from utils.logger import get_logger
+"""
+Main RAG service for document retrieval and answer generation.
+"""
 
-# Use enhanced logger
+from typing import List, Dict, Any, Optional
+from services.together_service import together_service
+from services.qdrant_service import qdrant_service
+from services.embedding_service import embedding_service
+from services.chunking_service import chunking_service
+from services.query_classifier import query_classifier
+from services.retrieval_strategy_manager import retrieval_strategy_manager
+from utils.logger import get_logger
+import datetime
+
 logger = get_logger("rag_service")
-import asyncio
 
 
 class RAGService:
-    """Service for RAG (Retrieval Augmented Generation)"""
+    """Main RAG service for retrieval-augmented generation"""
 
-    @staticmethod
-    async def index_document(
-        filename: str, content: str, token: str, file_path: Optional[str] = None
+    def __init__(self):
+        self._initialized = False
+
+    def initialize(self):
+        """Initialize all RAG components"""
+        if not self._initialized:
+            together_service.initialize()
+            qdrant_service.initialize()
+            query_classifier.initialize()
+            retrieval_strategy_manager.initialize()
+            self._initialized = True
+
+    async def ingest_document(
+        self,
+        text: str,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Index a document for RAG retrieval with duplicate detection
+        Ingest a document into the RAG system.
 
         Args:
-            filename: Name of the document
-            content: Full text content of the document
-            token: User session token (user_id)
-            file_path: Optional path to file for hash calculation
+            text: Document text
+            metadata: Optional metadata
 
         Returns:
-            Dictionary with indexing results
+            Ingestion result with document IDs
         """
+        if not self._initialized:
+            self.initialize()
+
         try:
-            # Log event loop status for debugging
-            try:
-                loop = asyncio.get_running_loop()
-                logger.warning(f"EVENT_LOOP_DEBUG: Running event loop already exists in index_document for {filename}: {loop}")
-            except RuntimeError:
-                logger.debug(f"EVENT_LOOP_DEBUG: No running event loop in index_document for {filename}")
+            # Chunk the document
+            chunks = chunking_service.chunk_text(text, metadata)
 
-            print(
-                f"[DEBUG] Starting RAG indexing for {filename} with token {token[:12]} and file_path {file_path}"
+            # Extract texts and metadata
+            chunk_texts = [chunk["text"] for chunk in chunks]
+            chunk_metadata = [chunk["metadata"] for chunk in chunks]
+
+            # Add to vector store
+            doc_ids = await qdrant_service.add_documents(
+                texts=chunk_texts,
+                metadata=chunk_metadata,
             )
-            logger.info(
-                f"Starting document indexing: filename={filename}, content_length={len(content)}, user_id={token[:12]}, file_path={file_path}"
-            )
-
-            # Calculate file hash for duplicate detection
-            file_hash = None
-            file_size = len(content.encode("utf-8"))
-
-            if file_path:
-                file_hash = file_hash_service.calculate_file_hash(file_path)
-                logger.info(
-                    f"Calculated file hash: filename={filename}, file_path={file_path}, hash={file_hash[:16] if file_hash else 'FAILED'}"
-                )
-            else:
-                # Calculate hash from content if no file path
-                file_hash = file_hash_service.calculate_content_hash(
-                    content.encode("utf-8")
-                )
-                logger.info(
-                    f"Calculated content hash: filename={filename}, hash={file_hash[:16] if file_hash else 'FAILED'}"
-                )
-
-            if not file_hash:
-                logger.warning(
-                    "Could not calculate file hash, proceeding without duplicate check",
-                    filename=filename,
-                )
-
-            # Check if this exact file was already uploaded by this user
-            if file_hash:
-                existing_doc = document_tracking_service.check_document_exists(
-                    token, file_hash
-                )
-                logger.info(
-                    f"Document tracking check result: filename={filename}, hash={file_hash[:16]}, exists={existing_doc is not None}, existing_filename={existing_doc['filename'] if existing_doc else None}"
-                )
-                if existing_doc:
-                    logger.info(
-                        f"Duplicate document detected: filename={filename}, original_filename={existing_doc['filename']}, hash={file_hash[:16]}"
-                    )
-                    return {
-                        "status": "duplicate",
-                        "filename": filename,
-                        "original_filename": existing_doc["filename"],
-                        "upload_date": existing_doc["upload_date"],
-                        "message": f"This document was already uploaded as '{existing_doc['filename']}' on {existing_doc['upload_date'][:10]}. Using existing index.",
-                        "chunk_count": existing_doc["chunk_count"],
-                    }
-
-            # Check if already indexed in Qdrant (fallback check)
-            is_indexed = await qdrant_service.check_document_indexed(filename, token)
-            logger.info(
-                "Qdrant indexing check result",
-            )
-            logger.debug(
-                f"Qdrant indexing check details: filename={filename}, user_id={token[:12]}, is_indexed={is_indexed}"
-            )
-            if is_indexed:
-                logger.info(f"Document already indexed in Qdrant: {filename}")
-                # Still add to tracking if not there
-                if file_hash:
-                    document_tracking_service.add_document(
-                        token, filename, file_hash, file_size
-                    )
-                return {
-                    "status": "already_indexed",
-                    "filename": filename,
-                    "message": "Document is already indexed",
-                }
-
-            # Chunk the document WITH RICH METADATA
-            chunks_with_metadata = chunking_service.chunk_with_rich_metadata(
-                text=content, document_name=filename, chunk_size=1000, overlap=200
-            )
-
-            if not chunks_with_metadata:
-                logger.warning("No chunks created from content", filename=filename)
-                return {
-                    "status": "error",
-                    "filename": filename,
-                    "message": "Failed to create chunks from document",
-                }
-
-            # Extract just the text for embedding
-            chunks_text = [c["text"] for c in chunks_with_metadata]
-            metadata_list = [c["metadata"] for c in chunks_with_metadata]
 
             logger.info(
-                f"Created {len(chunks_text)} chunks with rich metadata: {filename}"
-            )
-
-            # Generate embeddings for all chunks
-            embeddings = await EmbeddingService.generate_embeddings_batch(chunks_text)
-
-            logger.info(f"Generated {len(embeddings)} embeddings: {filename}")
-
-            # Index in Qdrant WITH METADATA
-            num_indexed = await qdrant_service.index_document(
-                filename=filename,
-                chunks=chunks_text,
-                embeddings=embeddings,
-                token=token,
-                metadata_list=metadata_list,  # Pass rich metadata
-            )
-
-            # Add to document tracking database
-            if file_hash:
-                document_tracking_service.add_document(
-                    user_id=token,
-                    filename=filename,
-                    file_hash=file_hash,
-                    file_size=file_size,
-                    chunk_count=num_indexed,
-                )
-                logger.info(
-                    f"Document added to tracking database: filename={filename}, hash={file_hash[:16]}"
-                )
-
-            # Extract metadata statistics
-            chapters = set(
-                m.get("chapter_number")
-                for m in metadata_list
-                if m.get("chapter_number")
-            )
-            sections = set(
-                m.get("section_number")
-                for m in metadata_list
-                if m.get("section_number")
+                f"Document ingested: {len(chunks)} chunks",
+                extra={"extra_fields": {"metadata": metadata}},
             )
 
             return {
                 "status": "success",
-                "filename": filename,
-                "num_chunks": len(chunks_text),
-                "num_indexed": num_indexed,
-                "file_hash": file_hash[:16] if file_hash else None,
-                "chapters_found": len(chapters),
-                "sections_found": len(sections),
-                "message": f"Successfully indexed {num_indexed} chunks with metadata ({len(chapters)} chapters, {len(sections)} sections)",
+                "chunk_count": len(chunks),
+                "document_ids": doc_ids,
+                "metadata": metadata,
             }
 
         except Exception as e:
             logger.error(
-                f"Failed to index document: filename={filename}, error={str(e)}"
+                f"Document ingestion failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
             )
             return {
                 "status": "error",
-                "filename": filename,
-                "message": f"Failed to index document: {str(e)}",
+                "message": str(e),
             }
 
-    @staticmethod
-    async def retrieve_context(
-        query: str,
-        token: str,
-        filename: str = None,
-        top_k: int = 5,
-        use_case: str = None,  # New parameter for explicit use case
+    async def query(
+        self,
+        query_text: str,
+        top_k: int = 10,
+        score_threshold: float = 0.7,
+        filters: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
-        Retrieve relevant context chunks for a query using ADVANCED RAG with strategy selection
+        Query the RAG system.
 
         Args:
-            query: User's query
-            token: User session token
-            filename: Optional filename to filter by
-            top_k: Number of top results to retrieve
-            use_case: Optional explicit use case (chat, evaluation, qa_generation, notes)
+            query_text: User query
+            top_k: Number of results
+            score_threshold: Minimum similarity score
+            filters: Optional metadata filters
 
         Returns:
-            Dictionary with retrieved chunks and metadata
+            Query result with retrieved documents and generated answer
         """
+        if not self._initialized:
+            self.initialize()
+
         try:
-            logger.info(
-                f"Retrieving context with ADVANCED RAG: query_length={len(query)}, top_k={top_k}, filename={filename}, use_case={use_case}"
-            )
+            # Classify the query
+            classification = await query_classifier.classify_query(query_text)
 
-            # Use the advanced retrieval strategy manager
-            result = await retrieval_strategy_manager.retrieve(
-                query=query,
-                token=token,
-                filename=filename,
-                use_case=use_case,
+            # Retrieve relevant documents
+            strategy = classification.get("suggested_strategy", "hybrid")
+            documents = await retrieval_strategy_manager.retrieve_with_strategy(
+                query=query_text,
+                strategy=strategy,
                 top_k=top_k,
+                score_threshold=score_threshold,
+                filters=filters,
             )
 
-            logger.info(
-                f"Advanced retrieval completed: strategy={result.get('strategy')}, num_chunks={result.get('num_chunks', 0)}"
-            )
+            # Generate answer using retrieved context
+            if documents:
+                context = "\n\n".join([doc["text"] for doc in documents])
+                answer = await self._generate_answer(query_text, context)
+            else:
+                answer = "I couldn't find relevant information in the documents to answer your question."
 
-            return result
+            return {
+                "status": "success",
+                "query": query_text,
+                "answer": answer,
+                "documents": documents,
+                "classification": classification,
+                "timestamp": datetime.datetime.utcnow().isoformat(),
+            }
 
         except Exception as e:
-            import traceback
-
             logger.error(
-                f"Failed to retrieve context: query={query[:100]}, error={str(e)}, error_type={type(e).__name__}, traceback={traceback.format_exc()}"
+                f"Query failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
             )
             return {
                 "status": "error",
-                "chunks": [],
-                "context": "",
-                "num_chunks": 0,
-                "message": f"Failed to retrieve context: {str(e)}",
+                "message": str(e),
             }
 
-    @staticmethod
-    async def delete_document_index(filename: str, token: str):
-        """Delete document index from Qdrant"""
+    async def _generate_answer(self, query: str, context: str) -> str:
+        """Generate answer using LLM with context"""
+        system_prompt = """You are a helpful AI assistant. Use the provided context to answer the user's question accurately and concisely.
+If the context doesn't contain enough information, acknowledge this and provide the best answer you can."""
+
+        prompt = f"""Context:
+{context}
+
+Question: {query}
+
+Answer:"""
+
         try:
-            await qdrant_service.delete_document_chunks(filename, token)
-            logger.info(f"Deleted document index: {filename}")
-            return {"status": "success", "message": f"Deleted index for {filename}"}
-        except Exception as e:
-            logger.error(
-                f"Failed to delete document index: filename={filename}, error={str(e)}"
+            answer = await together_service.generate(
+                prompt=prompt,
+                system_prompt=system_prompt,
+                temperature=0.7,
+                max_tokens=1024,
             )
-            return {"status": "error", "message": f"Failed to delete index: {str(e)}"}
+            return answer.strip()
 
-    @staticmethod
-    async def check_indexing_status(filename: str, token: str) -> bool:
-        """Check if a document is indexed"""
+        except Exception as e:
+            logger.error(f"Answer generation failed: {str(e)}")
+            return "I apologize, but I encountered an error generating the answer."
+
+    async def generate_questions(
+        self,
+        context: str,
+        count: int = 25,
+        mode: str = "practice",
+    ) -> str:
+        """
+        Generate questions from context.
+
+        Args:
+            context: Document context
+            count: Number of questions
+            mode: Question mode (quiz or practice)
+
+        Returns:
+            Generated questions
+        """
+        if not self._initialized:
+            self.initialize()
+
         try:
-            return await qdrant_service.check_document_indexed(filename, token)
-        except Exception as e:
-            logger.error(
-                f"Failed to check indexing status: filename={filename}, error={str(e)}"
+            if mode == "quiz":
+                prompt = f"""Based on the following content, generate {count} multiple-choice questions (MCQs).
+Each question should have 4 options (A, B, C, D) with one correct answer.
+Format each question as:
+Q1. [Question]
+A) [Option A]
+B) [Option B]
+C) [Option C]
+D) [Option D]
+Correct Answer: [A/B/C/D]
+
+Content:
+{context[:3000]}
+
+Generate {count} MCQ questions:"""
+            else:
+                prompt = f"""Based on the following content, generate {count} open-ended practice questions.
+These questions should test understanding and encourage critical thinking.
+Format each question as:
+Q1. [Question]
+
+Content:
+{context[:3000]}
+
+Generate {count} practice questions:"""
+
+            questions = await together_service.generate(
+                prompt=prompt,
+                temperature=0.8,
+                max_tokens=2048,
             )
-            return False
+
+            return questions.strip()
+
+        except Exception as e:
+            logger.error(f"Question generation failed: {str(e)}")
+            return f"Failed to generate questions: {str(e)}"
 
 
+# Global instance
 rag_service = RAGService()

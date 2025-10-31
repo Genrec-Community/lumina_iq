@@ -40,6 +40,7 @@ Requires-Dist: circuitbreaker>=2.0.0
 Requires-Dist: structlog>=24.4.0
 Requires-Dist: python-json-logger>=3.2.1
 Requires-Dist: cryptography>=46.0.3
+Requires-Dist: psutil>=7.1.2
 Provides-Extra: dev
 Requires-Dist: black>=24.0.0; extra == "dev"
 Requires-Dist: isort>=5.12.0; extra == "dev"

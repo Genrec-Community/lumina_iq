@@ -1,4 +1,0 @@
-[console_scripts]
-beat = lumina_iq.tasks.celery_app:beat
-start = lumina_iq.main:start_server
-worker = lumina_iq.tasks.celery_app:worker

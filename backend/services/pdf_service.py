@@ -1,435 +1,315 @@
+"""
+PDF service for document processing and management.
+Handles PDF uploads, selection, and text extraction.
+"""
+
+from fastapi import UploadFile, HTTPException
+from typing import List, Dict, Any, Optional
 import os
-import pdfplumber
-import aiofiles
 from pathlib import Path
-from datetime import datetime
-from fastapi import HTTPException, UploadFile
-from typing import List
-from config.settings import settings
-from utils.storage import pdf_contexts, pdf_metadata, storage_manager, storage_manager
-from utils.cache import cache_service
-from utils.logger import get_logger
-
-# Use enhanced logger
-logger = get_logger("pdf_service")
+import pdfplumber
+from PyPDF2 import PdfReader
+import hashlib
 from models.pdf import PDFInfo, PDFListResponse, PDFUploadResponse, PDFMetadata
-from services.rag_service import rag_service
-from services.llamaindex_service import llamaindex_service
-import warnings
-import asyncio
+from config.settings import settings
+from utils.logger import get_logger
+from utils.storage import pdf_contexts, pdf_metadata, storage_manager
+from utils.file_hash import file_hash_service
+import datetime
 
-# Suppress PyPDF2 warnings when it's imported
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="PyPDF2")
-warnings.filterwarnings("ignore", category=UserWarning, module="PyPDF2")
+logger = get_logger("pdf_service")
 
 
 class PDFService:
-    @staticmethod
-    def should_use_llamaindex(file_path: str) -> bool:
-        """Determine if LlamaIndex should be used for this PDF based on size"""
-        try:
-            file_size = os.path.getsize(file_path)
-            threshold = settings.LLAMAINDEX_LARGE_PDF_THRESHOLD_MB * 1024 * 1024
-            return settings.LLAMAINDEX_USE_FOR_LARGE_PDFS and file_size > threshold
-        except Exception:
-            return False
+    """Service for PDF document management"""
 
     @staticmethod
-    async def extract_text_from_pdf(file_path: str) -> str:
-        logger.info(f"Starting PDF text extraction: {file_path}")
-
-        # Check cache first
-        cached_text = await cache_service.get_cached_text(file_path)
-        if cached_text is not None:
-            logger.info(
-                f"Using cached text: file_path={file_path}, text_length={len(cached_text)}"
-            )
-            return cached_text
-
-        # Cache miss - extract text from PDF
-        text = ""
-        logger.info(f"Cache miss - extracting text from PDF: {file_path}")
-
+    async def list_pdfs(
+        offset: int = 0, limit: int = 20, search: Optional[str] = None
+    ) -> PDFListResponse:
+        """List all PDFs in the books directory with pagination and search"""
         try:
-            # Lazy import PyPDF2 only when needed for text extraction
-            import PyPDF2
+            books_dir = Path(settings.BOOKS_DIR)
 
-            with open(file_path, "rb") as file:
-                pdf_reader = PyPDF2.PdfReader(file)
-                page_count = len(pdf_reader.pages)
-                logger.info(
-                    f"PDF loaded successfully: file_path={file_path}, pages={page_count}"
-                )
+            if not books_dir.exists():
+                logger.warning(f"Books directory does not exist: {books_dir}")
+                return PDFListResponse(items=[], total=0, offset=offset, limit=limit)
 
-                for i, page in enumerate(pdf_reader.pages):
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text + "\n"
-                        logger.debug(
-                            f"Page extracted: page={i + 1}, text_length={len(page_text)}"
+            # Get all PDF files
+            pdf_files = list(books_dir.glob("*.pdf"))
+
+            # Apply search filter if provided
+            if search:
+                search_lower = search.lower()
+                pdf_files = [
+                    f for f in pdf_files if search_lower in f.name.lower()
+                ]
+
+            total = len(pdf_files)
+
+            # Sort by modification time (newest first)
+            pdf_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+
+            # Apply pagination
+            paginated_files = pdf_files[offset : offset + limit]
+
+            # Extract metadata for each PDF
+            items = []
+            for pdf_path in paginated_files:
+                try:
+                    metadata = await PDFService._extract_basic_metadata(pdf_path)
+                    items.append(metadata)
+                except Exception as e:
+                    logger.error(
+                        f"Failed to extract metadata for {pdf_path.name}: {str(e)}"
+                    )
+                    # Add basic info even if metadata extraction fails
+                    items.append(
+                        PDFInfo(
+                            filename=pdf_path.name,
+                            title=pdf_path.stem,
+                            author="Unknown",
+                            pages=0,
+                            file_size=pdf_path.stat().st_size,
+                            file_path=str(pdf_path),
                         )
-                    else:
-                        logger.debug(f"Page has no text: page={i + 1}")
-
-        except Exception as e:
-            logger.warning(
-                f"PyPDF2 extraction failed, trying pdfplumber: file_path={file_path}, error={str(e)}"
-            )
-            # Fallback to pdfplumber
-            try:
-                with pdfplumber.open(file_path) as pdf:
-                    page_count = len(pdf.pages)
-                    logger.info(
-                        f"PDF loaded with pdfplumber: file_path={file_path}, pages={page_count}"
                     )
 
-                    for i, page in enumerate(pdf.pages):
-                        page_text = page.extract_text()
-                        if page_text:
-                            text += page_text + "\n"
-                            logger.debug(
-                                "Page extracted with pdfplumber: "
-                                f"page={i + 1}, "
-                                f"text_length={len(page_text)}"
-                            )
-                        else:
-                            logger.debug(
-                                f"Page has no text with pdfplumber: page={i + 1}"
-                            )
-
-            except Exception as e2:
-                logger.error(
-                    f"Both extraction methods failed: file_path={file_path}, pypdf_error={str(e)}, pdfplumber_error={str(e2)}"
-                )
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Failed to extract text from PDF: {str(e2)}",
-                )
-
-        extracted_text = text.strip()
-        logger.info(
-            f"Text extraction completed: file_path={file_path}, extracted_length={len(extracted_text)}"
-        )
-
-        if len(extracted_text) < 50:
-            logger.warning(
-                f"Very little text extracted: file_path={file_path}, extracted_length={len(extracted_text)}, preview={extracted_text[:100]}"
+            return PDFListResponse(
+                items=items, total=total, offset=offset, limit=limit
             )
 
-        # Save to cache for future use
-        cache_saved = await cache_service.save_to_cache(file_path, extracted_text)
-        if cache_saved:
-            logger.info(f"Successfully cached extracted text: {file_path}")
-        else:
-            logger.warning(f"Failed to cache extracted text: {file_path}")
+        except Exception as e:
+            logger.error(
+                f"Failed to list PDFs: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise HTTPException(status_code=500, detail=f"Failed to list PDFs: {str(e)}")
 
-        return extracted_text
+    @staticmethod
+    async def _extract_basic_metadata(pdf_path: Path) -> PDFInfo:
+        """Extract basic metadata from a PDF file"""
+        try:
+            with open(pdf_path, "rb") as file:
+                reader = PdfReader(file)
+                info = reader.metadata
+
+                title = info.get("/Title", pdf_path.stem) if info else pdf_path.stem
+                author = info.get("/Author", "Unknown") if info else "Unknown"
+                pages = len(reader.pages)
+
+            return PDFInfo(
+                filename=pdf_path.name,
+                title=title,
+                author=author,
+                pages=pages,
+                file_size=pdf_path.stat().st_size,
+                file_path=str(pdf_path),
+            )
+
+        except Exception as e:
+            logger.error(f"Metadata extraction failed for {pdf_path.name}: {str(e)}")
+            raise
+
+    @staticmethod
+    async def select_pdf(filename: str, user_session: str) -> Dict[str, Any]:
+        """Select a PDF for the current user session"""
+        try:
+            books_dir = Path(settings.BOOKS_DIR)
+            file_path = books_dir / filename
+
+            if not file_path.exists():
+                raise HTTPException(status_code=404, detail="PDF file not found")
+
+            if not file_path.suffix.lower() == ".pdf":
+                raise HTTPException(status_code=400, detail="File is not a PDF")
+
+            # Extract text from PDF
+            text = await PDFService._extract_text(file_path)
+
+            # Extract metadata
+            metadata = await PDFService.get_pdf_metadata(str(file_path))
+
+            # Store in session context
+            storage_manager.safe_set(
+                pdf_contexts,
+                user_session,
+                {
+                    "filename": filename,
+                    "text": text,
+                    "file_path": str(file_path),
+                },
+            )
+
+            storage_manager.safe_set(pdf_metadata, user_session, metadata)
+
+            logger.info(
+                f"PDF selected: {filename}",
+                extra={
+                    "extra_fields": {
+                        "user_session": user_session,
+                        "text_length": len(text),
+                    }
+                },
+            )
+
+            return {
+                "message": f"PDF '{filename}' selected successfully",
+                "filename": filename,
+                "metadata": metadata,
+                "text_length": len(text),
+            }
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(
+                f"Failed to select PDF: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise HTTPException(
+                status_code=500, detail=f"Failed to select PDF: {str(e)}"
+            )
+
+    @staticmethod
+    async def upload_pdf(file: UploadFile, user_session: str) -> PDFUploadResponse:
+        """Upload a new PDF file"""
+        try:
+            if not file.filename.endswith(".pdf"):
+                raise HTTPException(
+                    status_code=400, detail="Only PDF files are allowed"
+                )
+
+            books_dir = Path(settings.BOOKS_DIR)
+            books_dir.mkdir(parents=True, exist_ok=True)
+
+            file_path = books_dir / file.filename
+
+            # Save file
+            content = await file.read()
+            with open(file_path, "wb") as f:
+                f.write(content)
+
+            # Extract text and metadata
+            text = await PDFService._extract_text(file_path)
+            metadata = await PDFService.get_pdf_metadata(str(file_path))
+
+            # Auto-select the uploaded PDF
+            storage_manager.safe_set(
+                pdf_contexts,
+                user_session,
+                {
+                    "filename": file.filename,
+                    "text": text,
+                    "file_path": str(file_path),
+                },
+            )
+
+            storage_manager.safe_set(pdf_metadata, user_session, metadata)
+
+            logger.info(
+                f"PDF uploaded: {file.filename}",
+                extra={
+                    "extra_fields": {
+                        "user_session": user_session,
+                        "file_size": len(content),
+                    }
+                },
+            )
+
+            return PDFUploadResponse(
+                message=f"PDF '{file.filename}' uploaded and selected successfully",
+                filename=file.filename,
+                metadata=metadata,
+                text_length=len(text),
+            )
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(
+                f"Failed to upload PDF: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise HTTPException(
+                status_code=500, detail=f"Failed to upload PDF: {str(e)}"
+            )
+
+    @staticmethod
+    async def _extract_text(file_path: Path) -> str:
+        """Extract text from PDF using pdfplumber"""
+        try:
+            text_parts = []
+
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    page_text = page.extract_text()
+                    if page_text:
+                        text_parts.append(page_text)
+
+            full_text = "\n\n".join(text_parts)
+
+            logger.info(
+                f"Extracted text from PDF: {file_path.name}",
+                extra={"extra_fields": {"text_length": len(full_text)}},
+            )
+
+            return full_text
+
+        except Exception as e:
+            logger.error(
+                f"Text extraction failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise
 
     @staticmethod
     async def get_pdf_metadata(
         file_path: str, extract_full_metadata: bool = False
-    ) -> dict:
-        """Get PDF metadata. If extract_full_metadata is False, only get basic file info without using PyPDF2"""
-        basic_metadata = {
-            "title": Path(file_path).stem,  # Use filename as title
-            "author": "Unknown",
-            "subject": "Unknown",
-            "creator": "Unknown",
-            "producer": "Unknown",
-            "creation_date": "Unknown",
-            "modification_date": "Unknown",
-            "pages": 0,  # Will be set to unknown for basic metadata
-            "file_size": os.path.getsize(file_path) if os.path.exists(file_path) else 0,
-        }
-
-        if not extract_full_metadata:
-            return basic_metadata
-
-        # Only use PyPDF2 when full metadata is explicitly requested
+    ) -> Dict[str, Any]:
+        """Extract PDF metadata"""
         try:
-            import PyPDF2
-
             with open(file_path, "rb") as file:
-                pdf_reader = PyPDF2.PdfReader(file)
+                reader = PdfReader(file)
+                info = reader.metadata
+
                 metadata = {
-                    "title": pdf_reader.metadata.get("/Title", basic_metadata["title"])
-                    if pdf_reader.metadata
-                    else basic_metadata["title"],
-                    "author": pdf_reader.metadata.get("/Author", "Unknown")
-                    if pdf_reader.metadata
-                    else "Unknown",
-                    "subject": pdf_reader.metadata.get("/Subject", "Unknown")
-                    if pdf_reader.metadata
-                    else "Unknown",
-                    "creator": pdf_reader.metadata.get("/Creator", "Unknown")
-                    if pdf_reader.metadata
-                    else "Unknown",
-                    "producer": pdf_reader.metadata.get("/Producer", "Unknown")
-                    if pdf_reader.metadata
-                    else "Unknown",
-                    "creation_date": str(
-                        pdf_reader.metadata.get("/CreationDate", "Unknown")
-                    )
-                    if pdf_reader.metadata
-                    else "Unknown",
-                    "modification_date": str(
-                        pdf_reader.metadata.get("/ModDate", "Unknown")
-                    )
-                    if pdf_reader.metadata
-                    else "Unknown",
-                    "pages": len(pdf_reader.pages),
-                    "file_size": os.path.getsize(file_path),
+                    "title": info.get("/Title", Path(file_path).stem) if info else Path(file_path).stem,
+                    "author": info.get("/Author", "Unknown") if info else "Unknown",
+                    "subject": info.get("/Subject", "") if info else "",
+                    "creator": info.get("/Creator", "") if info else "",
+                    "producer": info.get("/Producer", "") if info else "",
+                    "creation_date": str(info.get("/CreationDate", "")) if info else "",
+                    "modification_date": str(info.get("/ModDate", "")) if info else "",
+                    "pages": len(reader.pages),
+                    "file_size": Path(file_path).stat().st_size,
                 }
+
                 return metadata
+
         except Exception as e:
-            logger.warning(
-                f"Failed to extract full metadata: file_path={file_path}, error={str(e)}"
+            logger.error(
+                f"Metadata extraction failed: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
             )
-            return basic_metadata
-
-    @staticmethod
-    async def list_pdfs(
-        offset: int = 0, limit: int = 20, search: str = None
-    ) -> PDFListResponse:
-        """List PDFs in the books folder with pagination and optional search"""
-        books_dir = Path(settings.BOOKS_DIR)
-        if not books_dir.exists():
-            books_dir.mkdir(exist_ok=True)
-            return PDFListResponse(items=[], total=0, offset=offset, limit=limit)
-
-        # Get all PDFs first - use basic metadata only (no PyPDF2)
-        all_pdfs = []
-        for file_path in books_dir.glob("*.pdf"):
-            try:
-                # Only get basic metadata without using PyPDF2 for listing
-                metadata = await PDFService.get_pdf_metadata(
-                    str(file_path), extract_full_metadata=False
-                )
-                pdf_info = PDFInfo(
-                    filename=file_path.name,
-                    title=metadata.get("title", "Unknown"),
-                    author=metadata.get("author", "Unknown"),
-                    pages=metadata.get("pages", 0),
-                    file_size=metadata.get("file_size", 0),
-                    file_path=str(file_path),
-                )
-                all_pdfs.append(pdf_info)
-            except Exception as e:
-                # Skip files that can't be processed
-                continue
-
-        # Apply search filter if provided
-        if search:
-            search_lower = search.lower()
-            filtered_pdfs = [
-                pdf
-                for pdf in all_pdfs
-                if search_lower in pdf.title.lower()
-                or search_lower in pdf.filename.lower()
-            ]
-        else:
-            filtered_pdfs = all_pdfs
-
-        # Apply pagination
-        total = len(filtered_pdfs)
-        start_idx = offset
-        end_idx = offset + limit
-        paginated_pdfs = filtered_pdfs[start_idx:end_idx]
-
-        return PDFListResponse(
-            items=paginated_pdfs, total=total, offset=offset, limit=limit
-        )
-
-    @staticmethod
-    async def select_pdf(filename: str, token: str) -> dict:
-        """Select a PDF from the books folder for the session"""
-        print(f"[DEBUG] Starting select_pdf for {filename} with token {token[:12]}")
-        books_dir = Path(settings.BOOKS_DIR)
-        file_path = books_dir / filename
-
-        if not file_path.exists():
-            raise HTTPException(status_code=404, detail="PDF file not found")
-
-        if not file_path.suffix.lower() == ".pdf":
-            raise HTTPException(status_code=400, detail="File is not a PDF")
-
-        try:
-            print(f"[DEBUG] File path exists: {file_path}")
-            # Extract text and metadata
-            text_content = await PDFService.extract_text_from_pdf(str(file_path))
-            metadata = await PDFService.get_pdf_metadata(
-                str(file_path), extract_full_metadata=True
-            )
-
-            # Store in session thread-safely
-            storage_manager.safe_set(
-                pdf_contexts,
-                token,
-                {
-                    "filename": filename,
-                    "content": text_content,
-                    "selected_at": datetime.now().isoformat(),
-                },
-            )
-            storage_manager.safe_set(pdf_metadata, token, metadata)
-
-            # Index document for RAG with duplicate detection
-            logger.info(f"Starting RAG indexing for selected PDF: {filename}")
-
-            # Check if should use LlamaIndex for large PDFs
-            use_llamaindex = PDFService.should_use_llamaindex(str(file_path))
-
-            if use_llamaindex:
-                logger.info(f"Using LlamaIndex for large PDF indexing: {filename}")
-                indexing_result = (
-                    await llamaindex_service.index_document_with_llamaindex(
-                        file_path=file_path, filename=filename, token=token
-                    )
-                )
-            else:
-                logger.info(f"Using standard RAG indexing: {filename}")
-                indexing_result = await rag_service.index_document(
-                    filename=filename,
-                    content=text_content,
-                    token=token,
-                    file_path=str(file_path),
-                )
-            logger.info(
-                f"RAG indexing completed: filename={filename}, result={indexing_result.get('status')}, is_duplicate={indexing_result.get('status') == 'duplicate'}"
-            )
-
             return {
-                "message": "PDF selected successfully",
-                "filename": filename,
-                "metadata": metadata,
-                "text_length": len(text_content),
-                "rag_indexing": indexing_result.get("status", "unknown"),
+                "title": Path(file_path).stem,
+                "author": "Unknown",
+                "pages": 0,
+                "file_size": 0,
             }
 
-        except Exception as e:
-            raise HTTPException(
-                status_code=500, detail=f"Failed to process PDF: {str(e)}"
-            )
-
     @staticmethod
-    def _generate_unique_filename(books_dir: Path, original_filename: str) -> str:
-        """Generate a unique filename to avoid conflicts using parentheses with incremental numbers"""
-        if not (books_dir / original_filename).exists():
-            return original_filename
+    def get_pdf_info(user_session: str) -> Dict[str, Any]:
+        """Get information about currently selected PDF"""
+        pdf_context = storage_manager.safe_get(pdf_contexts, user_session)
+        metadata = storage_manager.safe_get(pdf_metadata, user_session)
 
-        # Split filename and extension
-        name_part = original_filename.rsplit(".", 1)[0]
-        extension = (
-            "." + original_filename.rsplit(".", 1)[1]
-            if "." in original_filename
-            else ""
-        )
-
-        counter = 1
-        while True:
-            new_filename = f"{name_part}({counter}){extension}"
-            if not (books_dir / new_filename).exists():
-                return new_filename
-            counter += 1
-
-    @staticmethod
-    async def upload_pdf(file: UploadFile, token: str) -> PDFUploadResponse:
-        """Upload a new PDF to the books folder with automatic duplicate filename handling"""
-        if not file.filename.endswith(".pdf"):
-            raise HTTPException(status_code=400, detail="Only PDF files are allowed")
-
-        # Create books directory if it doesn't exist
-        books_dir = Path(settings.BOOKS_DIR)
-        books_dir.mkdir(exist_ok=True)
-
-        # Generate unique filename to avoid conflicts
-        unique_filename = PDFService._generate_unique_filename(books_dir, file.filename)
-        file_path = books_dir / unique_filename
-
-        # Save file with unique filename
-        async with aiofiles.open(file_path, "wb") as f:
-            content = await file.read()
-            await f.write(content)
-
-        # Extract text and metadata
-        try:
-            text_content = await PDFService.extract_text_from_pdf(str(file_path))
-            metadata = await PDFService.get_pdf_metadata(str(file_path))
-
-            # Store in memory thread-safely (replace with database in production)
-            storage_manager.safe_set(
-                pdf_contexts,
-                token,
-                {
-                    "filename": unique_filename,
-                    "content": text_content,
-                    "uploaded_at": datetime.now().isoformat(),
-                },
-            )
-            storage_manager.safe_set(pdf_metadata, token, metadata)
-
-            # Index document for RAG with duplicate detection
-            logger.info(f"Starting RAG indexing for uploaded PDF: {unique_filename}")
-
-            # Check if should use LlamaIndex for large PDFs
-            use_llamaindex = PDFService.should_use_llamaindex(str(file_path))
-
-            if use_llamaindex:
-                logger.info(
-                    f"Using LlamaIndex for large PDF indexing: {unique_filename}"
-                )
-                indexing_result = (
-                    await llamaindex_service.index_document_with_llamaindex(
-                        file_path=file_path,
-                        filename=unique_filename,
-                        token=token,
-                    )
-                )
-            else:
-                logger.info(f"Using standard RAG indexing: {unique_filename}")
-                indexing_result = await rag_service.index_document(
-                    filename=unique_filename,
-                    content=text_content,
-                    token=token,
-                    file_path=str(file_path),
-                )
-            logger.info(
-                f"RAG indexing completed: filename={unique_filename}, result={indexing_result.get('status')}, is_duplicate={indexing_result.get('status') == 'duplicate'}"
-            )
-
-            # Add indexing info to response
-            response_data = PDFUploadResponse(
-                message="PDF uploaded and processed successfully"
-                if indexing_result.get("status") != "duplicate"
-                else f"PDF uploaded successfully. {indexing_result.get('message')}",
-                filename=unique_filename,
-                metadata=metadata,
-                text_length=len(text_content),
-            )
-
-            return response_data
-
-        except Exception as e:
-            # Clean up file if processing failed
-            if file_path.exists():
-                file_path.unlink()
-            raise HTTPException(
-                status_code=500, detail=f"Failed to process PDF: {str(e)}"
-            )
-
-    @staticmethod
-    def get_pdf_info(token: str) -> dict:
-        """Get info about the currently selected PDF"""
-        if token not in pdf_contexts:
+        if not pdf_context:
             raise HTTPException(status_code=400, detail="No PDF selected")
 
-        pdf_context = pdf_contexts[token]
-        metadata = pdf_metadata.get(token, {})
-
         return {
-            "filename": pdf_context["filename"],
-            "selected_at": pdf_context.get("selected_at")
-            or pdf_context.get("uploaded_at"),
-            "text_length": len(pdf_context["content"]),
+            "filename": pdf_context.get("filename"),
+            "text_length": len(pdf_context.get("text", "")),
             "metadata": metadata,
         }

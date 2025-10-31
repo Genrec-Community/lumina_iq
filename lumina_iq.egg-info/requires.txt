@@ -34,6 +34,7 @@ circuitbreaker>=2.0.0
 structlog>=24.4.0
 python-json-logger>=3.2.1
 cryptography>=46.0.3
+psutil>=7.1.2
 
 [dev]
 black>=24.0.0

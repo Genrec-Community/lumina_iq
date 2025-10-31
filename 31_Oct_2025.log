@@ -1,0 +1,412 @@
+Oct-31-2025 12:14:55 PM INFO     🚀 Starting Learning App Backend... run.py:41
+Oct-31-2025 12:14:55 PM INFO     🔧 Setting up frontend environment... run.py:44
+Oct-31-2025 12:14:55 PM INFO     Local IP address detected: 172.16.16.253 ip_detector.py:33
+Oct-31-2025 12:14:55 PM INFO     Updated frontend .env file with new API URL: http://172.16.16.253:8000/api ip_detector.py:86
+Oct-31-2025 12:14:55 PM INFO     Updated frontend .env file: C:\Users\Admin\Desktop\dev\lumina_iq\frontend\.env ip_detector.py:87
+Oct-31-2025 12:14:55 PM DEBUG    📍 Server will run on: http://0.0.0.0:8000 run.py:47
+Oct-31-2025 12:14:55 PM DEBUG    🌐 Accessible at: http://172.16.16.253:8000 run.py:48
+Oct-31-2025 12:14:55 PM DEBUG    📚 Books directory: C:\Users\Admin\Desktop\dev\lumina_iq\books run.py:49
+Oct-31-2025 12:14:55 PM DEBUG    🔑 Using Together.ai model: openai/gpt-oss-20b run.py:50
+Oct-31-2025 12:15:00 PM INFO     Qdrant client initialized successfully qdrant_service.py:38
+Oct-31-2025 12:15:02 PM INFO     Created collection qdrant_service.py:66
+Oct-31-2025 12:15:02 PM DEBUG    Collection details: name=lumina_iq_documents_dev, vector_size=1024, distance_metric=COSINE qdrant_service.py:67
+Oct-31-2025 12:15:04 PM INFO     Created payload indexes qdrant_service.py:103
+Oct-31-2025 12:15:04 PM DEBUG    Payload indexes created for collection: lumina_iq_documents_dev qdrant_service.py:104
+Oct-31-2025 12:15:31 PM ERROR    Failed to setup LlamaIndex settings: 1 validation error for TogetherEmbedding
+api_key
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type llamaindex_service.py:105
+Oct-31-2025 12:15:35 PM INFO     Qdrant client initialized successfully qdrant_service.py:38
+Oct-31-2025 12:15:36 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:108
+Oct-31-2025 12:15:38 PM ERROR    Failed to setup LlamaIndex settings: 1 validation error for TogetherEmbedding
+api_key
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type llamaindex_service.py:105
+Oct-31-2025 12:22:39 PM INFO     Qdrant client initialized successfully qdrant_service.py:38
+Oct-31-2025 12:22:40 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:108
+Oct-31-2025 12:22:42 PM ERROR    Failed to setup LlamaIndex settings: 1 validation error for TogetherEmbedding
+api_key
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type llamaindex_service.py:105
+Oct-31-2025 12:23:18 PM INFO     Qdrant client initialized successfully qdrant_service.py:38
+Oct-31-2025 12:23:19 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:108
+Oct-31-2025 12:23:20 PM ERROR    Failed to setup LlamaIndex settings: 1 validation error for TogetherEmbedding
+api_key
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type llamaindex_service.py:105
+Oct-31-2025 12:24:31 PM INFO     Qdrant client initialized successfully qdrant_service.py:38
+Oct-31-2025 12:24:32 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:108
+Oct-31-2025 12:24:34 PM ERROR    Failed to setup LlamaIndex settings: 1 validation error for TogetherEmbedding
+api_key
+  Input should be a valid string [type=string_type, input_value=None, input_type=NoneType]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_type llamaindex_service.py:105
+Oct-31-2025 12:26:45 PM INFO     Qdrant client initialized successfully qdrant_service.py:38
+Oct-31-2025 12:26:46 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:108
+Oct-31-2025 12:26:51 PM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
+Oct-31-2025 12:26:51 PM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
+Oct-31-2025 12:26:52 PM INFO     Starting Learning App API main.py:42
+Oct-31-2025 12:26:52 PM INFO     Initializing NLTK data... main.py:58
+Oct-31-2025 12:26:52 PM INFO     Initializing NLTK data... nltk_init.py:144
+Oct-31-2025 12:26:52 PM INFO     NLTK data directory: C:\Users\Admin\nltk_data nltk_init.py:40
+Oct-31-2025 12:26:52 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:174
+Oct-31-2025 12:26:52 PM DEBUG    NLTK resource stopwords is available nltk_init.py:174
+Oct-31-2025 12:26:52 PM WARNING  NLTK resource wordnet is missing nltk_init.py:186
+Oct-31-2025 12:26:52 PM WARNING  NLTK resource averaged_perceptron_tagger is missing nltk_init.py:186
+Oct-31-2025 12:26:52 PM INFO     Downloading missing NLTK resources: ['wordnet', 'averaged_perceptron_tagger'] nltk_init.py:190
+Oct-31-2025 12:26:52 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:102
+Oct-31-2025 12:26:53 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:104
+Oct-31-2025 12:26:53 PM INFO     Downloading NLTK resource: averaged_perceptron_tagger nltk_init.py:102
+Oct-31-2025 12:26:53 PM INFO     Successfully downloaded NLTK resource: averaged_perceptron_tagger nltk_init.py:104
+Oct-31-2025 12:26:53 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:200
+Oct-31-2025 12:26:53 PM INFO     NLTK data initialization completed nltk_init.py:208
+Oct-31-2025 12:26:53 PM INFO     Performance: nltk_initialization completed in 731.14ms logging_config.py:216
+Oct-31-2025 12:26:53 PM INFO     NLTK data initialized successfully main.py:63
+Oct-31-2025 12:26:53 PM INFO     Initializing cache service... main.py:80
+Oct-31-2025 12:26:53 PM INFO     Initializing cache service... cache_service.py:418
+Oct-31-2025 12:26:57 PM WARNING  Failed to connect to Redis: Error Multiple exceptions: [Errno 10061] Connect call failed ('::1', 6379, 0, 0), [Errno 10061] Connect call failed ('127.0.0.1', 6379) connecting to localhost:6379. cache.py:320
+Oct-31-2025 12:26:57 PM INFO     Redis cache initialized successfully cache.py:572
+Oct-31-2025 12:26:57 PM INFO     Redis cache initialized successfully cache_service.py:423
+Oct-31-2025 12:27:01 PM WARNING  Failed to connect to Redis: Error Multiple exceptions: [Errno 10061] Connect call failed ('::1', 6379, 0, 0), [Errno 10061] Connect call failed ('127.0.0.1', 6379) connecting to localhost:6379. cache.py:320
+Oct-31-2025 12:27:05 PM WARNING  Failed to connect to Redis: Error Multiple exceptions: [Errno 10061] Connect call failed ('::1', 6379, 0, 0), [Errno 10061] Connect call failed ('127.0.0.1', 6379) connecting to localhost:6379. cache.py:320
+Oct-31-2025 12:27:09 PM WARNING  Failed to connect to Redis: Error Multiple exceptions: [Errno 10061] Connect call failed ('::1', 6379, 0, 0), [Errno 10061] Connect call failed ('127.0.0.1', 6379) connecting to localhost:6379. cache.py:320
+Oct-31-2025 12:27:09 PM INFO     Cache service initialized successfully with Redis support cache_service.py:436
+Oct-31-2025 12:27:09 PM INFO     Performance: cache_initialization completed in 16347.39ms logging_config.py:216
+Oct-31-2025 12:27:09 PM INFO     Cache service initialized successfully main.py:87
+Oct-31-2025 12:27:09 PM INFO     Initializing Celery service... main.py:106
+Oct-31-2025 12:27:09 PM INFO     Celery app created successfully with broker: redis://localhost:6379 celery_service.py:107
+Oct-31-2025 12:27:09 PM INFO     Celery service initialized successfully celery_service.py:81
+Oct-31-2025 12:27:09 PM INFO     Performance: celery_initialization completed in 31.87ms logging_config.py:216
+Oct-31-2025 12:27:09 PM INFO     Celery service initialized successfully main.py:113
+Oct-31-2025 12:27:09 PM INFO     Service initialization complete main.py:152
+Oct-31-2025 12:27:13 PM INFO     Qdrant client initialized successfully qdrant_service.py:38
+Oct-31-2025 12:27:13 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:108
+Oct-31-2025 12:27:16 PM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
+Oct-31-2025 12:27:16 PM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
+Oct-31-2025 12:27:16 PM INFO     Starting Learning App API main.py:42
+Oct-31-2025 12:27:16 PM INFO     Initializing NLTK data... main.py:58
+Oct-31-2025 12:27:16 PM INFO     Initializing NLTK data... nltk_init.py:144
+Oct-31-2025 12:27:16 PM INFO     NLTK data directory: C:\Users\Admin\nltk_data nltk_init.py:40
+Oct-31-2025 12:27:16 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:174
+Oct-31-2025 12:27:16 PM DEBUG    NLTK resource stopwords is available nltk_init.py:174
+Oct-31-2025 12:27:16 PM WARNING  NLTK resource wordnet cached as downloaded but not found - will re-download nltk_init.py:181
+Oct-31-2025 12:27:16 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:174
+Oct-31-2025 12:27:16 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:190
+Oct-31-2025 12:27:16 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:102
+Oct-31-2025 12:27:17 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:104
+Oct-31-2025 12:27:17 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:200
+Oct-31-2025 12:27:17 PM INFO     NLTK data initialization completed nltk_init.py:208
+Oct-31-2025 12:27:17 PM INFO     Performance: nltk_initialization completed in 681.57ms logging_config.py:216
+Oct-31-2025 12:27:17 PM INFO     NLTK data initialized successfully main.py:63
+Oct-31-2025 12:27:17 PM INFO     Initializing cache service... main.py:80
+Oct-31-2025 12:27:17 PM INFO     Initializing cache service... cache_service.py:418
+Oct-31-2025 12:27:21 PM WARNING  Failed to connect to Redis: Error Multiple exceptions: [Errno 10061] Connect call failed ('::1', 6379, 0, 0), [Errno 10061] Connect call failed ('127.0.0.1', 6379) connecting to localhost:6379. cache.py:320
+Oct-31-2025 12:27:21 PM INFO     Redis cache initialized successfully cache.py:572
+Oct-31-2025 12:27:21 PM INFO     Redis cache initialized successfully cache_service.py:423
+Oct-31-2025 12:27:25 PM WARNING  Failed to connect to Redis: Error Multiple exceptions: [Errno 10061] Connect call failed ('::1', 6379, 0, 0), [Errno 10061] Connect call failed ('127.0.0.1', 6379) connecting to localhost:6379. cache.py:320
+Oct-31-2025 12:27:29 PM WARNING  Failed to connect to Redis: Error Multiple exceptions: [Errno 10061] Connect call failed ('::1', 6379, 0, 0), [Errno 10061] Connect call failed ('127.0.0.1', 6379) connecting to localhost:6379. cache.py:320
+Oct-31-2025 12:27:33 PM WARNING  Failed to connect to Redis: Error Multiple exceptions: [Errno 10061] Connect call failed ('::1', 6379, 0, 0), [Errno 10061] Connect call failed ('127.0.0.1', 6379) connecting to localhost:6379. cache.py:320
+Oct-31-2025 12:27:33 PM INFO     Cache service initialized successfully with Redis support cache_service.py:436
+Oct-31-2025 12:27:33 PM INFO     Performance: cache_initialization completed in 16318.35ms logging_config.py:216
+Oct-31-2025 12:27:33 PM INFO     Cache service initialized successfully main.py:87
+Oct-31-2025 12:27:33 PM INFO     Initializing Celery service... main.py:106
+Oct-31-2025 12:27:33 PM INFO     Celery app created successfully with broker: redis://localhost:6379 celery_service.py:107
+Oct-31-2025 12:27:33 PM INFO     Celery service initialized successfully celery_service.py:81
+Oct-31-2025 12:27:33 PM INFO     Performance: celery_initialization completed in 3.99ms logging_config.py:216
+Oct-31-2025 12:27:33 PM INFO     Celery service initialized successfully main.py:113
+Oct-31-2025 12:27:33 PM INFO     Service initialization complete main.py:152
+Oct-31-2025 01:05:16 PM INFO     Qdrant client initialized successfully qdrant_service.py:38
+Oct-31-2025 01:05:17 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:108
+Oct-31-2025 01:05:22 PM INFO     Using SentenceSplitter for chunking llamaindex_service.py:82
+Oct-31-2025 01:05:22 PM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:102
+Oct-31-2025 01:24:39 PM WARNING  Qdrant client initialization attempt 1/3 failed: Client.__init__() got an unexpected keyword argument 'check_version' qdrant_service.py:45
+Oct-31-2025 01:24:39 PM INFO     Retrying Qdrant client initialization in 2 seconds... qdrant_service.py:47
+Oct-31-2025 01:24:41 PM WARNING  Qdrant client initialization attempt 2/3 failed: Client.__init__() got an unexpected keyword argument 'check_version' qdrant_service.py:45
+Oct-31-2025 01:24:41 PM INFO     Retrying Qdrant client initialization in 4 seconds... qdrant_service.py:47
+Oct-31-2025 01:24:45 PM WARNING  Qdrant client initialization attempt 3/3 failed: Client.__init__() got an unexpected keyword argument 'check_version' qdrant_service.py:45
+Oct-31-2025 01:24:45 PM ERROR    Failed to initialize Qdrant client after 3 attempts: Client.__init__() got an unexpected keyword argument 'check_version' qdrant_service.py:52
+Oct-31-2025 01:25:02 PM INFO     Qdrant client initialized successfully qdrant_service.py:40
+Oct-31-2025 01:25:03 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:110
+Oct-31-2025 01:25:05 PM INFO     Using SentenceSplitter for chunking llamaindex_service.py:83
+Oct-31-2025 01:25:05 PM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:103
+Oct-31-2025 01:25:05 PM INFO     OptimalRAGPipeline initialized optimal_rag_pipeline.py:108
+Oct-31-2025 01:25:05 PM INFO     Starting uvicorn server on 0.0.0.0:8000 main_production.py:315
+Oct-31-2025 01:25:05 PM INFO     🚀 Starting Lumina IQ Production Service main_production.py:68
+Oct-31-2025 01:25:06 PM INFO     Initializing NLTK data... main_production.py:85
+Oct-31-2025 01:25:06 PM INFO     Initializing NLTK data... nltk_init.py:144
+Oct-31-2025 01:25:06 PM INFO     NLTK data directory: C:\Users\Admin\nltk_data nltk_init.py:40
+Oct-31-2025 01:25:06 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:174
+Oct-31-2025 01:25:06 PM DEBUG    NLTK resource stopwords is available nltk_init.py:174
+Oct-31-2025 01:25:06 PM WARNING  NLTK resource wordnet cached as downloaded but not found - will re-download nltk_init.py:181
+Oct-31-2025 01:25:06 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:174
+Oct-31-2025 01:25:06 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:190
+Oct-31-2025 01:25:06 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:102
+Oct-31-2025 01:25:06 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:104
+Oct-31-2025 01:25:06 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:200
+Oct-31-2025 01:25:06 PM INFO     NLTK data initialization completed nltk_init.py:208
+Oct-31-2025 01:25:06 PM INFO     ✅ NLTK initialized in 729.66ms main_production.py:88
+Oct-31-2025 01:25:06 PM INFO     Initializing cache service (Redis)... main_production.py:97
+Oct-31-2025 01:25:06 PM INFO     Initializing cache service... cache_service.py:418
+Oct-31-2025 01:25:10 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:25:11 PM INFO     Redis cache initialized successfully cache.py:572
+Oct-31-2025 01:25:11 PM INFO     Redis cache initialized successfully cache_service.py:423
+Oct-31-2025 01:25:15 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:25:19 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:25:23 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:25:23 PM INFO     Cache service initialized successfully with Redis support cache_service.py:436
+Oct-31-2025 01:25:23 PM INFO     ✅ Cache service initialized in 16404.27ms main_production.py:100
+Oct-31-2025 01:25:23 PM INFO     Initializing Celery service (async tasks)... main_production.py:110
+Oct-31-2025 01:25:23 PM INFO     Celery app created successfully with broker: redis://localhost:6379 celery_service.py:107
+Oct-31-2025 01:25:23 PM INFO     Celery service initialized successfully celery_service.py:81
+Oct-31-2025 01:25:23 PM INFO     ✅ Celery service initialized in 8.00ms main_production.py:113
+Oct-31-2025 01:25:23 PM INFO     Validating RAG pipeline... main_production.py:122
+Oct-31-2025 01:25:23 PM INFO     ✅ RAG pipeline ready main_production.py:124
+Oct-31-2025 01:25:23 PM INFO     🎉 Service initialization complete: 4/4 services ready main_production.py:144
+Oct-31-2025 01:26:10 PM INFO     Qdrant client initialized successfully qdrant_service.py:40
+Oct-31-2025 01:26:11 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:110
+Oct-31-2025 01:26:13 PM INFO     Using SentenceSplitter for chunking llamaindex_service.py:83
+Oct-31-2025 01:26:13 PM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:103
+Oct-31-2025 01:26:13 PM INFO     OptimalRAGPipeline initialized optimal_rag_pipeline.py:108
+Oct-31-2025 01:26:13 PM INFO     Starting uvicorn server on 0.0.0.0:8000 main_production.py:315
+Oct-31-2025 01:26:13 PM INFO     [STARTUP] Starting Lumina IQ Production Service main_production.py:68
+Oct-31-2025 01:26:13 PM INFO     Initializing NLTK data... main_production.py:85
+Oct-31-2025 01:26:13 PM INFO     Initializing NLTK data... nltk_init.py:144
+Oct-31-2025 01:26:13 PM INFO     NLTK data directory: C:\Users\Admin\nltk_data nltk_init.py:40
+Oct-31-2025 01:26:13 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:174
+Oct-31-2025 01:26:13 PM DEBUG    NLTK resource stopwords is available nltk_init.py:174
+Oct-31-2025 01:26:13 PM WARNING  NLTK resource wordnet cached as downloaded but not found - will re-download nltk_init.py:181
+Oct-31-2025 01:26:13 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:174
+Oct-31-2025 01:26:13 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:190
+Oct-31-2025 01:26:13 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:102
+Oct-31-2025 01:26:14 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:104
+Oct-31-2025 01:26:14 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:200
+Oct-31-2025 01:26:14 PM INFO     NLTK data initialization completed nltk_init.py:208
+Oct-31-2025 01:26:14 PM INFO     [SUCCESS] NLTK initialized in 479.50ms main_production.py:88
+Oct-31-2025 01:26:14 PM INFO     Initializing cache service (Redis)... main_production.py:97
+Oct-31-2025 01:26:14 PM INFO     Initializing cache service... cache_service.py:418
+Oct-31-2025 01:26:18 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:26:18 PM INFO     Redis cache initialized successfully cache.py:572
+Oct-31-2025 01:26:18 PM INFO     Redis cache initialized successfully cache_service.py:423
+Oct-31-2025 01:26:22 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:26:26 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:26:30 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:26:30 PM INFO     Cache service initialized successfully with Redis support cache_service.py:436
+Oct-31-2025 01:26:30 PM INFO     [SUCCESS] Cache service initialized in 16380.83ms main_production.py:100
+Oct-31-2025 01:26:30 PM INFO     Initializing Celery service (async tasks)... main_production.py:110
+Oct-31-2025 01:26:30 PM INFO     Celery app created successfully with broker: redis://localhost:6379 celery_service.py:107
+Oct-31-2025 01:26:30 PM INFO     Celery service initialized successfully celery_service.py:81
+Oct-31-2025 01:26:30 PM INFO     [SUCCESS] Celery service initialized in 4.00ms main_production.py:113
+Oct-31-2025 01:26:30 PM INFO     Validating RAG pipeline... main_production.py:122
+Oct-31-2025 01:26:30 PM INFO     [SUCCESS] RAG pipeline ready main_production.py:124
+Oct-31-2025 01:26:30 PM INFO     [READY] Service initialization complete: 4/4 services ready main_production.py:144
+Oct-31-2025 01:26:30 PM INFO     [SHUTDOWN] Shutting down Lumina IQ... main_production.py:165
+Oct-31-2025 01:26:30 PM INFO     Closing cache service... cache_service.py:446
+Oct-31-2025 01:26:30 PM INFO     Cache service closed successfully cache_service.py:452
+Oct-31-2025 01:26:30 PM INFO     [SUCCESS] Cache service closed main_production.py:170
+Oct-31-2025 01:26:30 PM INFO     [COMPLETE] Shutdown complete main_production.py:174
+Oct-31-2025 01:34:11 PM INFO     Qdrant client initialized successfully qdrant_service.py:40
+Oct-31-2025 01:34:11 PM INFO     Collection already exists: lumina_iq_documents_dev qdrant_service.py:110
+Oct-31-2025 01:34:14 PM INFO     Using SentenceSplitter for chunking llamaindex_service.py:83
+Oct-31-2025 01:34:14 PM INFO     LlamaIndex settings configured: BAAI/bge-large-en-v1.5 llamaindex_service.py:103
+Oct-31-2025 01:34:15 PM INFO     OptimalRAGPipeline initialized optimal_rag_pipeline.py:108
+Oct-31-2025 01:34:15 PM INFO     Starting uvicorn server on 0.0.0.0:8000 main_production.py:315
+Oct-31-2025 01:34:15 PM INFO     [STARTUP] Starting Lumina IQ Production Service main_production.py:68
+Oct-31-2025 01:34:15 PM INFO     Initializing NLTK data... main_production.py:85
+Oct-31-2025 01:34:15 PM INFO     Initializing NLTK data... nltk_init.py:144
+Oct-31-2025 01:34:15 PM INFO     NLTK data directory: C:\Users\Admin\nltk_data nltk_init.py:40
+Oct-31-2025 01:34:15 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:174
+Oct-31-2025 01:34:15 PM DEBUG    NLTK resource stopwords is available nltk_init.py:174
+Oct-31-2025 01:34:15 PM WARNING  NLTK resource wordnet cached as downloaded but not found - will re-download nltk_init.py:181
+Oct-31-2025 01:34:15 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:174
+Oct-31-2025 01:34:15 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:190
+Oct-31-2025 01:34:15 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:102
+Oct-31-2025 01:34:15 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:104
+Oct-31-2025 01:34:15 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:200
+Oct-31-2025 01:34:15 PM INFO     NLTK data initialization completed nltk_init.py:208
+Oct-31-2025 01:34:15 PM INFO     [SUCCESS] NLTK initialized in 462.53ms main_production.py:88
+Oct-31-2025 01:34:15 PM INFO     Initializing cache service (Redis)... main_production.py:97
+Oct-31-2025 01:34:15 PM INFO     Initializing cache service... cache_service.py:418
+Oct-31-2025 01:34:19 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:34:19 PM INFO     Redis cache initialized successfully cache.py:572
+Oct-31-2025 01:34:19 PM INFO     Redis cache initialized successfully cache_service.py:423
+Oct-31-2025 01:34:23 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:34:28 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:34:32 PM WARNING  Failed to connect to Redis: Error 22 connecting to localhost:6379. The remote computer refused the network connection. cache.py:320
+Oct-31-2025 01:34:32 PM INFO     Cache service initialized successfully with Redis support cache_service.py:436
+Oct-31-2025 01:34:32 PM INFO     [SUCCESS] Cache service initialized in 16422.87ms main_production.py:100
+Oct-31-2025 01:34:32 PM INFO     Initializing Celery service (async tasks)... main_production.py:110
+Oct-31-2025 01:34:32 PM INFO     Celery app created successfully with broker: redis://localhost:6379 celery_service.py:107
+Oct-31-2025 01:34:32 PM INFO     Celery service initialized successfully celery_service.py:81
+Oct-31-2025 01:34:32 PM INFO     [SUCCESS] Celery service initialized in 12.16ms main_production.py:113
+Oct-31-2025 01:34:32 PM INFO     Validating RAG pipeline... main_production.py:122
+Oct-31-2025 01:34:32 PM INFO     [SUCCESS] RAG pipeline ready main_production.py:124
+Oct-31-2025 01:34:32 PM INFO     [READY] Service initialization complete: 4/4 services ready main_production.py:144
+Oct-31-2025 01:34:32 PM INFO     [SHUTDOWN] Shutting down Lumina IQ... main_production.py:165
+Oct-31-2025 01:34:32 PM INFO     Closing cache service... cache_service.py:446
+Oct-31-2025 01:34:32 PM INFO     Cache service closed successfully cache_service.py:452
+Oct-31-2025 01:34:32 PM INFO     [SUCCESS] Cache service closed main_production.py:170
+Oct-31-2025 01:34:32 PM INFO     [COMPLETE] Shutdown complete main_production.py:174
+Oct-31-2025 04:04:21 PM INFO     🚀 Starting Learning App Backend... run.py:41
+Oct-31-2025 04:04:21 PM INFO     🔧 Setting up frontend environment... run.py:44
+Oct-31-2025 04:04:21 PM INFO     Local IP address detected: 172.16.16.253 ip_detector.py:33
+Oct-31-2025 04:04:21 PM INFO     Updated frontend .env file with new API URL: http://172.16.16.253:8000/api ip_detector.py:86
+Oct-31-2025 04:04:21 PM INFO     Updated frontend .env file: C:\Users\Admin\Desktop\dev\lumina_iq\frontend\.env ip_detector.py:87
+Oct-31-2025 04:04:21 PM DEBUG    📍 Server will run on: http://0.0.0.0:8000 run.py:47
+Oct-31-2025 04:04:21 PM DEBUG    🌐 Accessible at: http://172.16.16.253:8000 run.py:48
+Oct-31-2025 04:04:21 PM DEBUG    📚 Books directory: C:\Users\Admin\Desktop\dev\lumina_iq\books run.py:49
+Oct-31-2025 04:04:21 PM DEBUG    🔑 Using Together.ai model:  run.py:50
+Oct-31-2025 04:04:52 PM INFO     🚀 Starting Learning App Backend... run.py:41
+Oct-31-2025 04:04:52 PM INFO     🔧 Setting up frontend environment... run.py:44
+Oct-31-2025 04:04:52 PM INFO     Local IP address detected: 172.16.16.253 ip_detector.py:33
+Oct-31-2025 04:04:52 PM INFO     Updated frontend .env file with new API URL: http://172.16.16.253:8000/api ip_detector.py:86
+Oct-31-2025 04:04:52 PM INFO     Updated frontend .env file: C:\Users\Admin\Desktop\dev\lumina_iq\frontend\.env ip_detector.py:87
+Oct-31-2025 04:04:52 PM DEBUG    📍 Server will run on: http://0.0.0.0:8000 run.py:47
+Oct-31-2025 04:04:52 PM DEBUG    🌐 Accessible at: http://172.16.16.253:8000 run.py:48
+Oct-31-2025 04:04:52 PM DEBUG    📚 Books directory: C:\Users\Admin\Desktop\dev\lumina_iq\books run.py:49
+Oct-31-2025 04:04:52 PM DEBUG    🔑 Using Together.ai model:  run.py:50
+Oct-31-2025 04:15:52 PM INFO     🚀 Starting Learning App Backend... run.py:41
+Oct-31-2025 04:15:52 PM INFO     🔧 Setting up frontend environment... run.py:44
+Oct-31-2025 04:15:52 PM INFO     Local IP address detected: 172.16.16.253 ip_detector.py:33
+Oct-31-2025 04:15:52 PM INFO     Updated frontend .env file with new API URL: http://172.16.16.253:8000/api ip_detector.py:86
+Oct-31-2025 04:15:52 PM INFO     Updated frontend .env file: C:\Users\Admin\Desktop\dev\lumina_iq\frontend\.env ip_detector.py:87
+Oct-31-2025 04:15:52 PM DEBUG    📍 Server will run on: http://0.0.0.0:8000 run.py:47
+Oct-31-2025 04:15:52 PM DEBUG    🌐 Accessible at: http://172.16.16.253:8000 run.py:48
+Oct-31-2025 04:15:52 PM DEBUG    📚 Books directory: C:\Users\Admin\Desktop\dev\lumina_iq\books run.py:49
+Oct-31-2025 04:15:52 PM DEBUG    🔑 Using Together.ai model:  run.py:50
+Oct-31-2025 04:19:11 PM INFO     🚀 Starting Learning App Backend... run.py:41
+Oct-31-2025 04:19:11 PM INFO     🔧 Setting up frontend environment... run.py:44
+Oct-31-2025 04:19:11 PM INFO     Local IP address detected: 172.16.16.253 ip_detector.py:33
+Oct-31-2025 04:19:11 PM INFO     Updated frontend .env file with new API URL: http://172.16.16.253:8000/api ip_detector.py:86
+Oct-31-2025 04:19:11 PM INFO     Updated frontend .env file: C:\Users\Admin\Desktop\dev\lumina_iq\frontend\.env ip_detector.py:87
+Oct-31-2025 04:19:11 PM DEBUG    📍 Server will run on: http://0.0.0.0:8000 run.py:47
+Oct-31-2025 04:19:11 PM DEBUG    🌐 Accessible at: http://172.16.16.253:8000 run.py:48
+Oct-31-2025 04:19:11 PM DEBUG    📚 Books directory: C:\Users\Admin\Desktop\dev\lumina_iq\books run.py:49
+Oct-31-2025 04:19:11 PM DEBUG    🔑 Using Together.ai model:  run.py:50
+Oct-31-2025 04:19:58 PM INFO     Document tracking database initialized document_tracking_service.py:43
+Oct-31-2025 04:20:02 PM INFO     Document tracking database initialized document_tracking_service.py:43
+Oct-31-2025 04:20:16 PM INFO     Document tracking database initialized document_tracking_service.py:43
+Oct-31-2025 04:20:42 PM INFO     Document tracking database initialized document_tracking_service.py:43
+Oct-31-2025 04:21:24 PM INFO     🚀 Starting Learning App Backend... run.py:41
+Oct-31-2025 04:21:24 PM INFO     🔧 Setting up frontend environment... run.py:44
+Oct-31-2025 04:21:24 PM INFO     Local IP address detected: 172.16.16.253 ip_detector.py:33
+Oct-31-2025 04:21:24 PM INFO     Updated frontend .env file with new API URL: http://172.16.16.253:8000/api ip_detector.py:86
+Oct-31-2025 04:21:24 PM INFO     Updated frontend .env file: C:\Users\Admin\Desktop\dev\lumina_iq\frontend\.env ip_detector.py:87
+Oct-31-2025 04:21:24 PM DEBUG    📍 Server will run on: http://0.0.0.0:8000 run.py:47
+Oct-31-2025 04:21:24 PM DEBUG    🌐 Accessible at: http://172.16.16.253:8000 run.py:48
+Oct-31-2025 04:21:24 PM DEBUG    📚 Books directory: C:\Users\Admin\Desktop\dev\lumina_iq\books run.py:49
+Oct-31-2025 04:21:24 PM DEBUG    🔑 Using Together.ai model:  run.py:50
+Oct-31-2025 04:21:27 PM INFO     Document tracking database initialized document_tracking_service.py:43
+Oct-31-2025 04:21:27 PM INFO     Starting Learning App API main.py:42
+Oct-31-2025 04:21:27 PM INFO     Initializing NLTK data... main.py:58
+Oct-31-2025 04:21:27 PM INFO     Initializing NLTK data... nltk_init.py:144
+Oct-31-2025 04:21:27 PM INFO     NLTK data directory: C:\Users\Admin\nltk_data nltk_init.py:40
+Oct-31-2025 04:21:27 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:174
+Oct-31-2025 04:21:27 PM DEBUG    NLTK resource stopwords is available nltk_init.py:174
+Oct-31-2025 04:21:27 PM WARNING  NLTK resource wordnet cached as downloaded but not found - will re-download nltk_init.py:181
+Oct-31-2025 04:21:27 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:174
+Oct-31-2025 04:21:27 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:190
+Oct-31-2025 04:21:27 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:102
+Oct-31-2025 04:21:28 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:104
+Oct-31-2025 04:21:28 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:200
+Oct-31-2025 04:21:28 PM INFO     NLTK data initialization completed nltk_init.py:208
+Oct-31-2025 04:21:28 PM INFO     Performance: nltk_initialization completed in 552.43ms logging_config.py:216
+Oct-31-2025 04:21:28 PM INFO     NLTK data initialized successfully main.py:63
+Oct-31-2025 04:21:28 PM INFO     Initializing cache service... main.py:80
+Oct-31-2025 04:21:28 PM INFO     Cache service initialized successfully cache_service.py:63
+Oct-31-2025 04:21:28 PM INFO     Performance: cache_initialization completed in 234.01ms logging_config.py:216
+Oct-31-2025 04:21:28 PM INFO     Cache service initialized successfully main.py:87
+Oct-31-2025 04:21:28 PM INFO     Initializing Celery service... main.py:106
+Oct-31-2025 04:21:28 PM INFO     Celery service initialized successfully celery_service.py:54
+Oct-31-2025 04:21:28 PM INFO     Performance: celery_initialization completed in 13.15ms logging_config.py:216
+Oct-31-2025 04:21:28 PM INFO     Celery service initialized successfully main.py:113
+Oct-31-2025 04:21:28 PM INFO     Service initialization complete main.py:152
+Oct-31-2025 04:23:40 PM DEBUG    Shutting down Learning App API... main.py:169
+Oct-31-2025 04:23:40 PM INFO     Cache service closed cache_service.py:181
+Oct-31-2025 04:23:40 PM INFO     Cache service closed successfully main.py:175
+Oct-31-2025 04:23:44 PM INFO     Document tracking database initialized document_tracking_service.py:43
+Oct-31-2025 04:23:44 PM INFO     Starting Learning App API main.py:42
+Oct-31-2025 04:23:44 PM INFO     Initializing NLTK data... main.py:58
+Oct-31-2025 04:23:44 PM INFO     Initializing NLTK data... nltk_init.py:144
+Oct-31-2025 04:23:44 PM INFO     NLTK data directory: C:\Users\Admin\nltk_data nltk_init.py:40
+Oct-31-2025 04:23:44 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:174
+Oct-31-2025 04:23:44 PM DEBUG    NLTK resource stopwords is available nltk_init.py:174
+Oct-31-2025 04:23:44 PM WARNING  NLTK resource wordnet cached as downloaded but not found - will re-download nltk_init.py:181
+Oct-31-2025 04:23:44 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:174
+Oct-31-2025 04:23:44 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:190
+Oct-31-2025 04:23:44 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:102
+Oct-31-2025 04:23:45 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:104
+Oct-31-2025 04:23:45 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:200
+Oct-31-2025 04:23:45 PM INFO     NLTK data initialization completed nltk_init.py:208
+Oct-31-2025 04:23:45 PM INFO     Performance: nltk_initialization completed in 424.41ms logging_config.py:216
+Oct-31-2025 04:23:45 PM INFO     NLTK data initialized successfully main.py:63
+Oct-31-2025 04:23:45 PM INFO     Initializing cache service... main.py:80
+Oct-31-2025 04:23:45 PM INFO     Cache service initialized successfully cache_service.py:63
+Oct-31-2025 04:23:45 PM INFO     Performance: cache_initialization completed in 226.41ms logging_config.py:216
+Oct-31-2025 04:23:45 PM INFO     Cache service initialized successfully main.py:87
+Oct-31-2025 04:23:45 PM INFO     Initializing Celery service... main.py:106
+Oct-31-2025 04:23:45 PM INFO     Celery service initialized successfully celery_service.py:54
+Oct-31-2025 04:23:45 PM INFO     Performance: celery_initialization completed in 11.06ms logging_config.py:216
+Oct-31-2025 04:23:45 PM INFO     Celery service initialized successfully main.py:113
+Oct-31-2025 04:23:45 PM INFO     Service initialization complete main.py:152
+Oct-31-2025 04:23:47 PM INFO     User authenticated: admin auth_service.py:72
+Oct-31-2025 04:24:23 PM INFO     Extracted text from PDF: The Charisma Myth_ How Anyone Can Master the Art and Science of Personal Magnetism - PDF Room.pdf pdf_service.py:252
+Oct-31-2025 04:24:23 PM INFO     PDF uploaded: The Charisma Myth_ How Anyone Can Master the Art and Science of Personal Magnetism - PDF Room.pdf pdf_service.py:210
+Oct-31-2025 04:24:48 PM INFO     Extracted text from PDF: The Charisma Myth_ How Anyone Can Master the Art and Science of Personal Magnetism - PDF Room.pdf pdf_service.py:252
+Oct-31-2025 04:24:48 PM INFO     PDF selected: The Charisma Myth_ How Anyone Can Master the Art and Science of Personal Magnetism - PDF Room.pdf pdf_service.py:146
+Oct-31-2025 04:25:22 PM INFO     Chat request received chat.py:47
+Oct-31-2025 04:25:26 PM INFO     Together AI service initialized successfully together_service.py:48
+Oct-31-2025 04:25:28 PM ERROR    Failed to create collection: Unexpected Response: 403 (Forbidden)
+Raw response content:
+b'{"error":"forbidden"}' qdrant_service.py:159
+Oct-31-2025 04:25:28 PM ERROR    Failed to initialize Qdrant service: Unexpected Response: 403 (Forbidden)
+Raw response content:
+b'{"error":"forbidden"}' qdrant_service.py:129
+Oct-31-2025 04:25:28 PM ERROR    Chat failed: Unexpected Response: 403 (Forbidden)
+Raw response content:
+b'{"error":"forbidden"}' chat_service.py:106
+Oct-31-2025 04:25:28 PM INFO     Chat request completed successfully chat.py:61
+Oct-31-2025 04:25:28 PM DEBUG    Shutting down Learning App API... main.py:169
+Oct-31-2025 04:25:28 PM INFO     Cache service closed cache_service.py:181
+Oct-31-2025 04:25:28 PM INFO     Cache service closed successfully main.py:175
+Oct-31-2025 04:25:33 PM INFO     Document tracking database initialized document_tracking_service.py:43
+Oct-31-2025 04:25:33 PM INFO     Starting Learning App API main.py:42
+Oct-31-2025 04:25:33 PM INFO     Initializing NLTK data... main.py:58
+Oct-31-2025 04:25:33 PM INFO     Initializing NLTK data... nltk_init.py:144
+Oct-31-2025 04:25:33 PM INFO     NLTK data directory: C:\Users\Admin\nltk_data nltk_init.py:40
+Oct-31-2025 04:25:33 PM DEBUG    NLTK resource punkt_tab is available nltk_init.py:174
+Oct-31-2025 04:25:33 PM DEBUG    NLTK resource stopwords is available nltk_init.py:174
+Oct-31-2025 04:25:33 PM WARNING  NLTK resource wordnet cached as downloaded but not found - will re-download nltk_init.py:181
+Oct-31-2025 04:25:33 PM DEBUG    NLTK resource averaged_perceptron_tagger is available nltk_init.py:174
+Oct-31-2025 04:25:33 PM INFO     Downloading missing NLTK resources: ['wordnet'] nltk_init.py:190
+Oct-31-2025 04:25:33 PM INFO     Downloading NLTK resource: wordnet nltk_init.py:102
+Oct-31-2025 04:25:34 PM INFO     Successfully downloaded NLTK resource: wordnet nltk_init.py:104
+Oct-31-2025 04:25:34 PM INFO     NLTK punkt_tab tokenizer is ready nltk_init.py:200
+Oct-31-2025 04:25:34 PM INFO     NLTK data initialization completed nltk_init.py:208
+Oct-31-2025 04:25:34 PM INFO     Performance: nltk_initialization completed in 438.2ms logging_config.py:216
+Oct-31-2025 04:25:34 PM INFO     NLTK data initialized successfully main.py:63
+Oct-31-2025 04:25:34 PM INFO     Initializing cache service... main.py:80
+Oct-31-2025 04:25:34 PM INFO     Cache service initialized successfully cache_service.py:63
+Oct-31-2025 04:25:34 PM INFO     Performance: cache_initialization completed in 240.8ms logging_config.py:216
+Oct-31-2025 04:25:34 PM INFO     Cache service initialized successfully main.py:87
+Oct-31-2025 04:25:34 PM INFO     Initializing Celery service... main.py:106
+Oct-31-2025 04:25:34 PM INFO     Celery service initialized successfully celery_service.py:54
+Oct-31-2025 04:25:34 PM INFO     Performance: celery_initialization completed in 1.0ms logging_config.py:216
+Oct-31-2025 04:25:34 PM INFO     Celery service initialized successfully main.py:113
+Oct-31-2025 04:25:34 PM INFO     Service initialization complete main.py:152
+Oct-31-2025 04:25:48 PM INFO     Chat request received chat.py:47
+Oct-31-2025 04:25:48 PM INFO     Chat request completed successfully chat.py:61
+Oct-31-2025 04:26:23 PM INFO     Extracted text from PDF: The Charisma Myth_ How Anyone Can Master the Art and Science of Personal Magnetism - PDF Room.pdf pdf_service.py:252
+Oct-31-2025 04:26:23 PM INFO     PDF uploaded: The Charisma Myth_ How Anyone Can Master the Art and Science of Personal Magnetism - PDF Room.pdf pdf_service.py:210
+Oct-31-2025 04:26:45 PM INFO     Extracted text from PDF: The Charisma Myth_ How Anyone Can Master the Art and Science of Personal Magnetism - PDF Room.pdf pdf_service.py:252
+Oct-31-2025 04:26:45 PM INFO     PDF selected: The Charisma Myth_ How Anyone Can Master the Art and Science of Personal Magnetism - PDF Room.pdf pdf_service.py:146
+Oct-31-2025 04:26:55 PM INFO     Chat request received chat.py:47
+Oct-31-2025 04:26:55 PM INFO     Together AI service initialized successfully together_service.py:48
+Oct-31-2025 04:26:57 PM ERROR    Failed to create collection: Unexpected Response: 403 (Forbidden)
+Raw response content:
+b'{"error":"forbidden"}' qdrant_service.py:159
+Oct-31-2025 04:26:57 PM ERROR    Failed to initialize Qdrant service: Unexpected Response: 403 (Forbidden)
+Raw response content:
+b'{"error":"forbidden"}' qdrant_service.py:129
+Oct-31-2025 04:26:57 PM ERROR    Chat failed: Unexpected Response: 403 (Forbidden)
+Raw response content:
+b'{"error":"forbidden"}' chat_service.py:106
+Oct-31-2025 04:26:57 PM INFO     Chat request completed successfully chat.py:61
