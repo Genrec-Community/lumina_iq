@@ -1,278 +1,310 @@
 """
-Together AI service using LangChain for LLM and embeddings.
-Provides unified interface for Together AI's models.
+Together AI Service for Lumina IQ RAG Backend.
+
+Provides integration with Together AI API for LLM and embedding generation.
 """
 
-from typing import List, Optional, Dict, Any
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from typing import List, Dict, Any, Optional
+from together import Together
 from config.settings import settings
 from utils.logger import get_logger
-import asyncio
-from functools import lru_cache
 
 logger = get_logger("together_service")
 
 
 class TogetherService:
-    """Service for interacting with Together AI using LangChain"""
+    """Service for interacting with Together AI API."""
 
     def __init__(self):
-        self._llm: Optional[ChatOpenAI] = None
-        self._embeddings: Optional[OpenAIEmbeddings] = None
-        self._initialized = False
+        self.client: Optional[Together] = None
+        self.is_initialized = False
 
-    def initialize(self):
-        """Initialize Together AI LLM and embeddings"""
-        if self._initialized:
-            return
-
+    def initialize(self) -> None:
+        """Initialize Together AI client."""
         try:
-            # Initialize LLM using LangChain's ChatOpenAI with Together AI
-            self._llm = ChatOpenAI(
-                model=settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-                temperature=0.7,
-                max_tokens=2048,
-                openai_api_key=settings.TOGETHER_API_KEY,
-                openai_api_base=settings.TOGETHER_BASE_URL,
-            )
+            if not settings.TOGETHER_API_KEY:
+                logger.warning("TOGETHER_API_KEY not configured")
+                return
 
-            # Initialize embeddings using LangChain's OpenAIEmbeddings with Together AI
-            self._embeddings = OpenAIEmbeddings(
-                model=settings.EMBEDDING_MODEL,
-                openai_api_key=settings.TOGETHER_API_KEY,
-                openai_api_base=settings.TOGETHER_BASE_URL,
-            )
-
-            self._initialized = True
             logger.info(
-                "Together AI service initialized successfully",
+                "Initializing Together AI service",
                 extra={
                     "extra_fields": {
-                        "llm_model": settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                        "model": settings.TOGETHER_MODEL,
                         "embedding_model": settings.EMBEDDING_MODEL,
                     }
                 },
             )
+
+            self.client = Together(api_key=settings.TOGETHER_API_KEY)
+            self.is_initialized = True
+
+            logger.info("Together AI service initialized successfully")
+
         except Exception as e:
             logger.error(
                 f"Failed to initialize Together AI service: {str(e)}",
                 extra={"extra_fields": {"error_type": type(e).__name__}},
             )
+            self.is_initialized = False
             raise
 
-    def get_llm(self) -> ChatOpenAI:
-        """Get the initialized LLM instance"""
-        if not self._initialized:
-            self.initialize()
-        return self._llm
-
-    def get_embeddings(self) -> OpenAIEmbeddings:
-        """Get the initialized embeddings instance"""
-        if not self._initialized:
-            self.initialize()
-        return self._embeddings
-
-    async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        temperature: float = 0.7,
-        max_tokens: int = 2048,
-    ) -> str:
-        """
-        Generate text using Together AI LLM.
-
-        Args:
-            prompt: The user prompt
-            system_prompt: Optional system prompt
-            temperature: Sampling temperature
-            max_tokens: Maximum tokens to generate
-
-        Returns:
-            Generated text response
-        """
-        if not self._initialized:
-            self.initialize()
+    async def generate_embedding(self, text: str) -> List[float]:
+        """Generate embedding for text using Together AI."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Together AI service not initialized")
 
         try:
-            messages = []
-            if system_prompt:
-                messages.append(SystemMessage(content=system_prompt))
-            messages.append(HumanMessage(content=prompt))
-
-            # Create a new LLM instance with specific parameters
-            llm = ChatOpenAI(
-                model=settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-                temperature=temperature,
-                max_tokens=max_tokens,
-                openai_api_key=settings.TOGETHER_API_KEY,
-                openai_api_base=settings.TOGETHER_BASE_URL,
+            logger.debug(
+                f"Generating embedding for text (length: {len(text)})",
+                extra={"extra_fields": {"model": settings.EMBEDDING_MODEL}},
             )
 
-            response = await llm.ainvoke(messages)
-            return response.content
-
-        except Exception as e:
-            logger.error(
-                f"Text generation failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
-            )
-            raise
-
-    async def generate_streaming(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        temperature: float = 0.7,
-        max_tokens: int = 2048,
-    ):
-        """
-        Generate text with streaming response.
-
-        Args:
-            prompt: The user prompt
-            system_prompt: Optional system prompt
-            temperature: Sampling temperature
-            max_tokens: Maximum tokens to generate
-
-        Yields:
-            Text chunks as they are generated
-        """
-        if not self._initialized:
-            self.initialize()
-
-        try:
-            messages = []
-            if system_prompt:
-                messages.append(SystemMessage(content=system_prompt))
-            messages.append(HumanMessage(content=prompt))
-
-            llm = ChatOpenAI(
-                model=settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-                temperature=temperature,
-                max_tokens=max_tokens,
-                openai_api_key=settings.TOGETHER_API_KEY,
-                openai_api_base=settings.TOGETHER_BASE_URL,
-                streaming=True,
+            response = self.client.embeddings.create(
+                input=text,
+                model=settings.EMBEDDING_MODEL,
             )
 
-            async for chunk in llm.astream(messages):
-                if chunk.content:
-                    yield chunk.content
+            embedding = response.data[0].embedding
 
-        except Exception as e:
-            logger.error(
-                f"Streaming generation failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
+            logger.debug(
+                f"Generated embedding successfully",
+                extra={
+                    "extra_fields": {
+                        "embedding_dim": len(embedding),
+                        "text_length": len(text),
+                    }
+                },
             )
-            raise
 
-    async def embed_text(self, text: str) -> List[float]:
-        """
-        Generate embedding for a single text.
-
-        Args:
-            text: Text to embed
-
-        Returns:
-            Embedding vector
-        """
-        if not self._initialized:
-            self.initialize()
-
-        try:
-            embedding = await self._embeddings.aembed_query(text)
             return embedding
+
         except Exception as e:
             logger.error(
-                f"Text embedding failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
+                f"Failed to generate embedding: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "text_length": len(text),
+                    }
+                },
             )
             raise
 
-    async def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        """
-        Generate embeddings for multiple texts in batch.
-
-        Args:
-            texts: List of texts to embed
-
-        Returns:
-            List of embedding vectors
-        """
-        if not self._initialized:
-            self.initialize()
+    async def generate_embeddings_batch(
+        self, texts: List[str]
+    ) -> List[List[float]]:
+        """Generate embeddings for multiple texts in batch."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Together AI service not initialized")
 
         try:
-            # Process in batches to avoid rate limits
-            batch_size = settings.EMBEDDING_BATCH_SIZE
-            all_embeddings = []
+            logger.debug(
+                f"Generating embeddings for batch",
+                extra={
+                    "extra_fields": {
+                        "batch_size": len(texts),
+                        "model": settings.EMBEDDING_MODEL,
+                    }
+                },
+            )
 
-            for i in range(0, len(texts), batch_size):
-                batch = texts[i : i + batch_size]
-                embeddings = await self._embeddings.aembed_documents(batch)
-                all_embeddings.extend(embeddings)
+            response = self.client.embeddings.create(
+                input=texts,
+                model=settings.EMBEDDING_MODEL,
+            )
 
-            return all_embeddings
+            embeddings = [item.embedding for item in response.data]
+
+            logger.debug(
+                f"Generated batch embeddings successfully",
+                extra={
+                    "extra_fields": {
+                        "batch_size": len(embeddings),
+                        "embedding_dim": len(embeddings[0]) if embeddings else 0,
+                    }
+                },
+            )
+
+            return embeddings
+
         except Exception as e:
             logger.error(
-                f"Document embedding failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
+                f"Failed to generate batch embeddings: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "batch_size": len(texts),
+                    }
+                },
             )
             raise
 
-    async def chat(
+    async def chat_completion(
         self,
         messages: List[Dict[str, str]],
         temperature: float = 0.7,
-        max_tokens: int = 2048,
+        max_tokens: Optional[int] = None,
+        stream: bool = False,
     ) -> str:
-        """
-        Have a chat conversation with the LLM.
-
-        Args:
-            messages: List of message dicts with 'role' and 'content'
-            temperature: Sampling temperature
-            max_tokens: Maximum tokens to generate
-
-        Returns:
-            AI response text
-        """
-        if not self._initialized:
-            self.initialize()
+        """Generate chat completion using Together AI."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Together AI service not initialized")
 
         try:
-            langchain_messages = []
-            for msg in messages:
-                role = msg.get("role", "user")
-                content = msg.get("content", "")
-
-                if role == "system":
-                    langchain_messages.append(SystemMessage(content=content))
-                elif role == "assistant":
-                    langchain_messages.append(AIMessage(content=content))
-                else:
-                    langchain_messages.append(HumanMessage(content=content))
-
-            llm = ChatOpenAI(
-                model=settings.TOGETHER_MODEL or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-                temperature=temperature,
-                max_tokens=max_tokens,
-                openai_api_key=settings.TOGETHER_API_KEY,
-                openai_api_base=settings.TOGETHER_BASE_URL,
+            logger.debug(
+                "Generating chat completion",
+                extra={
+                    "extra_fields": {
+                        "model": settings.TOGETHER_MODEL,
+                        "message_count": len(messages),
+                        "temperature": temperature,
+                    }
+                },
             )
 
-            response = await llm.ainvoke(langchain_messages)
-            return response.content
+            response = self.client.chat.completions.create(
+                model=settings.TOGETHER_MODEL,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                stream=stream,
+            )
+
+            if stream:
+                return response
+
+            content = response.choices[0].message.content
+
+            logger.debug(
+                "Generated chat completion successfully",
+                extra={
+                    "extra_fields": {
+                        "response_length": len(content),
+                        "finish_reason": response.choices[0].finish_reason,
+                    }
+                },
+            )
+
+            return content
 
         except Exception as e:
             logger.error(
-                f"Chat completion failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
+                f"Failed to generate chat completion: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "message_count": len(messages),
+                    }
+                },
+            )
+            raise
+
+    async def generate_questions(
+        self,
+        context: str,
+        count: int = 25,
+        mode: str = "practice",
+        topic: Optional[str] = None,
+    ) -> str:
+        """Generate questions from context using Together AI."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Together AI service not initialized")
+
+        try:
+            # Build prompt based on mode
+            if mode == "quiz":
+                prompt_template = """Based on the following context, generate {count} multiple-choice quiz questions.
+Each question should have 4 options (A, B, C, D) with only one correct answer.
+Format each question as:
+Q: [Question]
+A) [Option A]
+B) [Option B]
+C) [Option C]
+D) [Option D]
+Correct Answer: [A/B/C/D]
+Explanation: [Brief explanation]
+
+Context:
+{context}
+
+{topic_instruction}
+
+Generate the questions:"""
+            else:  # practice mode
+                prompt_template = """Based on the following context, generate {count} practice questions that help understand the key concepts.
+Questions should be open-ended and encourage critical thinking.
+Format each question as:
+Q{num}: [Question]
+
+Context:
+{context}
+
+{topic_instruction}
+
+Generate the questions:"""
+
+            topic_instruction = (
+                f"Focus on the topic: {topic}" if topic else "Cover all key concepts from the context."
+            )
+
+            prompt = prompt_template.format(
+                count=count,
+                context=context[:4000],  # Limit context length
+                topic_instruction=topic_instruction,
+            )
+
+            messages = [
+                {
+                    "role": "system",
+                    "content": "You are an expert educational content creator. Generate high-quality questions that test understanding and promote learning.",
+                },
+                {"role": "user", "content": prompt},
+            ]
+
+            logger.info(
+                "Generating questions",
+                extra={
+                    "extra_fields": {
+                        "count": count,
+                        "mode": mode,
+                        "topic": topic,
+                        "context_length": len(context),
+                    }
+                },
+            )
+
+            response = await self.chat_completion(
+                messages=messages,
+                temperature=0.7,
+                max_tokens=4000,
+            )
+
+            logger.info(
+                "Generated questions successfully",
+                extra={
+                    "extra_fields": {
+                        "response_length": len(response),
+                        "mode": mode,
+                    }
+                },
+            )
+
+            return response
+
+        except Exception as e:
+            logger.error(
+                f"Failed to generate questions: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "mode": mode,
+                        "count": count,
+                    }
+                },
             )
             raise
 
 
-# Global instance
+# Global singleton instance
 together_service = TogetherService()

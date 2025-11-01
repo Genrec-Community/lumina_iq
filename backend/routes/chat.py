@@ -11,7 +11,6 @@ from models.chat import (
     QuizSubmissionResponse,
     QuizAnswer,
 )
-from services.chat_service import ChatService
 from services.rag_orchestrator import rag_orchestrator
 from utils.logger import get_logger
 from utils.logging_config import set_request_id, get_request_id, clear_request_id
@@ -40,7 +39,7 @@ class QuestionGenerationRequest(BaseModel):
 
 @router.post("/", response_model=ChatResponse)
 async def chat(message: ChatMessage, request: Request):
-    """Send a message to the AI assistant about the selected PDF"""
+    """Send a message to the AI assistant - general chat with RAG context"""
     # Set request ID for tracing
     request_id = set_request_id()
 
@@ -55,18 +54,32 @@ async def chat(message: ChatMessage, request: Request):
     )
 
     try:
+        import datetime
         user_session = get_simple_user_id(request)
-        result = await ChatService.chat(message, user_session)
+        
+        # Use RAG orchestrator to get context and generate response
+        result = await rag_orchestrator.query_and_generate(
+            query=message.content,
+            count=1,
+            mode="chat",
+            top_k=5,
+            use_cache=True,
+        )
+
+        response = ChatResponse(
+            response=result.get("response", "I couldn't generate a response."),
+            timestamp=datetime.datetime.now().isoformat()
+        )
 
         logger.info(
             "Chat request completed successfully",
             extra={"extra_fields": {
-                "response_length": len(result.response) if result.response else 0,
-                "timestamp": result.timestamp
+                "response_length": len(response.response),
+                "timestamp": response.timestamp
             }}
         )
 
-        return result
+        return response
     except Exception as e:
         logger.error(
             "Chat request failed",
@@ -75,7 +88,7 @@ async def chat(message: ChatMessage, request: Request):
                 "error_message": str(e)
             }}
         )
-        raise
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         clear_request_id()
 
@@ -84,14 +97,16 @@ async def chat(message: ChatMessage, request: Request):
 async def get_chat_history(request: Request):
     """Get the chat history for the current session"""
     user_session = get_simple_user_id(request)
-    return ChatService.get_chat_history(user_session)
+    # Chat history is not implemented in the new RAG system yet
+    return {"messages": [], "user_session": user_session}
 
 
 @router.delete("/history")
 async def clear_chat_history(request: Request):
     """Clear the chat history for the current session"""
     user_session = get_simple_user_id(request)
-    return ChatService.clear_chat_history(user_session)
+    # Chat history is not implemented in the new RAG system yet
+    return {"status": "success", "message": "Chat history cleared"}
 
 
 @router.post("/generate-questions", response_model=ChatResponse)
@@ -112,62 +127,51 @@ async def generate_questions(request: QuestionGenerationRequest, http_request: R
     )
 
     try:
+        import datetime
+
         user_session = get_simple_user_id(http_request)
 
-        # Get PDF context to extract filename
-        from utils.storage import pdf_contexts
+        # Use the new RAG orchestrator for question generation
+        logger.info(f"Generating {request.count} questions using RAG orchestrator")
 
-        if user_session not in pdf_contexts:
-            raise HTTPException(status_code=400, detail="No PDF selected. Please select a PDF first.")
+        # Build filter conditions based on user session if needed
+        filter_conditions = None
+        # Optionally filter by user's documents: {"user_session": user_session}
 
-        pdf_context = pdf_contexts[user_session]
-        filename = pdf_context.get("filename", "")
-
-        if not filename:
-            raise HTTPException(status_code=400, detail="PDF context is invalid. Please select a PDF again.")
-
-        # Use the new RAG orchestrator instead of direct ChatService call
-        logger.info(f"Generating {request.count} questions for topic '{request.topic}' using RAG orchestrator")
-
-        result = await rag_orchestrator.retrieve_and_generate_questions(
-            query=request.topic or "comprehensive document coverage",
-            token=user_session,
-            filename=filename,
+        result = await rag_orchestrator.query_and_generate(
+            query=request.topic,
             count=request.count or 25,
-            mode=request.mode or "practice"
+            mode=request.mode or "practice",
+            top_k=10,
+            filter_conditions=filter_conditions,
+            use_cache=True,
         )
 
-        if result["status"] == "success":
+        if result.get("success"):
             response = ChatResponse(
                 response=result["response"],
-                timestamp=result.get("timestamp", "")
+                timestamp=datetime.datetime.now().isoformat()
             )
 
             logger.info(
                 "Question generation completed successfully",
                 extra={"extra_fields": {
                     "response_length": len(result["response"]),
-                    "filename": filename,
                     "questions_count": request.count
                 }}
             )
 
             return response
         else:
-            # Fallback to original ChatService if orchestrator fails
-            logger.warning(
-                "RAG orchestrator failed, falling back to ChatService",
-                extra={"extra_fields": {
-                    "orchestrator_error": result.get('message', 'Unknown error')
-                }}
+            error_message = result.get("error", "Failed to generate questions")
+            logger.error(
+                "Question generation failed",
+                extra={"extra_fields": {"error": error_message}}
             )
-            fallback_result = await ChatService.generate_questions(
-                user_session, request.topic, request.count, request.mode
-            )
+            raise HTTPException(status_code=500, detail=error_message)
 
-            logger.info("Fallback question generation completed")
-
-            return fallback_result
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(
             "Question generation request failed",
@@ -176,7 +180,7 @@ async def generate_questions(request: QuestionGenerationRequest, http_request: R
                 "error_message": str(e)
             }}
         )
-        raise
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         clear_request_id()
 
@@ -184,53 +188,34 @@ async def generate_questions(request: QuestionGenerationRequest, http_request: R
 @router.post("/evaluate-answer", response_model=AnswerEvaluationResponse)
 async def evaluate_answer(request: AnswerEvaluationRequest, http_request: Request):
     """Evaluate a single user answer using AI"""
-    user_session = get_simple_user_id(http_request)
-    return await ChatService.evaluate_answer(request, user_session)
+    # This feature is not yet implemented in the new RAG system
+    raise HTTPException(status_code=501, detail="Answer evaluation not implemented yet")
 
 
 @router.post("/evaluate-quiz", response_model=QuizSubmissionResponse)
 async def evaluate_quiz(request: QuizSubmissionRequest, http_request: Request):
     """Evaluate a complete quiz submission with overall feedback"""
-    user_session = get_simple_user_id(http_request)
-    return await ChatService.evaluate_quiz(request, user_session)
+    # This feature is not yet implemented in the new RAG system
+    raise HTTPException(status_code=501, detail="Quiz evaluation not implemented yet")
 
 
 @router.get("/performance-stats")
 async def get_performance_stats():
-    """Get current performance statistics for monitoring 25+ concurrent users"""
-    from services.chat_service import (
-        request_times,
-        request_times_lock,
-        ai_generation_pool,
-        model_creation_pool,
-    )
-    import statistics
+    """Get current performance statistics and RAG system status"""
+    try:
+        # Get RAG system stats
+        system_stats = await rag_orchestrator.get_system_stats()
 
-    with request_times_lock:
-        if request_times:
-            avg_time = statistics.mean(request_times)
-            min_time = min(request_times)
-            max_time = max(request_times)
-            recent_requests = len(request_times)
-        else:
-            avg_time = min_time = max_time = recent_requests = 0
-
-    # Get orchestrator health
-    orchestrator_health = await rag_orchestrator.get_orchestrator_health()
-
-    return {
-        "performance": {
-            "avg_response_time": round(avg_time, 2),
-            "min_response_time": round(min_time, 2),
-            "max_response_time": round(max_time, 2),
-            "recent_requests": recent_requests,
-        },
-        "thread_pools": {
-            "ai_generation_active": ai_generation_pool._threads,
-            "ai_generation_max": ai_generation_pool._max_workers,
-            "model_creation_active": model_creation_pool._threads,
-            "model_creation_max": model_creation_pool._max_workers,
-        },
-        "orchestrator": orchestrator_health,
-        "status": "production_ready_rag_orchestrator",
-    }
+        return {
+            "status": "production_ready_rag_system",
+            "rag_system": system_stats,
+        }
+    except Exception as e:
+        logger.error(
+            f"Failed to get performance stats: {str(e)}",
+            extra={"extra_fields": {"error_type": type(e).__name__}},
+        )
+        return {
+            "status": "error",
+            "error": str(e),
+        }

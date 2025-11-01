@@ -1,331 +1,300 @@
 """
-Chat service for handling user conversations and question generation.
-Integrates RAG orchestrator with chat functionality.
+Chat Service for Lumina IQ RAG Backend.
+
+Handles chat and question generation using LangChain with Together AI.
 """
 
-from typing import Dict, Any, List, Optional
-from models.chat import (
-    ChatMessage,
-    ChatResponse,
-    AnswerEvaluationRequest,
-    AnswerEvaluationResponse,
-    QuizSubmissionRequest,
-    QuizSubmissionResponse,
-    QuizAnswer,
-)
-from services.rag_orchestrator import rag_orchestrator
-from services.together_service import together_service
+from typing import List, Dict, Any, Optional
+from langchain_openai import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain.schema import HumanMessage, SystemMessage, AIMessage
+from config.settings import settings
 from utils.logger import get_logger
-from utils.storage import chat_histories, pdf_contexts, storage_manager
-import datetime
-import threading
-from concurrent.futures import ThreadPoolExecutor
-from collections import deque
-import time
 
 logger = get_logger("chat_service")
 
-# Performance monitoring
-request_times = deque(maxlen=100)
-request_times_lock = threading.Lock()
-
-# Thread pools for concurrent operations
-ai_generation_pool = ThreadPoolExecutor(max_workers=10, thread_name_prefix="ai_gen")
-model_creation_pool = ThreadPoolExecutor(max_workers=5, thread_name_prefix="model_create")
-
 
 class ChatService:
-    """Service for chat operations"""
+    """Service for chat and question generation using LangChain + Together AI."""
 
-    @staticmethod
-    async def chat(message: ChatMessage, user_session: str) -> ChatResponse:
-        """
-        Handle chat message from user.
+    def __init__(self):
+        self.llm: Optional[ChatOpenAI] = None
+        self.is_initialized = False
 
-        Args:
-            message: Chat message from user
-            user_session: User session ID
-
-        Returns:
-            Chat response with AI-generated answer
-        """
-        start_time = time.time()
-
+    def initialize(self) -> None:
+        """Initialize LangChain chat model with Together AI."""
         try:
-            # Get chat history
-            history = storage_manager.safe_get(chat_histories, user_session, [])
+            if not settings.TOGETHER_API_KEY:
+                logger.warning("TOGETHER_API_KEY not configured")
+                return
 
-            # Get PDF context
-            pdf_context = storage_manager.safe_get(pdf_contexts, user_session)
-
-            if not pdf_context:
-                response_text = "Please select a PDF document first before asking questions."
-            else:
-                filename = pdf_context.get("filename", "")
-
-                # Ensure document is ingested
-                await rag_orchestrator.ingest_pdf_for_user(user_session)
-
-                # Use RAG orchestrator for retrieval and answer
-                result = await rag_orchestrator.retrieve_and_answer(
-                    query=message.message,
-                    token=user_session,
-                    filename=filename,
-                )
-
-                if result["status"] == "success":
-                    response_text = result.get("answer", "I couldn't generate an answer.")
-                else:
-                    response_text = f"Error: {result.get('message', 'Unknown error')}"
-
-            # Update chat history
-            history.append({
-                "role": "user",
-                "content": message.message,
-                "timestamp": datetime.datetime.utcnow().isoformat(),
-            })
-            history.append({
-                "role": "assistant",
-                "content": response_text,
-                "timestamp": datetime.datetime.utcnow().isoformat(),
-            })
-
-            storage_manager.safe_set(chat_histories, user_session, history)
-
-            # Track performance
-            elapsed = time.time() - start_time
-            with request_times_lock:
-                request_times.append(elapsed)
-
-            return ChatResponse(
-                response=response_text,
-                timestamp=datetime.datetime.utcnow().isoformat(),
+            logger.info(
+                "Initializing chat service",
+                extra={
+                    "extra_fields": {
+                        "model": settings.TOGETHER_MODEL,
+                        "provider": "Together AI (via LangChain)",
+                    }
+                },
             )
 
-        except Exception as e:
-            logger.error(
-                f"Chat failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
-            )
-            return ChatResponse(
-                response=f"I encountered an error: {str(e)}",
-                timestamp=datetime.datetime.utcnow().isoformat(),
-            )
-
-    @staticmethod
-    async def generate_questions(
-        user_session: str,
-        topic: Optional[str] = None,
-        count: int = 25,
-        mode: str = "practice",
-    ) -> ChatResponse:
-        """
-        Generate questions from PDF content.
-
-        Args:
-            user_session: User session ID
-            topic: Optional topic to focus on
-            count: Number of questions to generate
-            mode: Question mode (quiz or practice)
-
-        Returns:
-            Chat response with generated questions
-        """
-        try:
-            pdf_context = storage_manager.safe_get(pdf_contexts, user_session)
-
-            if not pdf_context:
-                return ChatResponse(
-                    response="Please select a PDF document first.",
-                    timestamp=datetime.datetime.utcnow().isoformat(),
-                )
-
-            filename = pdf_context.get("filename", "")
-
-            # Use RAG orchestrator for question generation
-            result = await rag_orchestrator.retrieve_and_generate_questions(
-                query=topic or "comprehensive coverage",
-                token=user_session,
-                filename=filename,
-                count=count,
-                mode=mode,
-            )
-
-            if result["status"] == "success":
-                response_text = result.get("response", "Failed to generate questions.")
-            else:
-                response_text = f"Error: {result.get('message', 'Unknown error')}"
-
-            return ChatResponse(
-                response=response_text,
-                timestamp=datetime.datetime.utcnow().isoformat(),
-            )
-
-        except Exception as e:
-            logger.error(
-                f"Question generation failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
-            )
-            return ChatResponse(
-                response=f"Failed to generate questions: {str(e)}",
-                timestamp=datetime.datetime.utcnow().isoformat(),
-            )
-
-    @staticmethod
-    async def evaluate_answer(
-        request: AnswerEvaluationRequest, user_session: str
-    ) -> AnswerEvaluationResponse:
-        """Evaluate a single answer"""
-        try:
-            prompt = f"""Evaluate the following answer to the question:
-
-Question: {request.question}
-User's Answer: {request.user_answer}
-
-Provide:
-1. A score out of 10
-2. Detailed feedback
-3. Suggestions for improvement
-4. A hint about the correct answer (don't give it away completely)
-
-Evaluation Level: {request.evaluation_level}
-
-Respond in this format:
-Score: [0-10]
-Feedback: [Your feedback]
-Suggestions: [Your suggestions]
-Hint: [Your hint]"""
-
-            response = await together_service.generate(
-                prompt=prompt,
+            # Initialize LangChain ChatOpenAI with Together AI
+            self.llm = ChatOpenAI(
+                model=settings.TOGETHER_MODEL,
+                openai_api_base=settings.TOGETHER_BASE_URL,
+                openai_api_key=settings.TOGETHER_API_KEY,
                 temperature=0.7,
-                max_tokens=500,
+                max_tokens=4000,
             )
 
-            # Parse response
-            lines = response.strip().split("\n")
-            score = 5
-            feedback = "Good effort!"
-            suggestions = "Keep practicing."
-            hint = "Review the material again."
-
-            for line in lines:
-                if line.startswith("Score:"):
-                    try:
-                        score = int(line.split(":")[1].strip().split("/")[0])
-                    except:
-                        pass
-                elif line.startswith("Feedback:"):
-                    feedback = line.split(":", 1)[1].strip()
-                elif line.startswith("Suggestions:"):
-                    suggestions = line.split(":", 1)[1].strip()
-                elif line.startswith("Hint:"):
-                    hint = line.split(":", 1)[1].strip()
-
-            return AnswerEvaluationResponse(
-                question_id=request.question_id,
-                score=score,
-                max_score=10,
-                feedback=feedback,
-                suggestions=suggestions,
-                correct_answer_hint=hint,
-            )
+            self.is_initialized = True
+            logger.info("Chat service initialized successfully")
 
         except Exception as e:
-            logger.error(f"Answer evaluation failed: {str(e)}")
-            return AnswerEvaluationResponse(
-                question_id=request.question_id,
-                score=0,
-                max_score=10,
-                feedback=f"Evaluation failed: {str(e)}",
-                suggestions="Please try again.",
+            logger.error(
+                f"Failed to initialize chat service: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
             )
-
-    @staticmethod
-    async def evaluate_quiz(
-        request: QuizSubmissionRequest, user_session: str
-    ) -> QuizSubmissionResponse:
-        """Evaluate a complete quiz submission"""
-        try:
-            individual_results = []
-
-            # Evaluate each answer
-            for answer in request.answers:
-                eval_request = AnswerEvaluationRequest(
-                    question=answer.question,
-                    user_answer=answer.user_answer,
-                    question_id=answer.question_id,
-                    evaluation_level=request.evaluation_level,
-                )
-                result = await ChatService.evaluate_answer(eval_request, user_session)
-                individual_results.append(result)
-
-            # Calculate overall score
-            total_score = sum(r.score for r in individual_results)
-            max_score = len(individual_results) * 10
-            percentage = (total_score / max_score * 100) if max_score > 0 else 0
-
-            # Assign grade
-            if percentage >= 90:
-                grade = "A"
-            elif percentage >= 80:
-                grade = "B"
-            elif percentage >= 70:
-                grade = "C"
-            elif percentage >= 60:
-                grade = "D"
-            else:
-                grade = "F"
-
-            # Generate overall feedback
-            overall_feedback = f"You scored {total_score}/{max_score} ({percentage:.1f}%). Grade: {grade}"
-
-            # Identify strengths and areas for improvement
-            strengths = []
-            areas_for_improvement = []
-
-            for result in individual_results:
-                if result.score >= 8:
-                    strengths.append(f"Q{result.question_id}: Excellent understanding")
-                elif result.score <= 5:
-                    areas_for_improvement.append(f"Q{result.question_id}: Needs more review")
-
-            study_suggestions = [
-                "Review the questions you scored below 7",
-                "Focus on understanding concepts rather than memorization",
-                "Practice more questions on weak areas",
-            ]
-
-            return QuizSubmissionResponse(
-                overall_score=total_score,
-                max_score=max_score,
-                percentage=percentage,
-                grade=grade,
-                individual_results=individual_results,
-                overall_feedback=overall_feedback,
-                study_suggestions=study_suggestions,
-                strengths=strengths or ["Keep up the good work!"],
-                areas_for_improvement=areas_for_improvement or ["Continue practicing"],
-            )
-
-        except Exception as e:
-            logger.error(f"Quiz evaluation failed: {str(e)}")
+            self.is_initialized = False
             raise
 
-    @staticmethod
-    def get_chat_history(user_session: str) -> Dict[str, Any]:
-        """Get chat history for a user session"""
-        history = storage_manager.safe_get(chat_histories, user_session, [])
-        return {
-            "history": history,
-            "count": len(history),
-        }
+    async def generate_response(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.7,
+        max_tokens: Optional[int] = None,
+    ) -> str:
+        """Generate chat response using LangChain."""
+        if not self.is_initialized or not self.llm:
+            raise RuntimeError("Chat service not initialized")
 
-    @staticmethod
-    def clear_chat_history(user_session: str) -> Dict[str, Any]:
-        """Clear chat history for a user session"""
-        storage_manager.safe_delete(chat_histories, user_session)
-        return {
-            "message": "Chat history cleared",
-            "user_session": user_session,
-        }
+        try:
+            logger.debug(
+                "Generating chat response",
+                extra={
+                    "extra_fields": {
+                        "message_count": len(messages),
+                        "temperature": temperature,
+                    }
+                },
+            )
+
+            # Convert messages to LangChain format
+            langchain_messages = []
+            for msg in messages:
+                role = msg.get("role", "user")
+                content = msg.get("content", "")
+
+                if role == "system":
+                    langchain_messages.append(SystemMessage(content=content))
+                elif role == "user":
+                    langchain_messages.append(HumanMessage(content=content))
+                elif role == "assistant":
+                    langchain_messages.append(AIMessage(content=content))
+
+            # Update LLM parameters if needed
+            if max_tokens:
+                self.llm.max_tokens = max_tokens
+            self.llm.temperature = temperature
+
+            # Generate response
+            response = await self.llm.ainvoke(langchain_messages)
+            content = response.content
+
+            logger.debug(
+                "Generated chat response successfully",
+                extra={
+                    "extra_fields": {
+                        "response_length": len(content),
+                    }
+                },
+            )
+
+            return content
+
+        except Exception as e:
+            logger.error(
+                f"Failed to generate chat response: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "message_count": len(messages),
+                    }
+                },
+            )
+            raise
+
+    async def generate_questions(
+        self,
+        context: str,
+        count: int = 25,
+        mode: str = "practice",
+        topic: Optional[str] = None,
+    ) -> str:
+        """Generate questions from context."""
+        if not self.is_initialized or not self.llm:
+            raise RuntimeError("Chat service not initialized")
+
+        try:
+            logger.info(
+                "Generating questions from context",
+                extra={
+                    "extra_fields": {
+                        "count": count,
+                        "mode": mode,
+                        "topic": topic,
+                        "context_length": len(context),
+                    }
+                },
+            )
+
+            # Build prompt based on mode
+            if mode == "quiz":
+                system_prompt = """You are an expert educational content creator specializing in creating high-quality quiz questions.
+Generate multiple-choice quiz questions that test understanding and critical thinking.
+Each question should be clear, unambiguous, and have only one correct answer.
+The distractors (incorrect options) should be plausible but clearly wrong to someone who understands the material."""
+
+                user_prompt = """Based on the following context, generate {count} multiple-choice quiz questions.
+
+Each question should follow this format:
+Q{num}: [Question]
+A) [Option A]
+B) [Option B]
+C) [Option C]
+D) [Option D]
+Correct Answer: [A/B/C/D]
+Explanation: [Brief explanation of why this is correct]
+
+Context:
+{context}
+
+{topic_instruction}
+
+Generate the questions now:"""
+
+            else:  # practice mode
+                system_prompt = """You are an expert educational content creator specializing in creating thought-provoking practice questions.
+Generate open-ended questions that encourage critical thinking and deep understanding.
+Questions should help learners explore concepts, make connections, and apply knowledge."""
+
+                user_prompt = """Based on the following context, generate {count} practice questions that help understand key concepts.
+
+Each question should be open-ended and encourage critical thinking.
+Format each question as:
+Q{num}: [Question]
+
+Context:
+{context}
+
+{topic_instruction}
+
+Generate the questions now:"""
+
+            topic_instruction = (
+                f"Focus specifically on the topic: {topic}"
+                if topic
+                else "Cover all key concepts from the context comprehensively."
+            )
+
+            # Limit context to avoid token limits
+            context_limited = context[:4000] if len(context) > 4000 else context
+
+            # Format prompts
+            formatted_user_prompt = user_prompt.format(
+                count=count,
+                context=context_limited,
+                topic_instruction=topic_instruction,
+            )
+
+            # Generate response
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": formatted_user_prompt},
+            ]
+
+            response = await self.generate_response(
+                messages=messages,
+                temperature=0.7,
+                max_tokens=4000,
+            )
+
+            logger.info(
+                "Generated questions successfully",
+                extra={
+                    "extra_fields": {
+                        "response_length": len(response),
+                        "mode": mode,
+                        "count": count,
+                    }
+                },
+            )
+
+            return response
+
+        except Exception as e:
+            logger.error(
+                f"Failed to generate questions: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "mode": mode,
+                        "count": count,
+                    }
+                },
+            )
+            raise
+
+    async def summarize_text(
+        self, text: str, max_length: Optional[int] = None
+    ) -> str:
+        """Summarize text using LangChain."""
+        if not self.is_initialized or not self.llm:
+            raise RuntimeError("Chat service not initialized")
+
+        try:
+            logger.debug(
+                f"Summarizing text",
+                extra={"extra_fields": {"text_length": len(text)}},
+            )
+
+            system_prompt = "You are a helpful assistant that creates concise and accurate summaries."
+            user_prompt = f"Summarize the following text:\n\n{text}"
+
+            if max_length:
+                user_prompt += f"\n\nLimit the summary to approximately {max_length} words."
+
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ]
+
+            summary = await self.generate_response(messages=messages, temperature=0.5)
+
+            logger.debug(
+                "Generated summary successfully",
+                extra={
+                    "extra_fields": {
+                        "original_length": len(text),
+                        "summary_length": len(summary),
+                    }
+                },
+            )
+
+            return summary
+
+        except Exception as e:
+            logger.error(
+                f"Failed to summarize text: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "text_length": len(text),
+                    }
+                },
+            )
+            raise
+
+
+# Global singleton instance
+chat_service = ChatService()

@@ -1,324 +1,319 @@
 """
-Qdrant vector store service using LlamaIndex.
-Provides vector storage and retrieval for RAG pipeline.
+Qdrant Vector Database Service for Lumina IQ RAG Backend.
+
+Provides vector storage and retrieval operations using Qdrant Cloud.
 """
 
-from typing import List, Optional, Dict, Any
-from llama_index.core import VectorStoreIndex, StorageContext, Settings
-from llama_index.core.schema import Document as LlamaDocument, TextNode
-from llama_index.core.embeddings import BaseEmbedding
-from llama_index.vector_stores.qdrant import QdrantVectorStore
-from qdrant_client import QdrantClient, models
-from qdrant_client.http.models import Distance, VectorParams, PointStruct
+from typing import List, Dict, Any, Optional
+from qdrant_client import QdrantClient
+from qdrant_client.models import (
+    Distance,
+    VectorParams,
+    PointStruct,
+    Filter,
+    FieldCondition,
+    MatchValue,
+    SearchRequest,
+)
 from config.settings import settings
 from utils.logger import get_logger
 import uuid
-import asyncio
 
 logger = get_logger("qdrant_service")
 
 
-class LangChainEmbeddingAdapter(BaseEmbedding):
-    """Adapter to use LangChain embeddings with LlamaIndex"""
-    
-    def __init__(self, langchain_embeddings):
-        super().__init__()
-        self._embeddings = langchain_embeddings
-        self._embed_dim = settings.EMBEDDING_DIMENSIONS
-    
-    def _get_query_embedding(self, query: str) -> List[float]:
-        """Get embedding for a query (sync)"""
-        return asyncio.run(self._embeddings.aembed_query(query))
-    
-    async def _aget_query_embedding(self, query: str) -> List[float]:
-        """Get embedding for a query (async)"""
-        return await self._embeddings.aembed_query(query)
-    
-    def _get_text_embedding(self, text: str) -> List[float]:
-        """Get embedding for text (sync)"""
-        return asyncio.run(self._embeddings.aembed_query(text))
-    
-    async def _aget_text_embedding(self, text: str) -> List[float]:
-        """Get embedding for text (async)"""
-        return await self._embeddings.aembed_query(text)
-    
-    def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """Get embeddings for multiple texts (sync)"""
-        return asyncio.run(self._embeddings.aembed_documents(texts))
-    
-    async def _aget_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """Get embeddings for multiple texts (async)"""
-        return await self._embeddings.aembed_documents(texts)
-
-
 class QdrantService:
-    """Service for managing Qdrant vector store with LlamaIndex"""
+    """Service for interacting with Qdrant vector database."""
 
     def __init__(self):
-        self._client: Optional[QdrantClient] = None
-        self._vector_store: Optional[QdrantVectorStore] = None
-        self._index: Optional[VectorStoreIndex] = None
-        self._initialized = False
+        self.client: Optional[QdrantClient] = None
+        self.collection_name: str = settings.QDRANT_COLLECTION_NAME
+        self.is_initialized = False
 
-    def initialize(self):
-        """Initialize Qdrant client and vector store"""
-        if self._initialized:
-            return
-
+    def initialize(self) -> None:
+        """Initialize Qdrant client and ensure collection exists."""
         try:
-            # Initialize Qdrant client
-            self._client = QdrantClient(
-                url=settings.QDRANT_URL,
-                api_key=settings.QDRANT_API_KEY,
-                timeout=30,
-            )
-
-            # Configure LlamaIndex settings with LangChain embeddings
-            # Import here to avoid circular imports
-            from services.together_service import together_service
-            
-            # Initialize together service
-            together_service.initialize()
-            
-            # Use LangChain embeddings via adapter
-            langchain_embeddings = together_service.get_embeddings()
-            Settings.embed_model = LangChainEmbeddingAdapter(langchain_embeddings)
-            
-            # Note: We don't set Settings.llm here since we use LangChain for generation
-            # LlamaIndex will only be used for vector store operations
-
-            # Create collection if it doesn't exist
-            self._create_collection_if_not_exists()
-
-            # Initialize vector store
-            self._vector_store = QdrantVectorStore(
-                client=self._client,
-                collection_name=settings.QDRANT_COLLECTION_NAME,
-            )
-
-            # Create storage context
-            storage_context = StorageContext.from_defaults(
-                vector_store=self._vector_store
-            )
-
-            # Create or load index
-            try:
-                self._index = VectorStoreIndex.from_vector_store(
-                    vector_store=self._vector_store,
-                    storage_context=storage_context,
-                )
-            except Exception as e:
-                logger.warning(f"Could not load existing index: {e}, creating new one")
-                self._index = VectorStoreIndex.from_documents(
-                    [],
-                    storage_context=storage_context,
-                )
-
-            self._initialized = True
             logger.info(
-                "Qdrant service initialized successfully",
+                "Initializing Qdrant service",
                 extra={
                     "extra_fields": {
-                        "collection": settings.QDRANT_COLLECTION_NAME,
+                        "collection": self.collection_name,
                         "url": settings.QDRANT_URL,
                     }
                 },
             )
+
+            self.client = QdrantClient(
+                url=settings.QDRANT_URL,
+                api_key=settings.QDRANT_API_KEY,
+                timeout=30,
+                # Disable compatibility check - client 1.13.3 works with server 1.15.5
+                check_compatibility=False,
+                prefer_grpc=False,
+            )
+
+            # Check if collection exists, create if not
+            collections = self.client.get_collections().collections
+            collection_names = [col.name for col in collections]
+
+            if self.collection_name not in collection_names:
+                logger.info(
+                    f"Creating collection: {self.collection_name}",
+                    extra={
+                        "extra_fields": {
+                            "dimensions": settings.EMBEDDING_DIMENSIONS,
+                            "distance": "Cosine",
+                        }
+                    },
+                )
+
+                self.client.create_collection(
+                    collection_name=self.collection_name,
+                    vectors_config=VectorParams(
+                        size=settings.EMBEDDING_DIMENSIONS,
+                        distance=Distance.COSINE,
+                    ),
+                )
+
+                logger.info(f"Collection created: {self.collection_name}")
+            else:
+                logger.info(f"Collection already exists: {self.collection_name}")
+
+            self.is_initialized = True
+            logger.info("Qdrant service initialized successfully")
 
         except Exception as e:
             logger.error(
                 f"Failed to initialize Qdrant service: {str(e)}",
                 extra={"extra_fields": {"error_type": type(e).__name__}},
             )
+            self.is_initialized = False
             raise
 
-    def _create_collection_if_not_exists(self):
-        """Create Qdrant collection if it doesn't exist"""
-        try:
-            collections = self._client.get_collections().collections
-            collection_names = [col.name for col in collections]
-
-            if settings.QDRANT_COLLECTION_NAME not in collection_names:
-                logger.info(
-                    f"Creating collection: {settings.QDRANT_COLLECTION_NAME}"
-                )
-                self._client.create_collection(
-                    collection_name=settings.QDRANT_COLLECTION_NAME,
-                    vectors_config=VectorParams(
-                        size=settings.EMBEDDING_DIMENSIONS,
-                        distance=Distance.COSINE,
-                    ),
-                )
-                logger.info(f"Collection {settings.QDRANT_COLLECTION_NAME} created")
-            else:
-                logger.info(
-                    f"Collection {settings.QDRANT_COLLECTION_NAME} already exists"
-                )
-
-        except Exception as e:
-            logger.error(
-                f"Failed to create collection: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
-            )
-            raise
-
-    async def add_documents(
-        self, texts: List[str], metadata: Optional[List[Dict[str, Any]]] = None
+    async def upsert_points(
+        self,
+        texts: List[str],
+        embeddings: List[List[float]],
+        metadata: List[Dict[str, Any]],
     ) -> List[str]:
-        """
-        Add documents to the vector store.
-
-        Args:
-            texts: List of document texts
-            metadata: Optional list of metadata dicts
-
-        Returns:
-            List of document IDs
-        """
-        if not self._initialized:
-            self.initialize()
+        """Insert or update points in Qdrant collection."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Qdrant service not initialized")
 
         try:
-            documents = []
-            for idx, text in enumerate(texts):
-                doc_metadata = metadata[idx] if metadata and idx < len(metadata) else {}
-                doc = LlamaDocument(
-                    text=text,
-                    metadata=doc_metadata,
-                    id_=str(uuid.uuid4()),
-                )
-                documents.append(doc)
-
-            # Add documents to index
-            for doc in documents:
-                self._index.insert(doc)
-
-            doc_ids = [doc.id_ for doc in documents]
+            if len(texts) != len(embeddings) or len(texts) != len(metadata):
+                raise ValueError("Texts, embeddings, and metadata must have same length")
 
             logger.info(
-                f"Added {len(documents)} documents to vector store",
-                extra={"extra_fields": {"collection": settings.QDRANT_COLLECTION_NAME}},
+                "Upserting points to Qdrant",
+                extra={
+                    "extra_fields": {
+                        "count": len(texts),
+                        "collection": self.collection_name,
+                    }
+                },
             )
 
-            return doc_ids
+            points = []
+            point_ids = []
+
+            for text, embedding, meta in zip(texts, embeddings, metadata):
+                point_id = str(uuid.uuid4())
+                point_ids.append(point_id)
+
+                # Add text to metadata
+                payload = {**meta, "text": text}
+
+                point = PointStruct(
+                    id=point_id,
+                    vector=embedding,
+                    payload=payload,
+                )
+                points.append(point)
+
+            # Upsert in batches
+            batch_size = 100
+            for i in range(0, len(points), batch_size):
+                batch = points[i : i + batch_size]
+                self.client.upsert(
+                    collection_name=self.collection_name,
+                    points=batch,
+                )
+
+            logger.info(
+                f"Successfully upserted {len(points)} points",
+                extra={
+                    "extra_fields": {
+                        "collection": self.collection_name,
+                        "point_ids": point_ids[:5],  # Log first 5 IDs
+                    }
+                },
+            )
+
+            return point_ids
 
         except Exception as e:
             logger.error(
-                f"Failed to add documents: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
+                f"Failed to upsert points: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "count": len(texts),
+                    }
+                },
             )
             raise
 
     async def search(
         self,
-        query: str,
-        top_k: int = 10,
+        query_vector: List[float],
+        limit: int = 10,
+        filter_conditions: Optional[Dict[str, Any]] = None,
         score_threshold: Optional[float] = None,
-        filters: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Search for similar documents.
-
-        Args:
-            query: Search query
-            top_k: Number of results to return
-            score_threshold: Minimum similarity score
-            filters: Optional metadata filters
-
-        Returns:
-            List of search results with text, metadata, and score
-        """
-        if not self._initialized:
-            self.initialize()
+        """Search for similar vectors in Qdrant collection."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Qdrant service not initialized")
 
         try:
-            # Create query engine
-            query_engine = self._index.as_query_engine(
-                similarity_top_k=top_k,
-                response_mode="no_text",  # We only want retrieval, not generation
+            logger.debug(
+                "Searching Qdrant",
+                extra={
+                    "extra_fields": {
+                        "limit": limit,
+                        "has_filter": bool(filter_conditions),
+                        "score_threshold": score_threshold,
+                    }
+                },
             )
 
+            # Build filter if conditions provided
+            search_filter = None
+            if filter_conditions:
+                conditions = []
+                for key, value in filter_conditions.items():
+                    conditions.append(
+                        FieldCondition(
+                            key=key,
+                            match=MatchValue(value=value),
+                        )
+                    )
+                search_filter = Filter(must=conditions)
+
             # Perform search
-            response = query_engine.query(query)
+            search_result = self.client.search(
+                collection_name=self.collection_name,
+                query_vector=query_vector,
+                limit=limit,
+                query_filter=search_filter,
+                score_threshold=score_threshold,
+            )
 
             # Format results
             results = []
-            for node in response.source_nodes:
-                score = node.score if hasattr(node, "score") else 0.0
-
-                # Apply score threshold if specified
-                if score_threshold and score < score_threshold:
-                    continue
-
+            for point in search_result:
                 result = {
-                    "text": node.node.text,
-                    "metadata": node.node.metadata,
-                    "score": score,
-                    "id": node.node.id_,
+                    "id": point.id,
+                    "score": point.score,
+                    "text": point.payload.get("text", ""),
+                    "metadata": {
+                        k: v for k, v in point.payload.items() if k != "text"
+                    },
                 }
                 results.append(result)
 
-            logger.info(
-                f"Search completed: {len(results)} results found",
-                extra={"extra_fields": {"query": query[:100], "top_k": top_k}},
+            logger.debug(
+                f"Found {len(results)} results",
+                extra={
+                    "extra_fields": {
+                        "result_count": len(results),
+                        "top_score": results[0]["score"] if results else None,
+                    }
+                },
             )
 
             return results
 
         except Exception as e:
             logger.error(
-                f"Search failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
+                f"Failed to search Qdrant: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "limit": limit,
+                    }
+                },
             )
             raise
 
-    async def delete_by_metadata(self, metadata_filter: Dict[str, Any]) -> int:
-        """
-        Delete documents by metadata filter.
-
-        Args:
-            metadata_filter: Metadata filter dict
-
-        Returns:
-            Number of deleted documents
-        """
-        if not self._initialized:
-            self.initialize()
+    async def delete_points(
+        self, filter_conditions: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Delete points matching filter conditions."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Qdrant service not initialized")
 
         try:
-            # For simplicity, we'll delete by scrolling and filtering
-            # In production, you might want to use Qdrant's filtering more directly
-            deleted_count = 0
-
             logger.info(
-                f"Deleted {deleted_count} documents",
-                extra={"extra_fields": {"filter": metadata_filter}},
+                "Deleting points from Qdrant",
+                extra={"extra_fields": {"filter": filter_conditions}},
             )
 
-            return deleted_count
+            # Build filter
+            conditions = []
+            for key, value in filter_conditions.items():
+                conditions.append(
+                    FieldCondition(
+                        key=key,
+                        match=MatchValue(value=value),
+                    )
+                )
+            delete_filter = Filter(must=conditions)
+
+            # Delete points
+            self.client.delete(
+                collection_name=self.collection_name,
+                points_selector=delete_filter,
+            )
+
+            logger.info(
+                "Successfully deleted points",
+                extra={"extra_fields": {"filter": filter_conditions}},
+            )
+
+            return {"status": "success", "filter": filter_conditions}
 
         except Exception as e:
             logger.error(
-                f"Delete by metadata failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
+                f"Failed to delete points: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "filter": filter_conditions,
+                    }
+                },
             )
             raise
 
     async def get_collection_info(self) -> Dict[str, Any]:
-        """Get information about the collection"""
-        if not self._initialized:
-            self.initialize()
+        """Get collection information and statistics."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Qdrant service not initialized")
 
         try:
-            collection_info = self._client.get_collection(
-                collection_name=settings.QDRANT_COLLECTION_NAME
+            collection_info = self.client.get_collection(
+                collection_name=self.collection_name
             )
 
             return {
-                "name": settings.QDRANT_COLLECTION_NAME,
-                "vectors_count": collection_info.vectors_count,
+                "name": self.collection_name,
                 "points_count": collection_info.points_count,
+                "vectors_count": collection_info.vectors_count,
                 "status": collection_info.status,
+                "config": {
+                    "distance": str(collection_info.config.params.vectors.distance),
+                    "size": collection_info.config.params.vectors.size,
+                },
             }
 
         except Exception as e:
@@ -326,20 +321,60 @@ class QdrantService:
                 f"Failed to get collection info: {str(e)}",
                 extra={"extra_fields": {"error_type": type(e).__name__}},
             )
-            return {"error": str(e)}
+            raise
 
-    def get_index(self) -> VectorStoreIndex:
-        """Get the LlamaIndex vector store index"""
-        if not self._initialized:
-            self.initialize()
-        return self._index
+    async def scroll_points(
+        self,
+        filter_conditions: Optional[Dict[str, Any]] = None,
+        limit: int = 100,
+        offset: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Scroll through points in collection."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Qdrant service not initialized")
 
-    def get_query_engine(self, **kwargs):
-        """Get a query engine for the index"""
-        if not self._initialized:
-            self.initialize()
-        return self._index.as_query_engine(**kwargs)
+        try:
+            # Build filter if conditions provided
+            scroll_filter = None
+            if filter_conditions:
+                conditions = []
+                for key, value in filter_conditions.items():
+                    conditions.append(
+                        FieldCondition(
+                            key=key,
+                            match=MatchValue(value=value),
+                        )
+                    )
+                scroll_filter = Filter(must=conditions)
+
+            # Scroll points
+            result = self.client.scroll(
+                collection_name=self.collection_name,
+                scroll_filter=scroll_filter,
+                limit=limit,
+                offset=offset,
+            )
+
+            points = [
+                {
+                    "id": point.id,
+                    "payload": point.payload,
+                }
+                for point in result[0]
+            ]
+
+            return {
+                "points": points,
+                "next_offset": result[1],
+            }
+
+        except Exception as e:
+            logger.error(
+                f"Failed to scroll points: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            raise
 
 
-# Global instance
+# Global singleton instance
 qdrant_service = QdrantService()

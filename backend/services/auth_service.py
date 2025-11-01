@@ -1,112 +1,267 @@
 """
-Authentication service for user login and session management.
+Authentication Service for Lumina IQ Backend.
+
+Provides simple authentication functionality for the application.
 """
 
-from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from fastapi import HTTPException, status
+from datetime import datetime, timedelta
 from config.settings import settings
 from utils.logger import get_logger
 
 logger = get_logger("auth_service")
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# JWT settings
-SECRET_KEY = settings.JWT_SECRET if hasattr(settings, 'JWT_SECRET') else "change-this-in-production-use-at-least-32-chars"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_HOURS = settings.SESSION_EXPIRE_HOURS
-
 
 class AuthService:
-    """Service for authentication and authorization"""
+    """Service for handling authentication."""
 
-    @staticmethod
-    def verify_password(plain_password: str, hashed_password: str) -> bool:
-        """Verify a password against its hash"""
-        return pwd_context.verify(plain_password, hashed_password)
+    def __init__(self):
+        self.is_initialized = False
+        self.sessions: Dict[str, Dict[str, Any]] = {}
 
-    @staticmethod
-    def get_password_hash(password: str) -> str:
-        """Hash a password"""
-        return pwd_context.hash(password)
-
-    @staticmethod
-    def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
-        """Create a JWT access token"""
-        to_encode = data.copy()
-
-        if expires_delta:
-            expire = datetime.utcnow() + expires_delta
-        else:
-            expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
-
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-        return encoded_jwt
-
-    @staticmethod
-    def decode_token(token: str) -> Dict[str, Any]:
-        """Decode and verify a JWT token"""
+    def initialize(self) -> None:
+        """Initialize authentication service."""
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            return payload
-        except JWTError as e:
-            logger.error(f"Token decode failed: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-                headers={"WWW-Authenticate": "Bearer"},
+            logger.info("Initializing authentication service")
+            self.is_initialized = True
+            logger.info("Authentication service initialized successfully")
+        except Exception as e:
+            logger.error(
+                f"Failed to initialize authentication service: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            self.is_initialized = False
+            raise
+
+    async def login(self, username: str, password: str) -> Dict[str, Any]:
+        """
+        Authenticate user with username and password.
+        
+        Args:
+            username: Username to authenticate
+            password: Password to verify
+            
+        Returns:
+            Dictionary containing authentication result
+        """
+        try:
+            logger.info(
+                "Login attempt",
+                extra={"extra_fields": {"username": username}},
             )
 
-    @staticmethod
-    async def authenticate_user(username: str, password: str) -> Optional[Dict[str, Any]]:
-        """Authenticate a user with username and password"""
-        try:
-            # Simple authentication against environment variables
-            if username == settings.LOGIN_USERNAME and password == settings.LOGIN_PASSWORD:
-                logger.info(f"User authenticated: {username}")
-                return {
+            # Simple authentication against configured credentials
+            if (
+                username == settings.LOGIN_USERNAME
+                and password == settings.LOGIN_PASSWORD
+            ):
+                # Generate session token
+                session_token = self._generate_session_token(username)
+
+                # Store session
+                self.sessions[session_token] = {
                     "username": username,
-                    "authenticated": True,
+                    "created_at": datetime.now().isoformat(),
+                    "expires_at": (
+                        datetime.now() + timedelta(hours=settings.SESSION_EXPIRE_HOURS)
+                    ).isoformat(),
+                }
+
+                logger.info(
+                    "Login successful",
+                    extra={"extra_fields": {"username": username}},
+                )
+
+                return {
+                    "success": True,
+                    "message": "Login successful",
+                    "token": session_token,
+                    "username": username,
+                    "expires_at": self.sessions[session_token]["expires_at"],
                 }
             else:
-                logger.warning(f"Authentication failed for user: {username}")
-                return None
+                logger.warning(
+                    "Login failed - invalid credentials",
+                    extra={"extra_fields": {"username": username}},
+                )
+
+                return {
+                    "success": False,
+                    "message": "Invalid username or password",
+                }
 
         except Exception as e:
             logger.error(
-                f"Authentication error: {str(e)}",
+                f"Login error: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "username": username,
+                    }
+                },
+            )
+            return {
+                "success": False,
+                "message": "An error occurred during login",
+            }
+
+    async def logout(self, session_token: str) -> Dict[str, Any]:
+        """
+        Logout user by invalidating session token.
+        
+        Args:
+            session_token: Session token to invalidate
+            
+        Returns:
+            Dictionary containing logout result
+        """
+        try:
+            if session_token in self.sessions:
+                username = self.sessions[session_token]["username"]
+                del self.sessions[session_token]
+
+                logger.info(
+                    "Logout successful",
+                    extra={"extra_fields": {"username": username}},
+                )
+
+                return {
+                    "success": True,
+                    "message": "Logout successful",
+                }
+            else:
+                logger.warning("Logout attempt with invalid token")
+                return {
+                    "success": False,
+                    "message": "Invalid session token",
+                }
+
+        except Exception as e:
+            logger.error(
+                f"Logout error: {str(e)}",
                 extra={"extra_fields": {"error_type": type(e).__name__}},
             )
-            return None
+            return {
+                "success": False,
+                "message": "An error occurred during logout",
+            }
 
-    @staticmethod
-    async def login(username: str, password: str) -> Dict[str, Any]:
-        """Login and generate access token"""
-        user = await AuthService.authenticate_user(username, password)
+    async def verify_session(self, session_token: str) -> Dict[str, Any]:
+        """
+        Verify if session token is valid and not expired.
+        
+        Args:
+            session_token: Session token to verify
+            
+        Returns:
+            Dictionary containing verification result
+        """
+        try:
+            if session_token not in self.sessions:
+                return {
+                    "valid": False,
+                    "message": "Invalid session token",
+                }
 
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
-                headers={"WWW-Authenticate": "Bearer"},
+            session = self.sessions[session_token]
+            expires_at = datetime.fromisoformat(session["expires_at"])
+
+            if datetime.now() > expires_at:
+                # Session expired, remove it
+                del self.sessions[session_token]
+                logger.info(
+                    "Session expired",
+                    extra={"extra_fields": {"username": session["username"]}},
+                )
+                return {
+                    "valid": False,
+                    "message": "Session expired",
+                }
+
+            return {
+                "valid": True,
+                "username": session["username"],
+                "expires_at": session["expires_at"],
+            }
+
+        except Exception as e:
+            logger.error(
+                f"Session verification error: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
             )
+            return {
+                "valid": False,
+                "message": "Error verifying session",
+            }
 
-        access_token = AuthService.create_access_token(
-            data={"sub": username}
-        )
+    def _generate_session_token(self, username: str) -> str:
+        """
+        Generate a session token for the user.
+        
+        Args:
+            username: Username for the session
+            
+        Returns:
+            Session token string
+        """
+        import hashlib
+        import secrets
 
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "message": f"Successfully logged in as {username}",
-        }
+        # Generate random token
+        random_string = secrets.token_hex(32)
+        timestamp = datetime.now().isoformat()
+
+        # Create hash combining username, timestamp, and random string
+        token_string = f"{username}:{timestamp}:{random_string}"
+        token_hash = hashlib.sha256(token_string.encode()).hexdigest()
+
+        return token_hash
+
+    def cleanup_expired_sessions(self) -> int:
+        """
+        Remove all expired sessions.
+        
+        Returns:
+            Number of sessions cleaned up
+        """
+        try:
+            expired_tokens = []
+            now = datetime.now()
+
+            for token, session in self.sessions.items():
+                expires_at = datetime.fromisoformat(session["expires_at"])
+                if now > expires_at:
+                    expired_tokens.append(token)
+
+            for token in expired_tokens:
+                del self.sessions[token]
+
+            if expired_tokens:
+                logger.info(
+                    f"Cleaned up {len(expired_tokens)} expired sessions",
+                    extra={"extra_fields": {"count": len(expired_tokens)}},
+                )
+
+            return len(expired_tokens)
+
+        except Exception as e:
+            logger.error(
+                f"Session cleanup error: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__}},
+            )
+            return 0
+
+    def get_active_sessions_count(self) -> int:
+        """
+        Get count of active sessions.
+        
+        Returns:
+            Number of active sessions
+        """
+        # Clean up expired sessions first
+        self.cleanup_expired_sessions()
+        return len(self.sessions)
 
 
-# Global instance
+# Global singleton instance
 auth_service = AuthService()

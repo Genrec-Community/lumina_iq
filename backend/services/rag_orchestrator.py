@@ -1,231 +1,356 @@
 """
-RAG orchestrator service for coordinating RAG operations.
-Manages document ingestion, querying, and question generation.
+RAG Orchestrator for Lumina IQ Backend.
+
+Coordinates all RAG services for end-to-end document processing and question generation.
 """
 
-from typing import Dict, Any, Optional
-from services.rag_service import rag_service
-from services.qdrant_service import qdrant_service
+from typing import List, Dict, Any, Optional
+from pathlib import Path
+from llama_index.core import Document
+from llama_index.core.schema import TextNode
+from config.settings import settings
 from utils.logger import get_logger
-from utils.storage import pdf_contexts, storage_manager
-import datetime
+from .document_service import document_service
+from .chunking_service import chunking_service
+from .embedding_service import embedding_service
+from .qdrant_service import qdrant_service
+from .chat_service import chat_service
+from .cache_service import cache_service
 
 logger = get_logger("rag_orchestrator")
 
 
 class RAGOrchestrator:
-    """Orchestrates RAG operations and workflows"""
+    """Orchestrator for RAG pipeline operations."""
 
     def __init__(self):
-        self._initialized = False
-        self._ingested_documents = set()
+        self.is_initialized = False
 
-    def initialize(self):
-        """Initialize the RAG orchestrator"""
-        if not self._initialized:
-            rag_service.initialize()
-            self._initialized = True
-
-    async def ingest_pdf_for_user(
-        self,
-        user_session: str,
-        force_reingest: bool = False,
-    ) -> Dict[str, Any]:
-        """
-        Ingest PDF for a specific user session.
-
-        Args:
-            user_session: User session ID
-            force_reingest: Force re-ingestion even if already ingested
-
-        Returns:
-            Ingestion result
-        """
-        if not self._initialized:
-            self.initialize()
-
+    def initialize(self) -> None:
+        """Initialize RAG orchestrator and all dependent services."""
         try:
-            # Get PDF context
-            pdf_context = storage_manager.safe_get(pdf_contexts, user_session)
+            logger.info("Initializing RAG orchestrator")
 
-            if not pdf_context:
-                return {
-                    "status": "error",
-                    "message": "No PDF selected for this session",
-                }
+            # Initialize all services
+            document_service.initialize()
+            chunking_service.initialize()
+            embedding_service.initialize()
+            qdrant_service.initialize()
+            chat_service.initialize()
 
-            filename = pdf_context.get("filename")
-            text = pdf_context.get("text")
-
-            if not text:
-                return {
-                    "status": "error",
-                    "message": "No text found in PDF context",
-                }
-
-            # Check if already ingested
-            if filename in self._ingested_documents and not force_reingest:
-                logger.info(f"Document already ingested: {filename}")
-                return {
-                    "status": "success",
-                    "message": "Document already ingested",
-                    "filename": filename,
-                }
-
-            # Ingest the document
-            metadata = {
-                "filename": filename,
-                "user_session": user_session,
-                "ingestion_time": datetime.datetime.utcnow().isoformat(),
-            }
-
-            result = await rag_service.ingest_document(text, metadata)
-
-            if result["status"] == "success":
-                self._ingested_documents.add(filename)
-
-            return result
+            self.is_initialized = True
+            logger.info("RAG orchestrator initialized successfully")
 
         except Exception as e:
             logger.error(
-                f"PDF ingestion failed: {str(e)}",
+                f"Failed to initialize RAG orchestrator: {str(e)}",
                 extra={"extra_fields": {"error_type": type(e).__name__}},
             )
-            return {
-                "status": "error",
-                "message": str(e),
-            }
+            self.is_initialized = False
+            raise
 
-    async def retrieve_and_answer(
-        self,
-        query: str,
-        token: str,
-        filename: Optional[str] = None,
+    async def ingest_document(
+        self, file_path: Path, metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """
-        Retrieve relevant documents and generate answer.
-
-        Args:
-            query: User query
-            token: User session token
-            filename: Optional filename filter
-
-        Returns:
-            Answer with retrieved documents
-        """
-        if not self._initialized:
-            self.initialize()
+        """Ingest a document into the RAG system."""
+        if not self.is_initialized:
+            raise RuntimeError("RAG orchestrator not initialized")
 
         try:
-            # Build filters
-            filters = {}
-            if filename:
-                filters["filename"] = filename
+            logger.info(
+                f"Ingesting document",
+                extra={"extra_fields": {"file_path": str(file_path)}},
+            )
 
-            # Query the RAG system
-            result = await rag_service.query(
-                query_text=query,
-                top_k=10,
-                score_threshold=0.7,
-                filters=filters if filters else None,
+            # Step 1: Validate document
+            validation = await document_service.validate_document(file_path)
+            if not validation["valid"]:
+                logger.error(
+                    f"Document validation failed: {validation.get('error')}",
+                    extra={"extra_fields": {"file_path": str(file_path)}},
+                )
+                return {"success": False, "error": validation.get("error")}
+
+            # Step 2: Extract content from PDF
+            documents = await document_service.extract_from_pdf(file_path)
+
+            # Add custom metadata if provided
+            if metadata:
+                for doc in documents:
+                    doc.metadata.update(metadata)
+
+            # Step 3: Chunk documents
+            nodes = await chunking_service.chunk_documents(documents)
+
+            # Step 4: Generate embeddings for chunks
+            texts = [node.text for node in nodes]
+            embeddings = await embedding_service.generate_embeddings_batch(texts)
+
+            # Step 5: Prepare metadata for Qdrant
+            node_metadata = []
+            for node in nodes:
+                node_metadata.append(node.metadata)
+
+            # Step 6: Store in Qdrant
+            point_ids = await qdrant_service.upsert_points(
+                texts=texts,
+                embeddings=embeddings,
+                metadata=node_metadata,
+            )
+
+            result = {
+                "success": True,
+                "file_name": file_path.name,
+                "file_hash": validation["file_hash"],
+                "page_count": len(documents),
+                "chunk_count": len(nodes),
+                "point_ids": point_ids[:5],  # Return first 5 IDs
+            }
+
+            logger.info(
+                f"Successfully ingested document",
+                extra={"extra_fields": result},
             )
 
             return result
 
         except Exception as e:
             logger.error(
-                f"Retrieve and answer failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
+                f"Failed to ingest document: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "file_path": str(file_path),
+                    }
+                },
             )
-            return {
-                "status": "error",
-                "message": str(e),
-            }
+            return {"success": False, "error": str(e)}
 
-    async def retrieve_and_generate_questions(
+    async def query_and_generate(
         self,
-        query: str,
-        token: str,
-        filename: str,
+        query: Optional[str] = None,
         count: int = 25,
         mode: str = "practice",
+        top_k: int = 10,
+        filter_conditions: Optional[Dict[str, Any]] = None,
+        use_cache: bool = True,
     ) -> Dict[str, Any]:
-        """
-        Retrieve relevant context and generate questions.
-
-        Args:
-            query: Topic or query for questions
-            token: User session token
-            filename: Filename to filter by
-            count: Number of questions
-            mode: Question mode (quiz or practice)
-
-        Returns:
-            Generated questions
-        """
-        if not self._initialized:
-            self.initialize()
+        """Query documents and generate questions."""
+        if not self.is_initialized:
+            raise RuntimeError("RAG orchestrator not initialized")
 
         try:
-            # Get PDF context for the user
-            pdf_context = storage_manager.safe_get(pdf_contexts, token)
-
-            if not pdf_context or pdf_context.get("filename") != filename:
-                return {
-                    "status": "error",
-                    "message": "PDF context not found or filename mismatch",
-                }
-
-            text = pdf_context.get("text", "")
-
-            if not text:
-                return {
-                    "status": "error",
-                    "message": "No text found in PDF",
-                }
-
-            # Generate questions from the text
-            questions = await rag_service.generate_questions(
-                context=text,
-                count=count,
-                mode=mode,
+            logger.info(
+                "Executing query and generate pipeline",
+                extra={
+                    "extra_fields": {
+                        "query": query,
+                        "count": count,
+                        "mode": mode,
+                        "top_k": top_k,
+                    }
+                },
             )
 
-            return {
-                "status": "success",
+            # Check cache if enabled
+            if use_cache and settings.CACHE_QUERY_RESULTS:
+                cache_key_params = {
+                    "query": query or "all",
+                    "count": count,
+                    "mode": mode,
+                    "top_k": top_k,
+                    "filter": filter_conditions or {},
+                }
+                cached_response = await cache_service.get_cached_api_response(
+                    "query_and_generate", cache_key_params
+                )
+                if cached_response:
+                    logger.info("Returning cached query response")
+                    return cached_response
+
+            # Step 1: Retrieve relevant context
+            context = await self.retrieve_context(
+                query=query,
+                top_k=top_k,
+                filter_conditions=filter_conditions,
+            )
+
+            if not context:
+                logger.warning("No context retrieved from documents")
+                return {
+                    "success": False,
+                    "error": "No relevant context found in documents",
+                }
+
+            # Step 2: Generate questions from context
+            questions = await chat_service.generate_questions(
+                context=context,
+                count=count,
+                mode=mode,
+                topic=query,
+            )
+
+            result = {
+                "success": True,
                 "response": questions,
-                "timestamp": datetime.datetime.utcnow().isoformat(),
+                "context_length": len(context),
+                "mode": mode,
+                "count": count,
+            }
+
+            # Cache the response if enabled
+            if use_cache and settings.CACHE_QUERY_RESULTS:
+                await cache_service.cache_api_response(
+                    "query_and_generate", cache_key_params, result
+                )
+
+            logger.info(
+                "Successfully generated questions",
+                extra={"extra_fields": {"response_length": len(questions)}},
+            )
+
+            return result
+
+        except Exception as e:
+            logger.error(
+                f"Failed to query and generate: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "query": query,
+                    }
+                },
+            )
+            return {"success": False, "error": str(e)}
+
+    async def retrieve_context(
+        self,
+        query: Optional[str] = None,
+        top_k: int = 10,
+        filter_conditions: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        """Retrieve relevant context from vector store."""
+        try:
+            logger.debug(
+                "Retrieving context from vector store",
+                extra={
+                    "extra_fields": {
+                        "query": query,
+                        "top_k": top_k,
+                        "has_filter": bool(filter_conditions),
+                    }
+                },
+            )
+
+            if query:
+                # Generate query embedding
+                query_embedding = await embedding_service.generate_embedding(query)
+
+                # Search Qdrant
+                results = await qdrant_service.search(
+                    query_vector=query_embedding,
+                    limit=top_k,
+                    filter_conditions=filter_conditions,
+                )
+            else:
+                # No query, get random documents
+                scroll_result = await qdrant_service.scroll_points(
+                    filter_conditions=filter_conditions,
+                    limit=top_k,
+                )
+                results = [
+                    {"text": point["payload"].get("text", "")}
+                    for point in scroll_result["points"]
+                ]
+
+            # Combine retrieved texts into context
+            context_parts = [result["text"] for result in results if result.get("text")]
+            context = "\n\n".join(context_parts)
+
+            logger.debug(
+                "Retrieved context successfully",
+                extra={
+                    "extra_fields": {
+                        "result_count": len(results),
+                        "context_length": len(context),
+                    }
+                },
+            )
+
+            return context
+
+        except Exception as e:
+            logger.error(
+                f"Failed to retrieve context: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "query": query,
+                    }
+                },
+            )
+            raise
+
+    async def get_system_stats(self) -> Dict[str, Any]:
+        """Get RAG system statistics."""
+        try:
+            # Get Qdrant stats
+            collection_info = await qdrant_service.get_collection_info()
+
+            # Get cache stats
+            cache_stats = await cache_service.get_stats()
+
+            return {
+                "qdrant": collection_info,
+                "cache": cache_stats,
+                "services": {
+                    "document_service": document_service.is_initialized,
+                    "chunking_service": chunking_service.is_initialized,
+                    "embedding_service": embedding_service.is_initialized,
+                    "qdrant_service": qdrant_service.is_initialized,
+                    "chat_service": chat_service.is_initialized,
+                },
             }
 
         except Exception as e:
             logger.error(
-                f"Question generation failed: {str(e)}",
+                f"Failed to get system stats: {str(e)}",
                 extra={"extra_fields": {"error_type": type(e).__name__}},
             )
-            return {
-                "status": "error",
-                "message": str(e),
-            }
+            return {"error": str(e)}
 
-    async def get_orchestrator_health(self) -> Dict[str, Any]:
-        """Get health status of the orchestrator"""
+    async def delete_document(
+        self, file_hash: str
+    ) -> Dict[str, Any]:
+        """Delete a document from the system."""
         try:
-            collection_info = await qdrant_service.get_collection_info()
+            logger.info(
+                f"Deleting document",
+                extra={"extra_fields": {"file_hash": file_hash}},
+            )
 
-            return {
-                "status": "operational",
-                "initialized": self._initialized,
-                "ingested_documents": len(self._ingested_documents),
-                "vector_store": collection_info,
-            }
+            # Delete from Qdrant
+            result = await qdrant_service.delete_points({"file_hash": file_hash})
+
+            logger.info(
+                "Successfully deleted document",
+                extra={"extra_fields": {"file_hash": file_hash}},
+            )
+
+            return {"success": True, "file_hash": file_hash}
 
         except Exception as e:
-            logger.error(f"Health check failed: {str(e)}")
-            return {
-                "status": "error",
-                "error": str(e),
-            }
+            logger.error(
+                f"Failed to delete document: {str(e)}",
+                extra={
+                    "extra_fields": {
+                        "error_type": type(e).__name__,
+                        "file_hash": file_hash,
+                    }
+                },
+            )
+            return {"success": False, "error": str(e)}
 
 
-# Global instance
+# Global singleton instance
 rag_orchestrator = RAGOrchestrator()

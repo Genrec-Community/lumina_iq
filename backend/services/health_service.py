@@ -1,271 +1,281 @@
 """
-Health check service for monitoring system status.
+Health Service for Lumina IQ RAG Backend.
+
+Provides comprehensive monitoring and health checks for all system dependencies.
 """
 
-from typing import Dict, Any
+import asyncio
 import time
-import psutil
+from typing import Dict, Any
+from datetime import datetime
+
 from config.settings import settings
 from utils.logger import get_logger
-from collections import deque
+from .cache_service import cache_service
+from .qdrant_service import qdrant_service
 
 logger = get_logger("health_service")
 
 
 class HealthService:
-    """Service for health checks and system monitoring"""
+    """Comprehensive health monitoring service."""
 
     def __init__(self):
         self._start_time = time.time()
-        self._response_times = deque(maxlen=1000)
+        self._response_times = []
         self._error_counts = {"4xx": 0, "5xx": 0}
 
-    def record_response_time(self, response_time_ms: float):
-        """Record a response time for metrics"""
-        self._response_times.append(response_time_ms)
-
-    def record_error(self, status_code: int):
-        """Record an error for metrics"""
-        if 400 <= status_code < 500:
-            self._error_counts["4xx"] += 1
-        elif 500 <= status_code < 600:
-            self._error_counts["5xx"] += 1
-
     async def check_liveness(self) -> Dict[str, Any]:
-        """Simple liveness check"""
+        """Liveness probe - check if service is running."""
         return {
             "status": "alive",
-            "service": "lumina_iq",
-            "timestamp": time.time(),
+            "service": "lumina_iq_backend",
+            "timestamp": datetime.now().isoformat(),
             "uptime_seconds": int(time.time() - self._start_time),
         }
 
-    async def check_readiness(self) -> Dict[str, Any]:
-        """Check if service is ready to handle requests"""
-        dependencies = {}
-        all_healthy = True
-
-        # Check cache service
+    async def _check_redis_health(self) -> Dict[str, Any]:
+        """Check Redis health."""
         try:
-            from services.cache_service import cache_service
-            cache_stats = await cache_service.get_stats()
-            dependencies["cache"] = {
-                "healthy": cache_stats.get("status") == "connected",
-                "details": cache_stats,
+            if not cache_service.is_initialized or not cache_service.redis_client:
+                return {
+                    "status": "unhealthy",
+                    "available": False,
+                    "error": "Redis not initialized",
+                    "timestamp": datetime.now().isoformat()
+                }
+
+            # Test connection with ping
+            start = time.time()
+            await cache_service.redis_client.ping()
+            latency = (time.time() - start) * 1000
+
+            return {
+                "status": "healthy",
+                "available": True,
+                "latency_ms": round(latency, 2),
+                "timestamp": datetime.now().isoformat()
             }
-            if not dependencies["cache"]["healthy"]:
-                all_healthy = False
         except Exception as e:
-            dependencies["cache"] = {"healthy": False, "error": str(e)}
-            all_healthy = False
-
-        # Check Qdrant
-        try:
-            collection_info = await self.check_qdrant_connection()
-            dependencies["qdrant"] = {
-                "healthy": collection_info.get("status") == "connected",
-                "details": collection_info,
-            }
-            if not dependencies["qdrant"]["healthy"]:
-                all_healthy = False
-        except Exception as e:
-            dependencies["qdrant"] = {"healthy": False, "error": str(e)}
-            all_healthy = False
-
-        # Check AI service
-        try:
-            ai_status = await self.check_ai_service()
-            dependencies["ai_service"] = {
-                "healthy": ai_status.get("status") == "operational",
-                "details": ai_status,
-            }
-            if not dependencies["ai_service"]["healthy"]:
-                all_healthy = False
-        except Exception as e:
-            dependencies["ai_service"] = {"healthy": False, "error": str(e)}
-            all_healthy = False
-
-        status = "ready" if all_healthy else "degraded"
-
-        return {
-            "status": status,
-            "service": "lumina_iq",
-            "timestamp": time.time(),
-            "dependencies": dependencies,
-        }
-
-    async def get_detailed_health(self) -> Dict[str, Any]:
-        """Get detailed health information"""
-        try:
-            # System metrics
-            cpu_percent = psutil.cpu_percent(interval=0.1)
-            memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
-
-            # Get readiness info
-            readiness = await self.check_readiness()
-
-            health_data = {
-                "status": readiness["status"],
-                "service": "lumina_iq",
-                "timestamp": time.time(),
-                "environment": settings.ENVIRONMENT,
-                "uptime_seconds": int(time.time() - self._start_time),
-                "system": {
-                    "cpu_percent": cpu_percent,
-                    "memory_percent": memory.percent,
-                    "memory_available_mb": memory.available / (1024 * 1024),
-                    "disk_percent": disk.percent,
-                },
-                "dependencies": readiness["dependencies"],
-                "metrics": {
-                    "response_times": {
-                        "count": len(self._response_times),
-                        "avg_ms": sum(self._response_times) / len(self._response_times) if self._response_times else 0,
-                        "min_ms": min(self._response_times) if self._response_times else 0,
-                        "max_ms": max(self._response_times) if self._response_times else 0,
-                    },
-                    "errors": self._error_counts,
-                },
-            }
-
-            # Check if system is under heavy load
-            if cpu_percent > 90 or memory.percent > 90:
-                health_data["status"] = "degraded"
-                health_data["warnings"] = []
-
-                if cpu_percent > 90:
-                    health_data["warnings"].append("High CPU usage")
-                if memory.percent > 90:
-                    health_data["warnings"].append("High memory usage")
-
-            return health_data
-
-        except Exception as e:
-            logger.error(
-                f"Detailed health check failed: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
-            )
+            logger.warning(f"Redis health check failed: {str(e)}")
             return {
                 "status": "unhealthy",
-                "service": "lumina_iq",
-                "timestamp": time.time(),
+                "available": False,
                 "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+
+    async def _check_qdrant_health(self) -> Dict[str, Any]:
+        """Check Qdrant health."""
+        try:
+            if not qdrant_service.is_initialized or not qdrant_service.client:
+                return {
+                    "status": "unhealthy",
+                    "available": False,
+                    "error": "Qdrant not initialized",
+                    "timestamp": datetime.now().isoformat()
+                }
+
+            # Test connection with collection info
+            start = time.time()
+            collection_info = await qdrant_service.get_collection_info()
+            latency = (time.time() - start) * 1000
+
+            return {
+                "status": "healthy",
+                "available": True,
+                "latency_ms": round(latency, 2),
+                "points_count": collection_info.get("points_count", 0),
+                "timestamp": datetime.now().isoformat()
+            }
+        except Exception as e:
+            logger.warning(f"Qdrant health check failed: {str(e)}")
+            return {
+                "status": "unhealthy",
+                "available": False,
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+
+    async def check_readiness(self) -> Dict[str, Any]:
+        """Readiness probe - check if service is ready to serve requests."""
+        try:
+            # Perform health checks concurrently
+            redis_health, qdrant_health = await asyncio.gather(
+                self._check_redis_health(),
+                self._check_qdrant_health(),
+                return_exceptions=True
+            )
+
+            # Handle exceptions from gather
+            if isinstance(redis_health, Exception):
+                redis_health = {
+                    "status": "unhealthy",
+                    "available": False,
+                    "error": str(redis_health),
+                    "timestamp": datetime.now().isoformat()
+                }
+
+            if isinstance(qdrant_health, Exception):
+                qdrant_health = {
+                    "status": "unhealthy",
+                    "available": False,
+                    "error": str(qdrant_health),
+                    "timestamp": datetime.now().isoformat()
+                }
+
+            # Determine overall readiness
+            all_healthy = all([
+                redis_health.get("status") == "healthy",
+                qdrant_health.get("status") == "healthy",
+            ])
+
+            return {
+                "status": "ready" if all_healthy else "degraded",
+                "service": "lumina_iq_backend",
+                "dependencies": {
+                    "redis": redis_health,
+                    "qdrant": qdrant_health,
+                },
+                "timestamp": datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"Readiness check failed: {str(e)}")
+            return {
+                "status": "unhealthy",
+                "service": "lumina_iq_backend",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
+
+    async def get_detailed_health(self) -> Dict[str, Any]:
+        """Comprehensive health check with detailed information."""
+        try:
+            readiness = await self.check_readiness()
+            cache_stats = await cache_service.get_stats()
+
+            # Get collection info from Qdrant
+            qdrant_info = {}
+            try:
+                if qdrant_service.is_initialized:
+                    qdrant_info = await qdrant_service.get_collection_info()
+            except Exception as e:
+                logger.warning(f"Failed to get Qdrant info: {str(e)}")
+
+            return {
+                "status": readiness["status"],
+                "service": "lumina_iq_backend",
+                "uptime_seconds": int(time.time() - self._start_time),
+                "readiness": readiness,
+                "cache": cache_stats,
+                "qdrant": qdrant_info,
+                "performance": {
+                    "avg_response_time_ms": (
+                        sum(self._response_times) / len(self._response_times)
+                        if self._response_times else 0
+                    ),
+                    "error_counts": self._error_counts,
+                },
+                "timestamp": datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"Detailed health check failed: {str(e)}")
+            return {
+                "status": "unhealthy",
+                "service": "lumina_iq_backend",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
             }
 
     async def get_prometheus_metrics(self) -> str:
-        """Get metrics in Prometheus format"""
+        """Generate Prometheus-compatible metrics."""
         try:
-            health_data = await self.get_detailed_health()
-            
-            metrics = []
-            
-            # Health status
-            status_value = 1 if health_data["status"] in ["ready", "healthy"] else 0
-            metrics.append(f"lumina_iq_health_status {status_value}")
-            
-            # Uptime
-            metrics.append(f"lumina_iq_uptime_seconds {health_data['uptime_seconds']}")
-            
-            # System metrics
-            system = health_data.get("system", {})
-            metrics.append(f"lumina_iq_cpu_percent {system.get('cpu_percent', 0)}")
-            metrics.append(f"lumina_iq_memory_percent {system.get('memory_percent', 0)}")
-            metrics.append(f"lumina_iq_disk_percent {system.get('disk_percent', 0)}")
-            
-            # Response times
-            response_metrics = health_data.get("metrics", {}).get("response_times", {})
-            metrics.append(f"lumina_iq_response_time_avg_ms {response_metrics.get('avg_ms', 0)}")
-            metrics.append(f"lumina_iq_response_time_max_ms {response_metrics.get('max_ms', 0)}")
-            
+            readiness = await self.check_readiness()
+            cache_stats = await cache_service.get_stats()
+
+            metrics_lines = [
+                "# HELP lumina_api_health_status Overall API health status (1=healthy, 0=unhealthy)",
+                "# TYPE lumina_api_health_status gauge"
+            ]
+
+            # Overall health
+            health_value = 1 if readiness["status"] == "ready" else 0
+            metrics_lines.append(f'lumina_api_health_status {health_value}')
+
+            # Service health metrics
+            for service_name, service_health in readiness.get("dependencies", {}).items():
+                status_value = 1 if service_health.get("status") == "healthy" else 0
+                metrics_lines.extend([
+                    f'# HELP lumina_api_{service_name}_health {service_name} service health',
+                    f'# TYPE lumina_api_{service_name}_health gauge',
+                    f'lumina_api_{service_name}_health {status_value}'
+                ])
+
+                # Latency metrics
+                latency = service_health.get("latency_ms")
+                if latency is not None:
+                    metrics_lines.extend([
+                        f'# HELP lumina_api_{service_name}_latency_ms {service_name} latency in ms',
+                        f'# TYPE lumina_api_{service_name}_latency_ms gauge',
+                        f'lumina_api_{service_name}_latency_ms {latency}'
+                    ])
+
+            # Cache metrics
+            if cache_stats.get("status") == "connected":
+                hit_rate = cache_stats.get("hit_rate", 0)
+                metrics_lines.extend([
+                    '# HELP lumina_api_cache_hit_rate Cache hit rate percentage',
+                    '# TYPE lumina_api_cache_hit_rate gauge',
+                    f'lumina_api_cache_hit_rate {hit_rate}'
+                ])
+
+            # Performance metrics
+            if self._response_times:
+                avg_response_time = sum(self._response_times) / len(self._response_times)
+                metrics_lines.extend([
+                    '# HELP lumina_api_avg_response_time_ms Average response time in ms',
+                    '# TYPE lumina_api_avg_response_time_ms gauge',
+                    f'lumina_api_avg_response_time_ms {avg_response_time}'
+                ])
+
             # Error counts
-            errors = health_data.get("metrics", {}).get("errors", {})
-            metrics.append(f"lumina_iq_errors_4xx {errors.get('4xx', 0)}")
-            metrics.append(f"lumina_iq_errors_5xx {errors.get('5xx', 0)}")
-            
-            return "\n".join(metrics) + "\n"
-            
+            for error_type, count in self._error_counts.items():
+                metrics_lines.extend([
+                    f'# HELP lumina_api_{error_type}_errors Number of {error_type} errors',
+                    f'# TYPE lumina_api_{error_type}_errors counter',
+                    f'lumina_api_{error_type}_errors {count}'
+                ])
+
+            # Uptime
+            uptime = int(time.time() - self._start_time)
+            metrics_lines.extend([
+                '# HELP lumina_api_uptime_seconds Service uptime in seconds',
+                '# TYPE lumina_api_uptime_seconds counter',
+                f'lumina_api_uptime_seconds {uptime}'
+            ])
+
+            return "\n".join(metrics_lines) + "\n"
+
         except Exception as e:
-            logger.error(f"Prometheus metrics generation failed: {str(e)}")
+            logger.error(f"Failed to generate Prometheus metrics: {str(e)}")
             return f"# Error generating metrics: {str(e)}\n"
 
-    async def get_health_status(self) -> Dict[str, Any]:
-        """Get comprehensive health status (alias for get_detailed_health)"""
-        return await self.get_detailed_health()
+    def record_response_time(self, response_time_ms: float):
+        """Record a response time for metrics."""
+        self._response_times.append(response_time_ms)
+        # Keep only last 1000 measurements
+        if len(self._response_times) > 1000:
+            self._response_times = self._response_times[-1000:]
 
-    @staticmethod
-    async def check_qdrant_connection() -> Dict[str, Any]:
-        """Check Qdrant vector store connection"""
-        try:
-            from services.qdrant_service import qdrant_service
-
-            if not qdrant_service._initialized:
-                qdrant_service.initialize()
-
-            collection_info = await qdrant_service.get_collection_info()
-
-            return {
-                "status": "connected",
-                "collection": collection_info,
-            }
-
-        except Exception as e:
-            logger.error(f"Qdrant health check failed: {str(e)}")
-            return {
-                "status": "error",
-                "error": str(e),
-            }
-
-    @staticmethod
-    async def check_cache_connection() -> Dict[str, Any]:
-        """Check Redis cache connection"""
-        try:
-            from services.cache_service import cache_service
-
-            if not cache_service._initialized:
-                await cache_service.initialize()
-
-            stats = await cache_service.get_stats()
-
-            return {
-                "status": "connected",
-                "stats": stats,
-            }
-
-        except Exception as e:
-            logger.error(f"Cache health check failed: {str(e)}")
-            return {
-                "status": "error",
-                "error": str(e),
-            }
-
-    @staticmethod
-    async def check_ai_service() -> Dict[str, Any]:
-        """Check Together AI service"""
-        try:
-            from services.together_service import together_service
-
-            if not together_service._initialized:
-                together_service.initialize()
-
-            # Try a simple generation
-            test_response = await together_service.generate(
-                "Say 'OK'",
-                max_tokens=10,
-            )
-
-            return {
-                "status": "operational",
-                "test_response_length": len(test_response),
-            }
-
-        except Exception as e:
-            logger.error(f"AI service health check failed: {str(e)}")
-            return {
-                "status": "error",
-                "error": str(e),
-            }
+    def record_error(self, status_code: int):
+        """Record an error for metrics."""
+        if 400 <= status_code < 500:
+            self._error_counts["4xx"] += 1
+        elif status_code >= 500:
+            self._error_counts["5xx"] += 1
 
 
-# Global instance
+# Global singleton instance
 health_service = HealthService()

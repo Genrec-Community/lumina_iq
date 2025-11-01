@@ -15,8 +15,11 @@ from utils.nltk_init import initialize_nltk_data
 import asyncio
 
 # Initialize services
+from services.auth_service import auth_service
 from services.cache_service import cache_service
 from services.celery_service import celery_service
+from services.rag_orchestrator import rag_orchestrator
+from services.together_service import together_service
 
 # Windows-compatible async optimizations
 if platform.system() == "Windows":
@@ -52,6 +55,29 @@ async def lifespan(app: FastAPI):
             }
         },
     )
+
+    # Initialize authentication service (non-critical but recommended)
+    auth_start = time.time()
+    logger.info("Initializing authentication service...")
+    auth_initialized = False
+    try:
+        auth_service.initialize()
+        auth_duration = time.time() - auth_start
+        auth_initialized = True
+        log_performance(logger, "auth_initialization", auth_duration)
+        logger.info("Authentication service initialized successfully")
+    except Exception as e:
+        auth_duration = time.time() - auth_start
+        logger.error(
+            f"Failed to initialize authentication service: {str(e)}",
+            extra={
+                "extra_fields": {
+                    "error_type": type(e).__name__,
+                    "duration_ms": round(auth_duration * 1000, 2),
+                }
+            },
+        )
+        logger.warning("Authentication features will be limited")
 
     # Initialize NLTK data (critical for text processing)
     nltk_start = time.time()
@@ -101,6 +127,52 @@ async def lifespan(app: FastAPI):
         )
         # Continue without cache - it's not critical for basic functionality
 
+    # Initialize Together AI service (critical for AI features)
+    together_start = time.time()
+    logger.info("Initializing Together AI service...")
+    together_initialized = False
+    try:
+        together_service.initialize()
+        together_duration = time.time() - together_start
+        together_initialized = True
+        log_performance(logger, "together_initialization", together_duration)
+        logger.info("Together AI service initialized successfully")
+    except Exception as e:
+        together_duration = time.time() - together_start
+        logger.error(
+            f"Failed to initialize Together AI service: {str(e)}",
+            extra={
+                "extra_fields": {
+                    "error_type": type(e).__name__,
+                    "duration_ms": round(together_duration * 1000, 2),
+                }
+            },
+        )
+        logger.warning("AI features will be limited")
+
+    # Initialize RAG orchestrator (critical for RAG pipeline)
+    rag_start = time.time()
+    logger.info("Initializing RAG orchestrator...")
+    rag_initialized = False
+    try:
+        rag_orchestrator.initialize()
+        rag_duration = time.time() - rag_start
+        rag_initialized = True
+        log_performance(logger, "rag_initialization", rag_duration)
+        logger.info("RAG orchestrator initialized successfully")
+    except Exception as e:
+        rag_duration = time.time() - rag_start
+        logger.error(
+            f"Failed to initialize RAG orchestrator: {str(e)}",
+            extra={
+                "extra_fields": {
+                    "error_type": type(e).__name__,
+                    "duration_ms": round(rag_duration * 1000, 2),
+                }
+            },
+        )
+        logger.warning("RAG features will be unavailable")
+
     # Initialize Celery service (non-critical - background tasks)
     celery_start = time.time()
     logger.info("Initializing Celery service...")
@@ -139,10 +211,25 @@ async def lifespan(app: FastAPI):
         except:
             failed_services.append("NLTK")
 
+    if auth_initialized:
+        initialized_services.append("Authentication")
+    else:
+        failed_services.append("Authentication")
+
     if cache_initialized:
         initialized_services.append("Cache")
     else:
         failed_services.append("Cache")
+
+    if together_initialized:
+        initialized_services.append("Together AI")
+    else:
+        failed_services.append("Together AI")
+
+    if rag_initialized:
+        initialized_services.append("RAG Orchestrator")
+    else:
+        failed_services.append("RAG Orchestrator")
 
     if celery_initialized:
         initialized_services.append("Celery")
