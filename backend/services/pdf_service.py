@@ -225,6 +225,35 @@ class PDFService:
             counter += 1
 
     @staticmethod
+    def _compute_file_hash(content: bytes) -> str:
+        """Compute SHA256 hash of file content."""
+        import hashlib
+        return hashlib.sha256(content).hexdigest()
+
+    @staticmethod
+    async def _check_duplicate_pdf(content: bytes, books_dir: Path) -> Optional[str]:
+        """Check if PDF with same content already exists. Returns existing filename if found."""
+        import hashlib
+        
+        content_hash = hashlib.sha256(content).hexdigest()
+        
+        # Check all existing PDFs in books directory
+        for existing_file in books_dir.glob("*.pdf"):
+            try:
+                async with aiofiles.open(existing_file, "rb") as f:
+                    existing_content = await f.read()
+                    existing_hash = hashlib.sha256(existing_content).hexdigest()
+                    
+                    if existing_hash == content_hash:
+                        logger.info(f"Duplicate PDF detected - existing_file: {existing_file.name}, content_hash: {content_hash[:8]}")
+                        return existing_file.name
+            except Exception as e:
+                logger.warning(f"Failed to check file {existing_file.name} for duplicates: {str(e)}")
+                continue
+        
+        return None
+
+    @staticmethod
     async def upload_pdf(file: UploadFile, token: str) -> PDFUploadResponse:
         """Upload a new PDF to the books folder."""
         logger.info(f"Uploading PDF - filename: {file.filename}, token: {token[:12]}")
@@ -237,14 +266,27 @@ class PDFService:
             books_dir = Path(settings.BOOKS_DIR)
             books_dir.mkdir(parents=True, exist_ok=True)
 
-            # Generate unique filename
-            unique_filename = PDFService._generate_unique_filename(books_dir, file.filename)
-            file_path = books_dir / unique_filename
+            # Read file content first to check for duplicates
+            content = await file.read()
+            
+            # Check for duplicate
+            duplicate_filename = await PDFService._check_duplicate_pdf(content, books_dir)
+            
+            if duplicate_filename:
+                # Duplicate found - use existing file
+                logger.info(f"Using existing PDF file - filename: {duplicate_filename}")
+                file_path = books_dir / duplicate_filename
+                unique_filename = duplicate_filename
+            else:
+                # New file - save it
+                unique_filename = PDFService._generate_unique_filename(books_dir, file.filename)
+                file_path = books_dir / unique_filename
 
-            # Save file
-            async with aiofiles.open(file_path, "wb") as f:
-                content = await file.read()
-                await f.write(content)
+                # Save file
+                async with aiofiles.open(file_path, "wb") as f:
+                    await f.write(content)
+                
+                logger.info(f"Saved new PDF file - filename: {unique_filename}")
 
             # Extract text and metadata
             text_content = await PDFService.extract_text_from_pdf(str(file_path))
@@ -269,8 +311,10 @@ class PDFService:
                 metadata={"token": token, "source": "upload"}
             )
 
+            message = "PDF already exists - using existing file" if duplicate_filename else "PDF uploaded and processed successfully"
+            
             return PDFUploadResponse(
-                message="PDF uploaded and processed successfully",
+                message=message,
                 filename=unique_filename,
                 metadata=metadata,
                 text_length=len(text_content),
@@ -279,8 +323,8 @@ class PDFService:
         except HTTPException:
             raise
         except Exception as e:
-            # Clean up file if processing failed
-            if file_path.exists():
+            # Clean up file if processing failed (but only if we created a new file)
+            if 'file_path' in locals() and file_path.exists() and not duplicate_filename:
                 file_path.unlink()
             logger.error(f"Failed to upload PDF: {str(e)} - error_type: {type(e).__name__}")
             raise HTTPException(status_code=500, detail=f"Failed to process PDF: {str(e)}")
