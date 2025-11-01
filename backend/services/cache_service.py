@@ -61,19 +61,9 @@ class CacheService:
             
             # Provide helpful guidance for common errors
             if "Authentication" in error_msg or "NOAUTH" in error_msg:
-                logger.warning(
-                    "Redis authentication required. Update REDIS_URL in .env file with password:",
-                    extra={"extra_fields": {
-                        "format": "redis://default:<password>@hostname:port",
-                        "example": "redis://default:mypassword@redis-host.com:13314",
-                        "current_url": redis_url.split("@")[-1]
-                    }}
-                )
+                logger.warning(f"Redis authentication required. Update REDIS_URL in .env file with password: - format: {"redis://default:<password>@hostname:port"}, example: {"redis://default:mypassword@redis-host.com:13314"}, current_url: {redis_url.split("@")[-1]}")
             elif "Connection refused" in error_msg or "timeout" in error_msg.lower():
-                logger.warning(
-                    "Redis connection failed. Check if Redis server is running and accessible.",
-                    extra={"extra_fields": {"redis_url": redis_url.split("@")[-1]}}
-                )
+                logger.warning(f"Redis connection failed. Check if Redis server is running and accessible. - redis_url: {redis_url.split("@")[-1]}")
             
             self.is_initialized = False
             raise
@@ -87,7 +77,16 @@ class CacheService:
     def _generate_key(self, prefix: str, *args: Any) -> str:
         """Generate cache key from prefix and arguments."""
         # Create a stable string representation of all arguments
-        key_parts = [str(arg) for arg in args]
+        # Normalize strings to ensure consistent hashing
+        key_parts = []
+        for arg in args:
+            if isinstance(arg, str):
+                # Normalize whitespace: strip, convert multiple spaces to single space
+                normalized = " ".join(arg.strip().split())
+                key_parts.append(normalized)
+            else:
+                key_parts.append(str(arg))
+        
         key_string = ":".join(key_parts)
 
         # Hash for consistent key length

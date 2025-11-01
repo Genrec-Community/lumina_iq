@@ -323,7 +323,7 @@ class QdrantService:
             )
             raise
 
-    async def scroll_points(
+    def scroll_points(
         self,
         filter_conditions: Optional[Dict[str, Any]] = None,
         limit: int = 100,
@@ -374,6 +374,33 @@ class QdrantService:
                 extra={"extra_fields": {"error_type": type(e).__name__}},
             )
             raise
+
+    def check_document_exists(self, file_hash: str) -> bool:
+        """Check if a document with the given file_hash already exists in the collection."""
+        if not self.is_initialized or not self.client:
+            raise RuntimeError("Qdrant service not initialized")
+
+        try:
+            # Scroll with file_hash filter to check if any points exist
+            result = self.scroll_points(
+                filter_conditions={"file_hash": file_hash},
+                limit=1
+            )
+            
+            exists = len(result.get("points", [])) > 0
+            
+            if exists:
+                logger.info(f"Document already exists in collection - file_hash: {file_hash[:8]}")
+            
+            return exists
+
+        except Exception as e:
+            logger.error(
+                f"Failed to check document existence: {str(e)}",
+                extra={"extra_fields": {"error_type": type(e).__name__, "file_hash": file_hash[:8]}},
+            )
+            # On error, return False to allow ingestion attempt
+            return False
 
 
 # Global singleton instance

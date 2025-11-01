@@ -54,12 +54,12 @@ class Settings(BaseSettings):
     TOGETHER_BASE_URL: str = Field(default="https://api.together.xyz/v1")
 
     # Embedding Configuration
-    EMBEDDING_MODEL: str = Field(default="BAAI/bge-large-en-v1.5")
-    EMBEDDING_DIMENSIONS: int = Field(default=1024)
+    EMBEDDING_MODEL: str = Field(default="togethercomputer/m2-bert-80M-32k-retrieval")
+    EMBEDDING_DIMENSIONS: int = Field(default=768)
 
-    # LlamaIndex Configuration for Render Free Tier
-    LLAMAINDEX_CHUNK_SIZE: int = Field(default=512)  # Reduced for memory efficiency
-    LLAMAINDEX_CHUNK_OVERLAP: int = Field(default=100)  # Reduced overlap
+    # LlamaIndex Configuration - Optimized for 32k context embedding model
+    LLAMAINDEX_CHUNK_SIZE: int = Field(default=2048)  # Larger chunks for better semantic coherence
+    LLAMAINDEX_CHUNK_OVERLAP: int = Field(default=256)  # Proportional overlap ~12.5%
     LLAMAINDEX_USE_FOR_LARGE_PDFS: bool = Field(default=True)
     LLAMAINDEX_LARGE_PDF_THRESHOLD_MB: int = Field(default=10)
 
@@ -125,8 +125,8 @@ class Settings(BaseSettings):
         default=10
     )  # Reduced to prevent memory overload
     EMBEDDING_BATCH_SIZE: int = Field(
-        default=10
-    )  # Batch embeddings to reduce API calls
+        default=50, description="Batch size for embedding generation (optimized for 32k context model)"
+    )
     CACHE_EMBEDDINGS: bool = Field(default=True)  # Enable caching for embeddings
     CACHE_QUERY_RESULTS: bool = Field(default=True)  # Enable caching for query results
     CACHE_TTL_SECONDS: int = Field(default=3600)  # 1 hour cache TTL

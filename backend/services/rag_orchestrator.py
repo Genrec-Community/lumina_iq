@@ -71,6 +71,33 @@ class RAGOrchestrator:
                 )
                 return {"success": False, "error": validation.get("error")}
 
+            # Step 1.5: Check if document already exists
+            file_hash = validation["file_hash"]
+            logger.info(
+                "Checking if document already exists",
+                extra={"extra_fields": {"file_hash": file_hash[:8], "file_path": str(file_path)}},
+            )
+            
+            document_exists = qdrant_service.check_document_exists(file_hash)
+            
+            if document_exists:
+                logger.info(
+                    "✓ Document already indexed - SKIPPING re-ingestion",
+                    extra={"extra_fields": {"file_hash": file_hash[:8], "file_name": file_path.name}},
+                )
+                return {
+                    "success": True,
+                    "already_exists": True,
+                    "file_name": file_path.name,
+                    "file_hash": file_hash,
+                    "message": "Document already indexed - skipped duplicate ingestion"
+                }
+            
+            logger.info(
+                "Document is new - proceeding with ingestion",
+                extra={"extra_fields": {"file_hash": file_hash[:8], "file_name": file_path.name}},
+            )
+
             # Step 2: Extract content from PDF
             documents = await document_service.extract_from_pdf(file_path)
 

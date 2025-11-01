@@ -73,11 +73,9 @@ class AuthService:
                 )
 
                 return {
-                    "success": True,
+                    "access_token": session_token,
+                    "token_type": "bearer",
                     "message": "Login successful",
-                    "token": session_token,
-                    "username": username,
-                    "expires_at": self.sessions[session_token]["expires_at"],
                 }
             else:
                 logger.warning(
@@ -86,7 +84,8 @@ class AuthService:
                 )
 
                 return {
-                    "success": False,
+                    "access_token": "",
+                    "token_type": "bearer",
                     "message": "Invalid username or password",
                 }
 
@@ -101,7 +100,8 @@ class AuthService:
                 },
             )
             return {
-                "success": False,
+                "access_token": "",
+                "token_type": "bearer",
                 "message": "An error occurred during login",
             }
 

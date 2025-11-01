@@ -31,28 +31,16 @@ async def health_live():
     # Set request ID for tracing
     request_id = set_request_id()
 
-    logger.debug("Liveness probe requested", extra={"extra_fields": {"endpoint": "/health/live"}})
+    logger.debug(f"Liveness probe requested - endpoint: /health/live")
 
     try:
         health_data = await health_service.check_liveness()
 
-        logger.debug(
-            "Liveness check completed",
-            extra={"extra_fields": {
-                "status": health_data.get("status", "unknown"),
-                "uptime_seconds": health_data.get("uptime_seconds", 0)
-            }}
-        )
+        logger.debug(f"Liveness check completed - status: {health_data.get('status')}, uptime_seconds: {health_data.get('uptime_seconds')}")
 
         return health_data
     except Exception as e:
-        logger.error(
-            "Liveness check failed",
-            extra={"extra_fields": {
-                "error_type": type(e).__name__,
-                "error_message": str(e)
-            }}
-        )
+        logger.error(f"Liveness check failed - error_type: {type(e).__name__}, error_message: {str(e)}")
         raise HTTPException(status_code=503, detail="Service unhealthy")
     finally:
         clear_request_id()
@@ -72,21 +60,16 @@ async def health_ready():
     # Set request ID for tracing
     request_id = set_request_id()
 
-    logger.debug("Readiness probe requested", extra={"extra_fields": {"endpoint": "/health/ready"}})
+    logger.debug(f"Readiness probe requested - endpoint: /health/ready")
 
     try:
         health_data = await health_service.check_readiness()
 
         # Log readiness status with detailed information
-        logger.info(
-            "Readiness check completed",
-            extra={"extra_fields": {
-                "status": health_data.get("status", "unknown"),
-                "dependencies": health_data.get("dependencies", {}),
-                "checks_passed": len([d for d in health_data.get("dependencies", {}).values() if d.get("healthy", False)]),
-                "checks_total": len(health_data.get("dependencies", {}))
-            }}
-        )
+        dependencies = health_data.get("dependencies", {})
+        checks_passed = len([d for d in dependencies.values() if d.get("healthy", False)])
+        checks_total = len(dependencies)
+        logger.info(f"Readiness check completed - status: {health_data.get('status', 'unknown')}, checks_passed: {checks_passed}, checks_total: {checks_total}")
 
         # Return appropriate HTTP status based on readiness
         if health_data["status"] == "ready":
@@ -97,13 +80,7 @@ async def health_ready():
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(
-            "Readiness check failed",
-            extra={"extra_fields": {
-                "error_type": type(e).__name__,
-                "error_message": str(e)
-            }}
-        )
+        logger.error(f"Readiness check failed - error_type: {type(e).__name__}, error_message: {str(e)}")
         raise HTTPException(
             status_code=503,
             detail={

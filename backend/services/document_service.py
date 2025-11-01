@@ -32,16 +32,10 @@ class DocumentService:
             books_dir.mkdir(parents=True, exist_ok=True)
 
             self.is_initialized = True
-            logger.info(
-                "Document service initialized successfully",
-                extra={"extra_fields": {"books_dir": str(books_dir)}},
-            )
+            logger.info(f"Document service initialized successfully - books_dir: {str(books_dir)}")
 
         except Exception as e:
-            logger.error(
-                f"Failed to initialize document service: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__}},
-            )
+            logger.error(f"Failed to initialize document service: {str(e)} - error_type: {type(e).__name__}")
             self.is_initialized = False
             raise
 
@@ -61,15 +55,8 @@ class DocumentService:
             raise RuntimeError("Document service not initialized")
 
         try:
-            logger.info(
-                f"Extracting content from PDF",
-                extra={
-                    "extra_fields": {
-                        "file_path": str(file_path),
-                        "file_size_mb": file_path.stat().st_size / (1024 * 1024),
-                    }
-                },
-            )
+            file_size_mb = file_path.stat().st_size / (1024 * 1024)
+            logger.info(f"Extracting content from PDF - file_path: {str(file_path)}, file_size_mb: {file_size_mb:.2f}")
 
             # Check if file is large and should use specialized handling
             file_size_mb = file_path.stat().st_size / (1024 * 1024)
@@ -79,10 +66,7 @@ class DocumentService:
             )
 
             if use_llamaindex_for_large:
-                logger.info(
-                    f"Using LlamaIndex for large PDF processing",
-                    extra={"extra_fields": {"file_size_mb": file_size_mb}},
-                )
+                logger.info(f"Using LlamaIndex for large PDF processing - file_size_mb: {file_size_mb:.2f}")
 
             # Extract using LlamaIndex PDFReader
             documents = self.pdf_reader.load_data(file=file_path)
@@ -104,29 +88,12 @@ class DocumentService:
                     }
                 )
 
-            logger.info(
-                f"Successfully extracted content from PDF",
-                extra={
-                    "extra_fields": {
-                        "file_name": file_path.name,
-                        "page_count": len(documents),
-                        "file_hash": file_hash[:8],
-                    }
-                },
-            )
+            logger.info(f"Successfully extracted content from PDF - file_name: {file_path.name}, page_count: {len(documents)}, file_hash: {file_hash[:8]}")
 
             return documents
 
         except Exception as e:
-            logger.error(
-                f"Failed to extract content from PDF: {str(e)}",
-                extra={
-                    "extra_fields": {
-                        "error_type": type(e).__name__,
-                        "file_path": str(file_path),
-                    }
-                },
-            )
+            logger.error(f"Failed to extract content from PDF: {str(e)} - error_type: {type(e).__name__}, file_path: {str(file_path)}")
             raise
 
     async def extract_from_directory(
@@ -137,15 +104,7 @@ class DocumentService:
             raise RuntimeError("Document service not initialized")
 
         try:
-            logger.info(
-                f"Extracting content from directory",
-                extra={
-                    "extra_fields": {
-                        "directory": str(directory_path),
-                        "pattern": file_pattern,
-                    }
-                },
-            )
+            logger.info(f"Extracting content from directory - directory: {str(directory_path)}, pattern: {file_pattern}")
 
             # Use SimpleDirectoryReader for batch processing
             reader = SimpleDirectoryReader(
@@ -164,28 +123,12 @@ class DocumentService:
                         file_hash = self._compute_file_hash(file_path)
                         doc.metadata["file_hash"] = file_hash
 
-            logger.info(
-                f"Successfully extracted content from directory",
-                extra={
-                    "extra_fields": {
-                        "document_count": len(documents),
-                        "directory": str(directory_path),
-                    }
-                },
-            )
+            logger.info(f"Successfully extracted content from directory - document_count: {len(documents)}, directory: {str(directory_path)}")
 
             return documents
 
         except Exception as e:
-            logger.error(
-                f"Failed to extract content from directory: {str(e)}",
-                extra={
-                    "extra_fields": {
-                        "error_type": type(e).__name__,
-                        "directory": str(directory_path),
-                    }
-                },
-            )
+            logger.error(f"Failed to extract content from directory: {str(e)} - error_type: {type(e).__name__}, directory: {str(directory_path)}")
             raise
 
     async def validate_document(self, file_path: Path) -> Dict[str, Any]:
@@ -215,15 +158,7 @@ class DocumentService:
             }
 
         except Exception as e:
-            logger.error(
-                f"Failed to validate document: {str(e)}",
-                extra={
-                    "extra_fields": {
-                        "error_type": type(e).__name__,
-                        "file_path": str(file_path),
-                    }
-                },
-            )
+            logger.error(f"Failed to validate document: {str(e)} - error_type: {type(e).__name__}, file_path: {str(file_path)}")
             return {"valid": False, "error": str(e)}
 
     async def get_document_metadata(self, file_path: Path) -> Dict[str, Any]:
@@ -246,15 +181,7 @@ class DocumentService:
             }
 
         except Exception as e:
-            logger.error(
-                f"Failed to get document metadata: {str(e)}",
-                extra={
-                    "extra_fields": {
-                        "error_type": type(e).__name__,
-                        "file_path": str(file_path),
-                    }
-                },
-            )
+            logger.error(f"Failed to get document metadata: {str(e)} - error_type: {type(e).__name__}, file_path: {str(file_path)}")
             return {"valid": False, "error": str(e)}
 
 

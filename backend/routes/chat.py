@@ -44,19 +44,14 @@ async def chat(message: ChatMessage, request: Request):
     request_id = set_request_id()
 
     logger.info(
-        "Chat request received",
-        extra={"extra_fields": {
-            "endpoint": "/api/chat",
-            "method": "POST",
-            "user_agent": request.headers.get("user-agent", "unknown"),
-            "content_length": request.headers.get("content-length", "0")
-        }}
+        f"Chat request received - endpoint: {'/api/chat'}, method: {'POST'}, user_agent: {request.headers.get('user-agent')}, content_length: {request.headers.get('content-length')}"
     )
 
     try:
         import datetime
+
         user_session = get_simple_user_id(request)
-        
+
         # Use RAG orchestrator to get context and generate response
         result = await rag_orchestrator.query_and_generate(
             query=message.content,
@@ -68,25 +63,17 @@ async def chat(message: ChatMessage, request: Request):
 
         response = ChatResponse(
             response=result.get("response", "I couldn't generate a response."),
-            timestamp=datetime.datetime.now().isoformat()
+            timestamp=datetime.datetime.now().isoformat(),
         )
 
         logger.info(
-            "Chat request completed successfully",
-            extra={"extra_fields": {
-                "response_length": len(response.response),
-                "timestamp": response.timestamp
-            }}
+            f"Chat request completed successfully - response_length: {len(response.response)}, timestamp: {response.timestamp}"
         )
 
         return response
     except Exception as e:
         logger.error(
-            "Chat request failed",
-            extra={"extra_fields": {
-                "error_type": type(e).__name__,
-                "error_message": str(e)
-            }}
+            f"Chat request failed - error_type: {type(e).__name__}, error_message: {str(e)}"
         )
         raise HTTPException(status_code=500, detail=str(e))
     finally:
@@ -116,14 +103,7 @@ async def generate_questions(request: QuestionGenerationRequest, http_request: R
     request_id = set_request_id()
 
     logger.info(
-        "Question generation request received",
-        extra={"extra_fields": {
-            "endpoint": "/api/chat/generate-questions",
-            "method": "POST",
-            "topic": request.topic,
-            "count": request.count,
-            "mode": request.mode
-        }}
+        f"Question generation request received - endpoint: {'/api/chat/generate-questions'}, method: {'POST'}, topic: {request.topic}, count: {request.count}, mode: {request.mode}"
     )
 
     try:
@@ -150,35 +130,24 @@ async def generate_questions(request: QuestionGenerationRequest, http_request: R
         if result.get("success"):
             response = ChatResponse(
                 response=result["response"],
-                timestamp=datetime.datetime.now().isoformat()
+                timestamp=datetime.datetime.now().isoformat(),
             )
 
             logger.info(
-                "Question generation completed successfully",
-                extra={"extra_fields": {
-                    "response_length": len(result["response"]),
-                    "questions_count": request.count
-                }}
+                f"Question generation completed successfully - response_length: {len(result['response'])}, questions_count: {request.count}"
             )
 
             return response
         else:
             error_message = result.get("error", "Failed to generate questions")
-            logger.error(
-                "Question generation failed",
-                extra={"extra_fields": {"error": error_message}}
-            )
+            logger.error(f"Question generation failed - error: {error_message}")
             raise HTTPException(status_code=500, detail=error_message)
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(
-            "Question generation request failed",
-            extra={"extra_fields": {
-                "error_type": type(e).__name__,
-                "error_message": str(e)
-            }}
+            f"Question generation request failed - error_type: {type(e).__name__}, error_message: {str(e)}"
         )
         raise HTTPException(status_code=500, detail=str(e))
     finally:

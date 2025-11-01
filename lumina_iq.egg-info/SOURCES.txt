@@ -21,12 +21,15 @@ backend/routes/chat.py
 backend/routes/health.py
 backend/routes/pdf.py
 backend/services/__init__.py
+backend/services/auth_service.py
 backend/services/cache_service.py
 backend/services/celery_service.py
 backend/services/chat_service.py
 backend/services/chunking_service.py
 backend/services/document_service.py
 backend/services/embedding_service.py
+backend/services/health_service.py
+backend/services/pdf_service.py
 backend/services/qdrant_service.py
 backend/services/rag_orchestrator.py
 backend/services/together_service.py

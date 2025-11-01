@@ -30,12 +30,12 @@ class PDFService:
     @staticmethod
     async def extract_text_from_pdf(file_path: str) -> str:
         """Extract text from PDF using document service."""
-        logger.info(f"Starting PDF text extraction", extra={"extra_fields": {"file_path": file_path}})
+        logger.info(f"Starting PDF text extraction - file_path: {file_path}")
 
         # Check cache first
         cached_text = await cache_service.get_cached_api_response("pdf_text", {"file_path": file_path})
         if cached_text:
-            logger.info("Using cached text", extra={"extra_fields": {"file_path": file_path}})
+            logger.info(f"Using cached text - file_path: {file_path}")
             return cached_text
 
         try:
@@ -53,18 +53,12 @@ class PDFService:
                     text
                 )
 
-            logger.info(
-                "Text extraction completed",
-                extra={"extra_fields": {"file_path": file_path, "text_length": len(text)}}
-            )
+            logger.info(f"Text extraction completed - file_path: {file_path}, text_length: {len(text)}")
 
             return text
 
         except Exception as e:
-            logger.error(
-                f"Failed to extract text from PDF: {str(e)}",
-                extra={"extra_fields": {"error_type": type(e).__name__, "file_path": file_path}}
-            )
+            logger.error(f"Failed to extract text from PDF: {str(e)} - error_type: {type(e).__name__}, file_path: {file_path}")
             raise HTTPException(status_code=500, detail=f"Failed to extract text from PDF: {str(e)}")
 
     @staticmethod
@@ -165,7 +159,7 @@ class PDFService:
     @staticmethod
     async def select_pdf(filename: str, token: str) -> Dict[str, Any]:
         """Select a PDF from the books folder for the session."""
-        logger.info(f"Selecting PDF", extra={"extra_fields": {"filename": filename, "token": token[:12]}})
+        logger.info(f"Selecting PDF - filename: {filename}, token: {token[:12]}")
 
         try:
             books_dir = Path(settings.BOOKS_DIR)
@@ -194,7 +188,7 @@ class PDFService:
             storage_manager.safe_set(pdf_metadata, token, metadata)
 
             # Index document for RAG
-            logger.info(f"Indexing document with RAG orchestrator", extra={"extra_fields": {"filename": filename}})
+            logger.info(f"Indexing document with RAG orchestrator - filename: {filename}")
             indexing_result = await rag_orchestrator.ingest_document(
                 file_path=file_path,
                 metadata={"token": token, "source": "select"}
@@ -211,7 +205,7 @@ class PDFService:
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Failed to select PDF: {str(e)}", extra={"extra_fields": {"error_type": type(e).__name__}})
+            logger.error(f"Failed to select PDF: {str(e)} - error_type: {type(e).__name__}")
             raise HTTPException(status_code=500, detail=f"Failed to process PDF: {str(e)}")
 
     @staticmethod
@@ -233,7 +227,7 @@ class PDFService:
     @staticmethod
     async def upload_pdf(file: UploadFile, token: str) -> PDFUploadResponse:
         """Upload a new PDF to the books folder."""
-        logger.info(f"Uploading PDF", extra={"extra_fields": {"filename": file.filename, "token": token[:12]}})
+        logger.info(f"Uploading PDF - filename: {file.filename}, token: {token[:12]}")
 
         if not file.filename.endswith(".pdf"):
             raise HTTPException(status_code=400, detail="Only PDF files are allowed")
@@ -269,7 +263,7 @@ class PDFService:
             storage_manager.safe_set(pdf_metadata, token, metadata)
 
             # Index document for RAG
-            logger.info(f"Indexing uploaded document", extra={"extra_fields": {"filename": unique_filename}})
+            logger.info(f"Indexing uploaded document - filename: {unique_filename}")
             indexing_result = await rag_orchestrator.ingest_document(
                 file_path=file_path,
                 metadata={"token": token, "source": "upload"}
@@ -288,7 +282,7 @@ class PDFService:
             # Clean up file if processing failed
             if file_path.exists():
                 file_path.unlink()
-            logger.error(f"Failed to upload PDF: {str(e)}", extra={"extra_fields": {"error_type": type(e).__name__}})
+            logger.error(f"Failed to upload PDF: {str(e)} - error_type: {type(e).__name__}")
             raise HTTPException(status_code=500, detail=f"Failed to process PDF: {str(e)}")
 
     @staticmethod
