@@ -54,7 +54,7 @@ async def chat(message: ChatMessage, request: Request):
 
         # Use RAG orchestrator to get context and generate response
         result = await rag_orchestrator.query_and_generate(
-            query=message.content,
+            query=message.message,
             count=1,
             mode="chat",
             top_k=5,

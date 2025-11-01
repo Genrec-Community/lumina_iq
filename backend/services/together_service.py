@@ -235,7 +235,7 @@ Generate the questions:"""
                 prompt_template = """Based on the following context, generate {count} practice questions that help understand the key concepts.
 Questions should be open-ended and encourage critical thinking.
 Format each question as:
-Q{num}: [Question]
+Q{{num}}: [Question]
 
 Context:
 {context}

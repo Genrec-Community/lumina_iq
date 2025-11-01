@@ -6,7 +6,11 @@ Handles chat and question generation using LangChain with Together AI.
 
 from typing import List, Dict, Any, Optional
 from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+from langchain.prompts import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
 from config.settings import settings
 from utils.logger import get_logger
@@ -137,15 +141,7 @@ class ChatService:
 
         try:
             logger.info(
-                "Generating questions from context",
-                extra={
-                    "extra_fields": {
-                        "count": count,
-                        "mode": mode,
-                        "topic": topic,
-                        "context_length": len(context),
-                    }
-                },
+                f"Generating questions from context: count={count}, mode={mode}, topic={topic}, context_length={len(context)}"
             )
 
             # Build prompt based on mode
@@ -158,7 +154,7 @@ The distractors (incorrect options) should be plausible but clearly wrong to som
                 user_prompt = """Based on the following context, generate {count} multiple-choice quiz questions.
 
 Each question should follow this format:
-Q{num}: [Question]
+Q{{num}}: [Question]
 A) [Option A]
 B) [Option B]
 C) [Option C]
@@ -182,7 +178,7 @@ Questions should help learners explore concepts, make connections, and apply kno
 
 Each question should be open-ended and encourage critical thinking.
 Format each question as:
-Q{num}: [Question]
+Q{{num}}: [Question]
 
 Context:
 {context}
@@ -245,9 +241,7 @@ Generate the questions now:"""
             )
             raise
 
-    async def summarize_text(
-        self, text: str, max_length: Optional[int] = None
-    ) -> str:
+    async def summarize_text(self, text: str, max_length: Optional[int] = None) -> str:
         """Summarize text using LangChain."""
         if not self.is_initialized or not self.llm:
             raise RuntimeError("Chat service not initialized")
@@ -262,7 +256,9 @@ Generate the questions now:"""
             user_prompt = f"Summarize the following text:\n\n{text}"
 
             if max_length:
-                user_prompt += f"\n\nLimit the summary to approximately {max_length} words."
+                user_prompt += (
+                    f"\n\nLimit the summary to approximately {max_length} words."
+                )
 
             messages = [
                 {"role": "system", "content": system_prompt},

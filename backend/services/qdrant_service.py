@@ -79,6 +79,18 @@ class QdrantService:
             else:
                 logger.info(f"Collection already exists: {self.collection_name}")
 
+            # Create payload index for file_hash field to enable filtering
+            try:
+                self.client.create_payload_index(
+                    collection_name=self.collection_name,
+                    field_name="file_hash",
+                    field_schema="keyword"
+                )
+                logger.info(f"Created payload index for file_hash field")
+            except Exception as index_error:
+                # Index might already exist, which is fine
+                logger.debug(f"Payload index for file_hash may already exist: {str(index_error)}")
+
             self.is_initialized = True
             logger.info("Qdrant service initialized successfully")
 
