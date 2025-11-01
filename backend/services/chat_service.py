@@ -241,6 +241,46 @@ Generate the questions now:"""
             )
             raise
 
+    async def generate_chat_response(
+        self, query: str, context: str
+    ) -> str:
+        """Generate a conversational chat response using RAG context."""
+        if not self.is_initialized or not self.llm:
+            raise RuntimeError("Chat service not initialized")
+
+        try:
+            logger.info(f"Generating chat response - query_length: {len(query)}, context_length: {len(context)}")
+
+            system_prompt = """You are a helpful AI assistant with expertise in the documents provided. 
+Your role is to answer questions conversationally and naturally based on the context given.
+Be concise, accurate, and helpful. If the context doesn't contain enough information to fully answer the question, say so."""
+
+            user_prompt = f"""Context from documents:
+{context[:4000]}
+
+User question: {query}
+
+Please provide a clear, conversational answer based on the context above:"""
+
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ]
+
+            response = await self.generate_response(
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1000,
+            )
+
+            logger.info(f"Generated chat response successfully - response_length: {len(response)}")
+
+            return response
+
+        except Exception as e:
+            logger.error(f"Failed to generate chat response: {str(e)}")
+            raise
+
     async def summarize_text(self, text: str, max_length: Optional[int] = None) -> str:
         """Summarize text using LangChain."""
         if not self.is_initialized or not self.llm:
@@ -248,7 +288,7 @@ Generate the questions now:"""
 
         try:
             logger.debug(
-                f"Summarizing text",
+                "Summarizing text",
                 extra={"extra_fields": {"text_length": len(text)}},
             )
 

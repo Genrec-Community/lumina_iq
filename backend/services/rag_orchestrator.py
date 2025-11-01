@@ -209,17 +209,27 @@ class RAGOrchestrator:
                     "error": "No relevant context found in documents",
                 }
 
-            # Step 2: Generate questions from context
-            questions = await chat_service.generate_questions(
-                context=context,
-                count=count,
-                mode=mode,
-                topic=query,
-            )
+            # Step 2: Generate response based on mode
+            if mode == "chat":
+                # Generate conversational chat response
+                response_text = await chat_service.generate_chat_response(
+                    query=query,
+                    context=context,
+                )
+                logger.info(f"Successfully generated chat response - response_length: {len(response_text)}")
+            else:
+                # Generate questions for quiz/practice modes
+                response_text = await chat_service.generate_questions(
+                    context=context,
+                    count=count,
+                    mode=mode,
+                    topic=query,
+                )
+                logger.info(f"Successfully generated questions - response_length: {len(response_text)}")
 
             result = {
                 "success": True,
-                "response": questions,
+                "response": response_text,
                 "context_length": len(context),
                 "mode": mode,
                 "count": count,
@@ -230,11 +240,6 @@ class RAGOrchestrator:
                 await cache_service.cache_api_response(
                     "query_and_generate", cache_key_params, result
                 )
-
-            logger.info(
-                "Successfully generated questions",
-                extra={"extra_fields": {"response_length": len(questions)}},
-            )
 
             return result
 
