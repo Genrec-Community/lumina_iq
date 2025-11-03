@@ -286,7 +286,7 @@ class RAGOrchestrator:
                 )
             else:
                 # No query, get random documents
-                scroll_result = await qdrant_service.scroll_points(
+                scroll_result = qdrant_service.scroll_points(
                     filter_conditions=filter_conditions,
                     limit=top_k,
                 )

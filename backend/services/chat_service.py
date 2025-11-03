@@ -149,41 +149,51 @@ class ChatService:
                 system_prompt = """You are an expert educational content creator specializing in creating high-quality quiz questions.
 Generate multiple-choice quiz questions that test understanding and critical thinking.
 Each question should be clear, unambiguous, and have only one correct answer.
-The distractors (incorrect options) should be plausible but clearly wrong to someone who understands the material."""
+
+IMPORTANT: Return your response as a JSON object. Do NOT use markdown code blocks, bold, italic, or special formatting INSIDE the question text itself. Keep all question content as plain text."""
 
                 user_prompt = """Based on the following context, generate {count} multiple-choice quiz questions.
 
-Each question should follow this format:
-Q{{num}}: [Question]
-A) [Option A]
-B) [Option B]
-C) [Option C]
-D) [Option D]
-Correct Answer: [A/B/C/D]
-Explanation: [Brief explanation of why this is correct]
+Return your response as a valid JSON object in this EXACT format:
+{{
+  "questions": [
+    "Q1: [Question text in plain text]\\nA) [Option A]\\nB) [Option B]\\nC) [Option C]\\nD) [Option D]\\nCorrect Answer: [A/B/C/D]\\nExplanation: [Brief explanation]",
+    "Q2: [Question text in plain text]\\nA) [Option A]\\nB) [Option B]\\nC) [Option C]\\nD) [Option D]\\nCorrect Answer: [A/B/C/D]\\nExplanation: [Brief explanation]"
+  ]
+}}
 
 Context:
 {context}
 
 {topic_instruction}
+
+CRITICAL: Return ONLY the JSON object, no extra text before or after. Each question should be a single string with newline characters (\\n) separating lines. Do NOT use markdown formatting like backticks, asterisks, or code blocks inside the question text.
 
 Generate the questions now:"""
 
             else:  # practice mode
                 system_prompt = """You are an expert educational content creator specializing in creating thought-provoking practice questions.
 Generate open-ended questions that encourage critical thinking and deep understanding.
-Questions should help learners explore concepts, make connections, and apply knowledge."""
+
+IMPORTANT: Return your response as a JSON object with plain text questions."""
 
                 user_prompt = """Based on the following context, generate {count} practice questions that help understand key concepts.
 
-Each question should be open-ended and encourage critical thinking.
-Format each question as:
-Q{{num}}: [Question]
+Return your response as a valid JSON object in this EXACT format:
+{{
+  "questions": [
+    "Q1: [Question text]",
+    "Q2: [Question text]",
+    "Q3: [Question text]"
+  ]
+}}
 
 Context:
 {context}
 
 {topic_instruction}
+
+CRITICAL: Return ONLY the JSON object, no extra text. Do NOT use markdown formatting inside the questions.
 
 Generate the questions now:"""
 
