@@ -60,7 +60,7 @@ pip install uv && uv sync
 ## Start Command
 
 ```bash
-uv run gunicorn backend.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
+cd /opt/render/project/src/backend && uv run gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
 ```
 
 ## Verify Deployment
@@ -121,7 +121,7 @@ If you're already in Render dashboard:
 1. Go to your service → Settings
 2. Update **Start Command** to:
    ```
-   uv run gunicorn backend.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
+   cd /opt/render/project/src/backend && uv run gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
    ```
 3. Click **Save Changes**
 4. Trigger a new deploy

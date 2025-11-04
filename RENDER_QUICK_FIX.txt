@@ -12,10 +12,10 @@ Change your Render Start Command from:
   uv run gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
 
 To:
-  uv run gunicorn backend.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
+  cd /opt/render/project/src/backend && uv run gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
 
-                       ^^^^^^^^^^^^
-                       Add "backend." here!
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Change to backend directory first!
 
 HOW TO FIX IN RENDER DASHBOARD:
 -------------------------------
@@ -24,7 +24,7 @@ HOW TO FIX IN RENDER DASHBOARD:
 3. Find "Start Command" field
 4. Update it to:
    
-   uv run gunicorn backend.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
+   cd /opt/render/project/src/backend && uv run gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
 
 5. Click "Save Changes"
 6. Deploy will restart automatically

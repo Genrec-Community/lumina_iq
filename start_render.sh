@@ -3,14 +3,14 @@ set -e
 
 echo "Starting Lumina IQ Backend on Render..."
 
-# Set Python path to include the project root
-export PYTHONPATH=/opt/render/project/src:$PYTHONPATH
+# Change to backend directory so imports work correctly
+cd /opt/render/project/src/backend
 
-# Change to project directory
-cd /opt/render/project/src
+# Set Python path to include backend directory
+export PYTHONPATH=/opt/render/project/src/backend:$PYTHONPATH
 
-# Run gunicorn with the correct module path
-uv run gunicorn backend.main:app \
+# Run gunicorn from backend directory
+uv run gunicorn main:app \
   --workers 4 \
   --worker-class uvicorn.workers.UvicornWorker \
   --bind 0.0.0.0:$PORT \
