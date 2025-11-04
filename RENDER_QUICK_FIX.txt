@@ -1,0 +1,47 @@
+==============================================================================
+RENDER DEPLOYMENT - QUICK FIX
+==============================================================================
+
+ERROR YOU'RE SEEING:
+-------------------
+gunicorn.errors.AppImportError: Failed to find attribute 'app' in 'main'.
+
+THE FIX:
+--------
+Change your Render Start Command from:
+  uv run gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
+
+To:
+  cd /opt/render/project/src/backend && uv run gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
+
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Change to backend directory first!
+
+HOW TO FIX IN RENDER DASHBOARD:
+-------------------------------
+1. Go to your Render service
+2. Click "Settings" tab
+3. Find "Start Command" field
+4. Update it to:
+   
+   cd /opt/render/project/src/backend && uv run gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120
+
+5. Click "Save Changes"
+6. Deploy will restart automatically
+
+OR USE render.yaml:
+-------------------
+Push these new files to your repo:
+- render.yaml (auto-configures everything)
+- Procfile (alternative method)
+- start_render.sh (startup script)
+- RENDER_DEPLOYMENT.md (full guide)
+
+Then Render will automatically use the correct configuration!
+
+THAT'S IT!
+----------
+Your deployment will work after this change.
+
+See RENDER_DEPLOYMENT.md for detailed info.
+==============================================================================

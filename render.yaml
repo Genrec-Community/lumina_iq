@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: lumina-iq-backend
+    runtime: python
+    region: oregon
+    plan: starter
+    buildCommand: "pip install uv && uv sync"
+    startCommand: "cd /opt/render/project/src/backend && uv run gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT --timeout 120"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12
+      - key: ENVIRONMENT
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        sync: false
+      - key: TOGETHER_API_KEY
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: QDRANT_COLLECTION_NAME
+        value: lumina_iq_documents_prod
+      - key: EMBEDDING_MODEL
+        value: BAAI/bge-base-en-v1.5
+      - key: EMBEDDING_DIMENSIONS
+        value: 768
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_FORMAT
+        value: json
+      - key: CORS_ORIGINS
+        value: '["*"]'
